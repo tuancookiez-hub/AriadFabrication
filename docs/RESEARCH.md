@@ -113,6 +113,16 @@ API 1.5.0 has five GET paths and 45 schemas with ten date-time format occurrence
 
 Research conclusion: temporal validation must reflect actual lifecycle causality rather than assume every stage begins after revision materialization. The remaining read-integrity gap is complete conformance and cross-file parity for raw PartSpec, manifest, fabrication-package, report, and profile dictionaries; bounded parsing and selected-field checks do not yet prove those complete shapes.
 
+## Persisted schema, lineage, and package parity
+
+M4-K local evidence on 2026-07-16: API 1.6.0 validates current PartSpec, relevant StageEvent, ArtifactManifest, production FabricationPackage, and interface-fixture package objects against allowlisted Draft 2020-12 assets. The schemas are capped, meta-validated, cached, and installed as wheel data. The read repository separately proves exhaustive stage-owned record attachment, unique artifact paths, same-revision acyclic parent lineage, non-future stage inputs/parents, a successful latest Package stage, the exact 19 production roles, manifest descriptor and Package-input parity, warning/status parity, exact parsed package-report bytes, and G-code summary parity.
+
+The raw replay passes seven PartSpecs, 307 relevant events, seven manifests, three production package files, and two production printability reports. Repository replay discovers seven real revisions; six are available with ten inspection reports and eight profiles. The rejected revision is an informative historical defect rather than a validator false positive: its journey ends at R2 after three stages and its manifest records 15 artifacts, but an orphaned R4 package file names 19 required artifacts, fourteen of which do not exist in that manifest. Ariad now exposes the revision as invalid instead of presenting the stale package as evidence.
+
+API 1.6.0 retains five GET paths, 45 schemas, ten date-time format occurrences, and a 68,894-byte OpenAPI snapshot with SHA-256 `2a87af7b378b54058b44deef0ae3bc586e8dc5faae69901e5e129344f1ae7229`. Generated TypeScript remains 36,287 bytes with SHA-256 `87705ed63c19145de5748d1699e46399de4f087b32ba8a8d3fbaeaa23821237f`. The full pinned backend suite passes 116 tests; frontend contract/type checks, eight deterministic tests, lint, and production build pass. A clean wheel environment resolves every schema from its installed `share/ariad-fabrication/schemas/v1` directory. Live loopback evidence preserves the six-observed/two-returned non-snapshot window, exact 178-byte artifact/ETag, and disabled hardware indicators.
+
+Research conclusion: individual file validity does not establish evidence-chain validity. Runtime schema conformance must be paired with referential, lineage, lifecycle, and package-subset checks. The next raw-data gap is full schema coverage for geometry/preflight reports and all four profile types, followed by package profile-ID and packaged-PartSpec parity against checksum-verified artifact contents.
+
 ## Organic meshes and Blender
 
 - [Blender MCP](https://github.com/ahujasid/blender-mcp) — Blender scene, mesh, material, and Python control through MCP.

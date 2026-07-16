@@ -22,6 +22,7 @@ from ..domain import (
     StageStatus,
     transition_stage_run,
 )
+from ..fabrication_contracts import PRODUCTION_PACKAGE_REQUIRED_ROLES
 from .printability import (
     PrintabilityReport,
     VALIDATOR_ID,
@@ -813,29 +814,9 @@ class GoldenPartFabricationPipeline:
             "R4 fabrication package completeness check queued",
         )
         self._transition(journey, package_run.stage_run_id, StageStatus.RUNNING)
-        required_roles = (
-            "part_spec",
-            "cad_parameters",
-            "cad_source",
-            "exact_geometry",
-            "geometry_validation_report",
-            "printer_profile",
-            "material_profile",
-            "process_profile",
-            "orientation_profile",
-            "slicer_profile",
-            "profile_bundle",
-            "printability_policy",
-            "oriented_geometry",
-            "printability_report",
-            "slicer_installation",
-            "slicer_project",
-            "gcode",
-            "gcode_preflight",
-            "slicer_run_report",
-        )
         required_artifacts = [
-            self._artifact_by_role(journey, revision_id, role) for role in required_roles
+            self._artifact_by_role(journey, revision_id, role)
+            for role in PRODUCTION_PACKAGE_REQUIRED_ROLES
         ]
         for artifact in required_artifacts:
             self._verified_artifact_path(revision_directory, artifact)

@@ -407,7 +407,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.5.0";
+            schema_version: "1.6.0";
             /**
              * Service
              * @constant
@@ -679,7 +679,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.5.0";
+            schema_version: "1.6.0";
             /** Summaries */
             summaries: components["schemas"]["ComparisonAreaSummaryView"][];
             /** Total Change Count */
@@ -698,7 +698,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.5.0";
+            schema_version: "1.6.0";
             source: components["schemas"]["SourceView"];
             /** Stages */
             stages: components["schemas"]["StageView"][];
@@ -712,7 +712,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.5.0";
+            schema_version: "1.6.0";
             window: components["schemas"]["RevisionListWindowView"];
         };
         /** RevisionListWindowView */

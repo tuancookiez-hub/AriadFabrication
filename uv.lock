@@ -183,6 +183,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "fastapi" },
+    { name = "jsonschema" },
     { name = "uvicorn" },
 ]
 
@@ -193,7 +194,6 @@ cad = [
 ]
 test = [
     { name = "httpx2" },
-    { name = "jsonschema" },
     { name = "ruff" },
 ]
 
@@ -203,7 +203,7 @@ requires-dist = [
     { name = "cadquery-ocp", marker = "extra == 'cad'", specifier = "==7.9.3.1.1" },
     { name = "fastapi", specifier = ">=0.115,<1" },
     { name = "httpx2", marker = "extra == 'test'", specifier = ">=2.7,<3" },
-    { name = "jsonschema", marker = "extra == 'test'", specifier = ">=4.23,<5" },
+    { name = "jsonschema", specifier = ">=4.23,<5" },
     { name = "ruff", marker = "extra == 'test'", specifier = ">=0.15.21,<1" },
     { name = "uvicorn", specifier = ">=0.34,<1" },
 ]

@@ -32,12 +32,29 @@
     "revision_id": {"type": "string", "minLength": 1},
     "profile_ids": {
       "type": "object",
-      "required": ["printer", "printer_family", "material", "process", "orientation"]
+      "additionalProperties": false,
+      "required": ["printer", "printer_family", "material", "process", "orientation"],
+      "properties": {
+        "printer": {"type": "string", "minLength": 1},
+        "printer_family": {"type": "string", "minLength": 1},
+        "material": {"type": "string", "minLength": 1},
+        "process": {"type": "string", "minLength": 1},
+        "orientation": {"type": "string", "minLength": 1}
+      }
     },
     "slicer": {"type": "object", "minProperties": 1},
-    "gcode_summary": {"type": "object", "minProperties": 1},
+    "gcode_summary": {
+      "type": "object",
+      "required": ["path", "checksum_sha256", "size_bytes"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "checksum_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "size_bytes": {"type": "integer", "minimum": 0}
+      }
+    },
     "preflight": {
       "type": "object",
+      "additionalProperties": false,
       "required": ["passed", "checks", "errors", "warnings", "claim_boundary"],
       "properties": {
         "passed": {"const": true},
@@ -51,6 +68,7 @@
     "required_artifacts": {
       "type": "array",
       "minItems": 19,
+      "maxItems": 19,
       "items": {
         "type": "object",
         "additionalProperties": false,

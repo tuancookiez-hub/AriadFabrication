@@ -24,6 +24,16 @@ from ..domain import (
     JobStatus,
     StageStatus,
 )
+from ..fabrication_contracts import PRODUCTION_PACKAGE_REQUIRED_ROLE_SET
+from ..schema_validation import (
+    ARTIFACT_MANIFEST_SCHEMA,
+    FABRICATION_PACKAGE_SCHEMA,
+    INTERFACE_FABRICATION_PACKAGE_SCHEMA,
+    JOURNEY_EVENT_SCHEMA,
+    PART_SPEC_SCHEMA,
+    PersistedSchemaValidationError,
+    validate_persisted_instance,
+)
 from .bounded_io import (
     BoundedFileMissingError,
     BoundedFileSizeMismatchError,
@@ -164,6 +174,12 @@ class VerifiedArtifactSnapshot:
     checksum_sha256: str
     size_bytes: int
     evidence_mode: str
+
+
+@dataclass(frozen=True)
+class _JsonSnapshot:
+    value: dict[str, Any]
+    payload: bytes
 
 
 @dataclass(frozen=True)
@@ -538,11 +554,12 @@ class JourneyRepository:
         manifest = _load_json(
             revision_root / "manifest.json", required=False, confined_to=revision_root
         )
-        package = _load_json(
+        package_snapshot = _load_json_snapshot(
             revision_root / "fabrication" / "package.json",
             required=False,
             confined_to=revision_root,
         )
+        package = package_snapshot.value if package_snapshot is not None else None
         fixture = _load_json(
             revision_root / "fixture.json", required=False, confined_to=revision_root
         )
@@ -658,6 +675,38 @@ class JourneyRepository:
             approvals=approvals,
             package=package,
             fixture=fixture is not None,
+        )
+        self._validate_persisted_schemas(
+            revision_id=revision_id,
+            revision=revision,
+            manifest=manifest,
+            package=package,
+            fixture=fixture is not None,
+            stage_ids=stage_ids,
+            events=events,
+        )
+        self._validate_record_graph(
+            job_id=job_id,
+            revision_id=revision_id,
+            stage_ids=stage_ids,
+            stage_runs=stage_runs,
+            events=events,
+            artifacts=artifacts,
+            findings=findings,
+            decisions=decisions,
+            approvals=approvals,
+        )
+        self._validate_package_consistency(
+            package=package,
+            package_payload=(
+                package_snapshot.payload if package_snapshot is not None else None
+            ),
+            manifest=manifest,
+            fixture=fixture is not None,
+            stage_ids=stage_ids,
+            stage_runs=stage_runs,
+            artifacts=artifacts,
+            findings=findings,
         )
         return _LoadedRevision(
             root=revision_root,
@@ -1167,6 +1216,429 @@ class JourneyRepository:
                 raise InvalidRevisionError(
                     "manifest.generated_at cannot precede persisted records"
                 )
+
+    def _validate_persisted_schemas(
+        self,
+        *,
+        revision_id: str,
+        revision: dict[str, Any],
+        manifest: dict[str, Any] | None,
+        package: dict[str, Any] | None,
+        fixture: bool,
+        stage_ids: list[str],
+        events: dict[str, dict[str, Any]],
+    ) -> None:
+        try:
+            validate_persisted_instance(
+                revision.get("spec"),
+                PART_SPEC_SCHEMA,
+                record_name="revision PartSpec",
+            )
+            stage_id_set = set(stage_ids)
+            relevant_events = {
+                event_id: event
+                for event_id, event in events.items()
+                if event.get("stage_run_id") in stage_id_set
+                or event.get("revision_id") == revision_id
+            }
+            for event_id in sorted(relevant_events):
+                validate_persisted_instance(
+                    relevant_events[event_id],
+                    JOURNEY_EVENT_SCHEMA,
+                    record_name=f"journey event {event_id!r}",
+                )
+            if manifest is not None:
+                validate_persisted_instance(
+                    manifest,
+                    ARTIFACT_MANIFEST_SCHEMA,
+                    record_name="artifact manifest",
+                )
+            if package is not None:
+                validate_persisted_instance(
+                    package,
+                    (
+                        INTERFACE_FABRICATION_PACKAGE_SCHEMA
+                        if fixture
+                        else FABRICATION_PACKAGE_SCHEMA
+                    ),
+                    record_name="fabrication package",
+                )
+        except PersistedSchemaValidationError as exc:
+            raise InvalidRevisionError(str(exc)) from exc
+
+    def _validate_record_graph(
+        self,
+        *,
+        job_id: str,
+        revision_id: str,
+        stage_ids: list[str],
+        stage_runs: dict[str, dict[str, Any]],
+        events: dict[str, dict[str, Any]],
+        artifacts: dict[str, dict[str, Any]],
+        findings: dict[str, dict[str, Any]],
+        decisions: dict[str, dict[str, Any]],
+        approvals: dict[str, dict[str, Any]],
+    ) -> None:
+        stage_id_set = set(stage_ids)
+        owned_stage_ids = {
+            stage_id
+            for stage_id, stage in stage_runs.items()
+            if stage.get("job_id") == job_id
+            and stage.get("revision_id") == revision_id
+        }
+        if owned_stage_ids != stage_id_set:
+            missing = sorted(owned_stage_ids - stage_id_set)
+            extra = sorted(stage_id_set - owned_stage_ids)
+            if missing:
+                raise InvalidRevisionError(
+                    f"revision omits owned stage run {missing[0]!r}"
+                )
+            raise InvalidRevisionError(
+                f"revision lists non-owned stage run {extra[0]!r}"
+            )
+
+        def referenced(field: str) -> set[str]:
+            result: set[str] = set()
+            for stage_id in stage_ids:
+                result.update(
+                    _string_list(
+                        stage_runs[stage_id].get(field),
+                        f"stage.{field}",
+                    )
+                )
+            return result
+
+        expected_events = {
+            event_id
+            for event_id, event in events.items()
+            if event.get("stage_run_id") in stage_id_set
+            or event.get("revision_id") == revision_id
+        }
+        expected_stage_decisions = {
+            record_id
+            for record_id, record in decisions.items()
+            if record.get("stage_run_id") is not None
+        }
+        expected_stage_approvals = {
+            record_id
+            for record_id, record in approvals.items()
+            if record.get("stage_run_id") is not None
+        }
+        coverage = (
+            ("event", expected_events, referenced("event_ids")),
+            ("artifact", set(artifacts), referenced("artifact_ids")),
+            ("finding", set(findings), referenced("finding_ids")),
+            (
+                "stage-scoped decision",
+                expected_stage_decisions,
+                referenced("decision_ids"),
+            ),
+            (
+                "stage-scoped approval",
+                expected_stage_approvals,
+                referenced("approval_ids"),
+            ),
+        )
+        for record_name, expected, observed in coverage:
+            missing = sorted(expected - observed)
+            extra = sorted(observed - expected)
+            if missing:
+                raise InvalidRevisionError(
+                    f"revision contains unreferenced {record_name} {missing[0]!r}"
+                )
+            if extra:
+                raise InvalidRevisionError(
+                    f"revision stage references foreign {record_name} {extra[0]!r}"
+                )
+
+        stage_position = {
+            stage_id: position for position, stage_id in enumerate(stage_ids)
+        }
+        for stage_id in stage_ids:
+            for artifact_id in _string_list(
+                stage_runs[stage_id].get("input_artifact_ids"),
+                "stage.input_artifact_ids",
+            ):
+                artifact = artifacts[artifact_id]
+                producer_stage = _text(
+                    artifact.get("stage_run_id"), "artifact.stage_run_id"
+                )
+                if stage_position[producer_stage] > stage_position[stage_id]:
+                    raise InvalidRevisionError(
+                        "stage input artifacts cannot be produced by a later stage"
+                    )
+
+        artifact_paths: dict[str, str] = {}
+        children: dict[str, list[str]] = {artifact_id: [] for artifact_id in artifacts}
+        indegree: dict[str, int] = {artifact_id: 0 for artifact_id in artifacts}
+        for artifact_id, artifact in artifacts.items():
+            path = _text(artifact.get("path"), "artifact.path").replace("\\", "/")
+            path_key = PurePosixPath(path).as_posix().casefold()
+            existing = artifact_paths.get(path_key)
+            if existing is not None:
+                raise InvalidRevisionError(
+                    f"artifact path {path!r} is shared by {existing!r} and {artifact_id!r}"
+                )
+            artifact_paths[path_key] = artifact_id
+            child_stage = _text(
+                artifact.get("stage_run_id"), "artifact.stage_run_id"
+            )
+            child_created_at = _datetime_value(
+                artifact.get("created_at"), "artifact.created_at"
+            )
+            for parent_id in _string_list(
+                artifact.get("parent_artifact_ids"),
+                "artifact.parent_artifact_ids",
+            ):
+                parent = artifacts.get(parent_id)
+                if parent is None:
+                    raise InvalidRevisionError(
+                        f"artifact {artifact_id!r} references missing parent {parent_id!r}"
+                    )
+                parent_stage = _text(
+                    parent.get("stage_run_id"), "artifact.stage_run_id"
+                )
+                if stage_position[parent_stage] > stage_position[child_stage]:
+                    raise InvalidRevisionError(
+                        "artifact lineage cannot point to a later stage"
+                    )
+                parent_created_at = _datetime_value(
+                    parent.get("created_at"), "artifact.created_at"
+                )
+                if parent_created_at > child_created_at:
+                    raise InvalidRevisionError(
+                        "artifact parent creation cannot follow its child"
+                    )
+                children[parent_id].append(artifact_id)
+                indegree[artifact_id] += 1
+
+        ready = sorted(
+            artifact_id for artifact_id, degree in indegree.items() if degree == 0
+        )
+        visited = 0
+        while ready:
+            artifact_id = ready.pop()
+            visited += 1
+            for child_id in children[artifact_id]:
+                indegree[child_id] -= 1
+                if indegree[child_id] == 0:
+                    ready.append(child_id)
+        if visited != len(artifacts):
+            cycle_member = sorted(
+                artifact_id for artifact_id, degree in indegree.items() if degree > 0
+            )[0]
+            raise InvalidRevisionError(
+                f"artifact lineage contains a cycle involving {cycle_member!r}"
+            )
+
+    def _validate_package_consistency(
+        self,
+        *,
+        package: dict[str, Any] | None,
+        package_payload: bytes | None,
+        manifest: dict[str, Any] | None,
+        fixture: bool,
+        stage_ids: list[str],
+        stage_runs: dict[str, dict[str, Any]],
+        artifacts: dict[str, dict[str, Any]],
+        findings: dict[str, dict[str, Any]],
+    ) -> None:
+        package_stage_ids = [
+            stage_id
+            for stage_id in stage_ids
+            if stage_runs[stage_id].get("stage")
+            == FabricationStage.FABRICATION_PACKAGE.value
+        ]
+        successful_stage_ids = [
+            stage_id
+            for stage_id in package_stage_ids
+            if stage_runs[stage_id].get("status")
+            in {StageStatus.PASSED.value, StageStatus.PASSED_WITH_WARNINGS.value}
+        ]
+        if package is None:
+            if successful_stage_ids:
+                raise InvalidRevisionError(
+                    "a successful fabrication-package stage requires package.json"
+                )
+            return
+        if manifest is None and not fixture:
+            raise InvalidRevisionError(
+                "a fabrication package requires an artifact manifest"
+            )
+        if len(successful_stage_ids) != 1:
+            raise InvalidRevisionError(
+                "a fabrication package requires exactly one successful package stage"
+            )
+        package_stage_id = successful_stage_ids[0]
+        if not package_stage_ids or package_stage_ids[-1] != package_stage_id:
+            raise InvalidRevisionError(
+                "package.json does not belong to the latest package-stage attempt"
+            )
+        package_stage = stage_runs[package_stage_id]
+        if package_stage.get("evidence_level") != EvidenceLevel.R4.value:
+            raise InvalidRevisionError(
+                "a successful fabrication-package stage must record R4"
+            )
+
+        warning_findings = {
+            finding_id: finding
+            for finding_id, finding in findings.items()
+            if finding.get("severity") == FindingSeverity.WARNING.value
+            and finding.get("resolved") is False
+        }
+        expected_stage_status = (
+            StageStatus.PASSED_WITH_WARNINGS.value
+            if warning_findings
+            else StageStatus.PASSED.value
+        )
+        if package_stage.get("status") != expected_stage_status:
+            raise InvalidRevisionError(
+                "package stage status does not match unresolved warning findings"
+            )
+
+        if fixture:
+            package_warning_ids = set(
+                _string_list(
+                    package.get("unresolved_warning_findings"),
+                    "package.unresolved_warning_findings",
+                )
+            )
+            if package_warning_ids != set(warning_findings):
+                raise InvalidRevisionError(
+                    "fixture package warning ids differ from unresolved findings"
+                )
+            return
+
+        if package_stage.get("evidence_mode") != EvidenceMode.REAL.value:
+            raise InvalidRevisionError(
+                "a production fabrication package requires real stage evidence"
+            )
+        required_artifacts = _indexed(
+            package.get("required_artifacts"),
+            "artifact_id",
+            "package.required_artifacts",
+        )
+        required_by_role: dict[str, dict[str, Any]] = {}
+        for descriptor in required_artifacts.values():
+            role = _text(descriptor.get("role"), "package artifact role")
+            if role in required_by_role:
+                raise InvalidRevisionError(
+                    f"package.required_artifacts duplicates role {role!r}"
+                )
+            required_by_role[role] = descriptor
+        if set(required_by_role) != PRODUCTION_PACKAGE_REQUIRED_ROLE_SET:
+            missing = sorted(
+                PRODUCTION_PACKAGE_REQUIRED_ROLE_SET - set(required_by_role)
+            )
+            extra = sorted(set(required_by_role) - PRODUCTION_PACKAGE_REQUIRED_ROLE_SET)
+            detail = f"missing {missing[0]!r}" if missing else f"unexpected {extra[0]!r}"
+            raise InvalidRevisionError(
+                f"package.required_artifacts has an incomplete role set: {detail}"
+            )
+
+        for artifact_id, descriptor in required_artifacts.items():
+            artifact = artifacts.get(artifact_id)
+            if artifact is None:
+                raise InvalidRevisionError(
+                    f"package references artifact absent from manifest: {artifact_id!r}"
+                )
+            for field in ("role", "path", "size_bytes", "checksum_sha256"):
+                if descriptor.get(field) != artifact.get(field):
+                    raise InvalidRevisionError(
+                        f"package artifact {artifact_id!r} differs from manifest field {field!r}"
+                    )
+            if artifact.get("evidence_mode") != EvidenceMode.REAL.value:
+                raise InvalidRevisionError(
+                    "production package artifacts must use real evidence mode"
+                )
+
+        package_inputs = set(
+            _string_list(
+                package_stage.get("input_artifact_ids"),
+                "package stage input_artifact_ids",
+            )
+        )
+        if package_inputs != set(required_artifacts):
+            raise InvalidRevisionError(
+                "package stage inputs differ from package.required_artifacts"
+            )
+
+        package_warning_findings = _indexed(
+            package.get("unresolved_warning_findings"),
+            "finding_id",
+            "package.unresolved_warning_findings",
+        )
+        if package_warning_findings != warning_findings:
+            raise InvalidRevisionError(
+                "package warning records differ from unresolved manifest findings"
+            )
+        expected_package_status = (
+            PackageStatus.SLICER_VERIFIED_WITH_PHYSICAL_UNKNOWNS.value
+            if warning_findings
+            else PackageStatus.SLICER_VERIFIED.value
+        )
+        if package.get("status") != expected_package_status:
+            raise InvalidRevisionError(
+                "package status does not match unresolved warning findings"
+            )
+
+        package_artifacts = [
+            artifact
+            for artifact in artifacts.values()
+            if artifact.get("role") == "fabrication_package_report"
+        ]
+        if len(package_artifacts) != 1:
+            raise InvalidRevisionError(
+                "production package requires one fabrication_package_report artifact"
+            )
+        package_artifact = package_artifacts[0]
+        if (
+            package_artifact.get("stage_run_id") != package_stage_id
+            or package_artifact.get("path") != "fabrication/package.json"
+            or package_artifact.get("evidence_mode") != EvidenceMode.REAL.value
+        ):
+            raise InvalidRevisionError(
+                "fabrication_package_report ownership or classification is invalid"
+            )
+        if package_payload is None:
+            raise InvalidRevisionError("package.json has no verified read snapshot")
+        if package_artifact.get("size_bytes") != len(package_payload):
+            raise InvalidRevisionError(
+                "fabrication_package_report size differs from package.json"
+            )
+        if package_artifact.get("checksum_sha256") != hashlib.sha256(
+            package_payload
+        ).hexdigest():
+            raise InvalidRevisionError(
+                "fabrication_package_report checksum differs from package.json"
+            )
+
+        gcode_descriptor = required_by_role["gcode"]
+        gcode_summary = _mapping(
+            package.get("gcode_summary"), "package.gcode_summary"
+        )
+        if gcode_summary.get("checksum_sha256") != gcode_descriptor.get(
+            "checksum_sha256"
+        ):
+            raise InvalidRevisionError(
+                "package G-code summary checksum differs from the manifest"
+            )
+        if gcode_summary.get("size_bytes") != gcode_descriptor.get("size_bytes"):
+            raise InvalidRevisionError(
+                "package G-code summary size differs from the manifest"
+            )
+        summary_path = _text(gcode_summary.get("path"), "package.gcode_summary.path")
+        if "/" in summary_path or "\\" in summary_path:
+            raise InvalidRevisionError(
+                "package G-code summary path must contain only the artifact filename"
+            )
+        artifact_filename = PurePosixPath(
+            _text(gcode_descriptor.get("path"), "package G-code artifact path")
+        ).name
+        if summary_path != artifact_filename:
+            raise InvalidRevisionError(
+                "package G-code summary path differs from the manifest"
+            )
 
     def _stage_view(self, loaded: _LoadedRevision, stage_id: str) -> StageView:
         stage = loaded.stage_runs[stage_id]
@@ -2055,6 +2527,20 @@ def _load_json(
     required: bool,
     confined_to: Path,
 ) -> dict[str, Any] | None:
+    snapshot = _load_json_snapshot(
+        path,
+        required=required,
+        confined_to=confined_to,
+    )
+    return snapshot.value if snapshot is not None else None
+
+
+def _load_json_snapshot(
+    path: Path,
+    *,
+    required: bool,
+    confined_to: Path,
+) -> _JsonSnapshot | None:
     resolved = path.resolve()
     if not resolved.is_relative_to(confined_to):
         raise InvalidRevisionError(f"persisted record {path.name!r} escapes its revision")
@@ -2092,7 +2578,7 @@ def _load_json(
         raise InvalidRevisionError(
             f"persisted record {path.name!r} exceeds the JSON complexity limit"
         )
-    return value
+    return _JsonSnapshot(value=value, payload=payload)
 
 
 def _indexed(value: Any, id_field: str, name: str) -> dict[str, dict[str, Any]]:
