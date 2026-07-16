@@ -7,8 +7,8 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict
 
 
-InterfaceApiVersion = Literal["1.0.0"]
-INTERFACE_API_VERSION: InterfaceApiVersion = "1.0.0"
+InterfaceApiVersion = Literal["1.1.0"]
+INTERFACE_API_VERSION: InterfaceApiVersion = "1.1.0"
 
 
 class ApiModel(BaseModel):
@@ -128,6 +128,97 @@ class PackageView(ApiModel):
     unresolved_warning_count: int
 
 
+class InspectionArtifactView(ApiModel):
+    artifact_id: str
+    role: str
+    checksum_sha256: str
+    size_bytes: int
+    producer: str
+    producer_version: str
+    evidence_mode: Literal["real", "simulated", "fixture", "unavailable"]
+    checksum_verified: Literal[True]
+
+
+class InspectionCheckView(ApiModel):
+    check_id: str
+    category: str | None
+    description: str
+    passed: bool
+    actual: Any
+    requirement: Any
+    tolerance_mm: float | None
+    remediation: str | None
+
+
+class InspectionMessageView(ApiModel):
+    severity: Literal["warning", "error"]
+    code: str | None
+    title: str
+    message: str
+    remediation: str | None
+
+
+class InspectionFeatureView(ApiModel):
+    feature_id: str
+    kind: str
+    dimensions_mm: dict[str, float]
+    quantity: int
+    tolerance_mm: float | None
+    required: bool
+    notes: str | None
+    source: Literal["persisted_revision_spec"]
+    fixture: bool
+
+
+class InspectionReportView(ApiModel):
+    report_kind: Literal["geometry", "printability", "gcode_preflight"]
+    title: str
+    artifact: InspectionArtifactView
+    schema_version: str | None
+    status: str | None
+    passed: bool | None
+    evidence_level: str | None
+    claim_boundary: str | None
+    measurements: dict[str, Any]
+    checks: list[InspectionCheckView]
+    messages: list[InspectionMessageView]
+
+
+class InspectionProfileView(ApiModel):
+    profile_kind: Literal["printer", "material", "process", "orientation"]
+    artifact: InspectionArtifactView
+    profile_id: str
+    name: str
+    status: str
+    claim_boundary: str | None
+    values: dict[str, Any]
+
+
+class InspectionUnavailableView(ApiModel):
+    role: str
+    artifact_id: str | None
+    checksum_sha256: str | None
+    reason: Literal[
+        "multiple_records",
+        "file_missing",
+        "size_limit",
+        "size_mismatch",
+        "checksum_mismatch",
+        "invalid_json",
+        "unsupported_shape",
+    ]
+    message: str
+
+
+class InspectionView(ApiModel):
+    features: list[InspectionFeatureView]
+    reports: list[InspectionReportView]
+    profiles: list[InspectionProfileView]
+    unavailable: list[InspectionUnavailableView]
+    max_json_bytes: int
+    claim_boundary: str
+
+
 class RevisionSummary(ApiModel):
     job_id: str
     revision_id: str
@@ -179,6 +270,7 @@ class RevisionDetailResponse(ApiModel):
     revision: RevisionView
     stages: list[StageView]
     package: PackageView | None
+    inspection: InspectionView
 
 
 def read_only_capabilities() -> CapabilitiesView:

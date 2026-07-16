@@ -19,6 +19,146 @@
       "role": "interface_fixture_note",
       "size_bytes": 178,
       "stage_run_id": "run_fixture_fabrication_package"
+    },
+    {
+      "artifact_id": "art_fixture_geometry_report",
+      "checksum_sha256": "fd09214643a6d4832388a15a7865633e529713e9823d217803d3fdf0f3e5168e",
+      "created_at": "2026-07-16T08:00:00+00:00",
+      "evidence_mode": "fixture",
+      "job_id": "job_interface_fixture",
+      "media_type": "application/json",
+      "metadata": {
+        "classification": "interface_fixture",
+        "format": "json"
+      },
+      "parent_artifact_ids": [],
+      "path": "design/geometry_validation.json",
+      "producer": "ariad_interface_fixture_generator",
+      "producer_version": "1.0.0",
+      "revision_id": "rev_interface_fixture",
+      "role": "geometry_validation_report",
+      "size_bytes": 1093,
+      "stage_run_id": "run_fixture_geometry_validation"
+    },
+    {
+      "artifact_id": "art_fixture_printer_profile",
+      "checksum_sha256": "0c3d3e4932a7ca836c2487184b86d2d1fe995f8b8909432f323c29e314c03ac0",
+      "created_at": "2026-07-16T08:00:00+00:00",
+      "evidence_mode": "fixture",
+      "job_id": "job_interface_fixture",
+      "media_type": "application/json",
+      "metadata": {
+        "classification": "interface_fixture",
+        "format": "json"
+      },
+      "parent_artifact_ids": [],
+      "path": "profiles/printer.json",
+      "producer": "ariad_interface_fixture_generator",
+      "producer_version": "1.0.0",
+      "revision_id": "rev_interface_fixture",
+      "role": "printer_profile",
+      "size_bytes": 468,
+      "stage_run_id": "run_fixture_printability_validation"
+    },
+    {
+      "artifact_id": "art_fixture_material_profile",
+      "checksum_sha256": "82720d46581b3370d3311722f08dada360856c68c08c6e9a08cf4d885e9afcdf",
+      "created_at": "2026-07-16T08:00:00+00:00",
+      "evidence_mode": "fixture",
+      "job_id": "job_interface_fixture",
+      "media_type": "application/json",
+      "metadata": {
+        "classification": "interface_fixture",
+        "format": "json"
+      },
+      "parent_artifact_ids": [],
+      "path": "profiles/material.json",
+      "producer": "ariad_interface_fixture_generator",
+      "producer_version": "1.0.0",
+      "revision_id": "rev_interface_fixture",
+      "role": "material_profile",
+      "size_bytes": 483,
+      "stage_run_id": "run_fixture_printability_validation"
+    },
+    {
+      "artifact_id": "art_fixture_process_profile",
+      "checksum_sha256": "4477730d6b2bb490daef0487f757d61a322828f11965705b9aa0d24403dc200d",
+      "created_at": "2026-07-16T08:00:00+00:00",
+      "evidence_mode": "fixture",
+      "job_id": "job_interface_fixture",
+      "media_type": "application/json",
+      "metadata": {
+        "classification": "interface_fixture",
+        "format": "json"
+      },
+      "parent_artifact_ids": [],
+      "path": "profiles/process.json",
+      "producer": "ariad_interface_fixture_generator",
+      "producer_version": "1.0.0",
+      "revision_id": "rev_interface_fixture",
+      "role": "process_profile",
+      "size_bytes": 447,
+      "stage_run_id": "run_fixture_printability_validation"
+    },
+    {
+      "artifact_id": "art_fixture_orientation_profile",
+      "checksum_sha256": "8bf47da18e1945a4801430616cd16b745d9f485cd1bfbb4cd8105cd58177e11e",
+      "created_at": "2026-07-16T08:00:00+00:00",
+      "evidence_mode": "fixture",
+      "job_id": "job_interface_fixture",
+      "media_type": "application/json",
+      "metadata": {
+        "classification": "interface_fixture",
+        "format": "json"
+      },
+      "parent_artifact_ids": [],
+      "path": "profiles/orientation.json",
+      "producer": "ariad_interface_fixture_generator",
+      "producer_version": "1.0.0",
+      "revision_id": "rev_interface_fixture",
+      "role": "orientation_profile",
+      "size_bytes": 412,
+      "stage_run_id": "run_fixture_printability_validation"
+    },
+    {
+      "artifact_id": "art_fixture_printability_report",
+      "checksum_sha256": "d08f2be2583be866e7a70bd865bc64c669fdeb07dd13858b0ce59ddfd0b02993",
+      "created_at": "2026-07-16T08:00:00+00:00",
+      "evidence_mode": "fixture",
+      "job_id": "job_interface_fixture",
+      "media_type": "application/json",
+      "metadata": {
+        "classification": "interface_fixture",
+        "format": "json"
+      },
+      "parent_artifact_ids": [],
+      "path": "printability/report.json",
+      "producer": "ariad_interface_fixture_generator",
+      "producer_version": "1.0.0",
+      "revision_id": "rev_interface_fixture",
+      "role": "printability_report",
+      "size_bytes": 1794,
+      "stage_run_id": "run_fixture_printability_validation"
+    },
+    {
+      "artifact_id": "art_fixture_gcode_preflight",
+      "checksum_sha256": "def373a03b879d9ce205e51b84fa0821775b2d7c08962f5ddfab3ad3a67da85b",
+      "created_at": "2026-07-16T08:00:00+00:00",
+      "evidence_mode": "fixture",
+      "job_id": "job_interface_fixture",
+      "media_type": "application/json",
+      "metadata": {
+        "classification": "interface_fixture",
+        "format": "json"
+      },
+      "parent_artifact_ids": [],
+      "path": "slicing/gcode_preflight.json",
+      "producer": "ariad_interface_fixture_generator",
+      "producer_version": "1.0.0",
+      "revision_id": "rev_interface_fixture",
+      "role": "gcode_preflight",
+      "size_bytes": 815,
+      "stage_run_id": "run_fixture_slicing"
     }
   ],
   "decisions": [],

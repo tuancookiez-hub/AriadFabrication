@@ -1,0 +1,14 @@
+{
+  "claim_boundary": "Interface fixture values demonstrate evidence presentation only. They are not CAD, slicer, manufacturing, or physical evidence.",
+  "fan_percent": {
+    "maximum": 50,
+    "minimum": 30
+  },
+  "material_type": "PETG",
+  "name": "Fixture PETG values",
+  "profile_id": "fixture_petg_v1",
+  "schema_version": "1.0.0-interface-fixture",
+  "selected_bed_temperature_c": 90.0,
+  "selected_nozzle_temperature_c": 240.0,
+  "status": "interface_fixture_uncalibrated"
+}

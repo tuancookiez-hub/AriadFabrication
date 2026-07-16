@@ -6,9 +6,9 @@
 
 ## Immediate objective
 
-Continue proving the read-only Fabrication Journey before adding mutation or model-driven generation. Python/TypeScript drift now fails CI; the next slices should expose richer persisted geometry/profile/check details, add revision comparison, and close browser-level visual and interaction verification without weakening the M4 evidence contract.
+Continue proving the read-only Fabrication Journey before adding mutation or model-driven generation. Contract drift and detailed evidence replay now fail closed; the next slices should add persisted revision comparison and close browser-level visual and interaction verification without weakening the M4 evidence contract.
 
-## M4-A through M4-C implemented
+## M4-A through M4-D implemented
 
 - Added a FastAPI 0.139.1 / Uvicorn 0.51.0 application boundary that binds to loopback and exposes only health, revision-list, revision-detail, and checksum-verified artifact reads.
 - Added a fail-closed repository reader with ID/path confinement, optional-manifest handling for incomplete journeys, ownership checks, manifest/journey consistency checks, compact package summaries, and no hardware endpoint.
@@ -18,8 +18,10 @@ Continue proving the read-only Fabrication Journey before adding mutation or mod
 - Added a bounded Web Worker G-code parser and top-down layer player with manual/reduced-motion controls, travel/extrusion distinction, 64 MiB / one-million-segment ceilings, layer sampling, omitted-arc disclosure, and an explicit manufacturing-playback boundary.
 - Added separate production/test TypeScript configurations, frontend lint, deterministic component/parser tests, environment-gated real GLB/G-code integration tests, production build, backend API/fixture/integrity tests, and lightweight GitHub Actions jobs.
 - Added a canonical committed OpenAPI 3.1 snapshot, exact `openapi-typescript` 7.13.0 generation, generated response aliases in the browser, required-field and read-only contract tests, and backend/frontend CI drift checks. The runtime API does not expose documentation, schema, or mutation routes.
+- Added API 1.1 bounded evidence replay for persisted specification features, geometry/printability/preflight checks, four profile types, report messages, measurements, source checksums, and explicit unavailable reasons. Known JSON reports are capped at 2 MiB, 500 checks, 100 messages/features, 128 fields, depth 16, and 20,000 nodes; listing cards do not parse detail reports.
+- Added a browser evidence explorer with selectable feature, check, finding, profile, and artifact records. It exposes full recorded SHA-256 values and distinguishes checks verified before parsing from artifacts verified when opened; it explicitly does not spatially inspect STEP or rerun validation.
 - Verified the API reads the existing ignored real R2/R4 revisions without changing their evidence and serves the compact fixture over HTTP with `hardware_actions: false`.
-- Verified all 70 backend tests pass in the pinned CAD/slicer environment. The frontend lockfile passes its release-age and peer policies; OpenAPI-generated-type drift, test and production TypeScript checks, ESLint, four deterministic tests, two real-artifact integration tests, and the Vite production build pass. Live Vite-proxied HTTP reads returned the real 241,324-byte GLB and 5,182,593-byte G-code with `evidence-mode: real` and `hardware-action: false`.
+- Verified all 72 backend tests pass in the pinned CAD/slicer environment. The frontend lockfile passes its release-age and peer policies; OpenAPI-generated-type drift, test and production TypeScript checks, ESLint, five deterministic tests, two real-artifact integration tests, and the Vite production build pass. The evidence reader replayed 61 real checks plus four profiles from an existing ignored R4 revision, and live Vite-proxied HTTP reads returned the real 241,324-byte GLB and 5,182,593-byte G-code with `evidence-mode: real` and `hardware-action: false`.
 - Recorded anime.js, Motion.dev, Kokonut UI, Bklit UI, and Manus.im as deferred visual references rather than installed dependencies.
 
 ## M3 completed
@@ -40,11 +42,10 @@ Continue proving the read-only Fabrication Journey before adding mutation or mod
 
 ## Next actions
 
-1. Add exact/oriented geometry metadata, profile/preflight reports, full checksum details, and feature/finding selection to the inspector.
-2. Add persisted revision comparison without recomputing or promoting evidence in the browser.
-3. Perform visual browser QA across desktop/mobile widths and keyboard/reduced-motion paths once the local in-app browser runtime conflict is resolved.
-4. Add event streaming and browser-triggered Golden Part execution only after read contracts, cancellation, idempotency, and failure semantics are frozen.
-5. Evaluate the deferred animation/component references against accessibility, maintenance, bundle size, overlap, license, and removal criteria before adopting any.
+1. Add persisted revision comparison without recomputing or promoting evidence in the browser.
+2. Perform visual browser QA across desktop/mobile widths and keyboard/reduced-motion paths once the local in-app browser runtime conflict is resolved.
+3. Add event streaming and browser-triggered Golden Part execution only after read contracts, cancellation, idempotency, and failure semantics are frozen.
+4. Evaluate the deferred animation/component references against accessibility, maintenance, bundle size, overlap, license, and removal criteria before adopting any.
 
 ## Exit gate for M4
 

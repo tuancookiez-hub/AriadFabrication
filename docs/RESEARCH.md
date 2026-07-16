@@ -51,6 +51,14 @@ M4-C evidence on 2026-07-16: FastAPI deterministically emits a committed 30,128-
 
 Research conclusion: one canonical generated contract is safer than parallel handwritten response interfaces. The generated file remains a build-time artifact; it adds no browser runtime code and does not require exposing FastAPI's documentation or OpenAPI routes at runtime.
 
+## Persisted evidence inspection
+
+M4-D local evidence on 2026-07-16: API 1.1 read an existing ignored R4 revision and replayed 25 geometry checks, 23 printability checks, 13 G-code preflight checks, five retained physical warnings, four profile snapshots, and seven specification features. Every report/profile file was matched to its persisted size and SHA-256 before parsing. The compact JSON response measured 81,588 bytes and approximately 39.9 ms for one local cold read; the deterministic interface fixture measured 22,952 bytes and approximately 16.6 ms. These are development-machine observations, not service-level guarantees.
+
+The committed interface fixture now includes eight artifacts: one explanatory note plus seven fixture-only report/profile shapes. Tests prove deterministic regeneration, reject checksum drift, reject valid-checksum invalid JSON, enforce the 2 MiB ceiling before parsing, and keep listing cards independent from detail-report reads. The current API snapshot is 42,933 bytes with SHA-256 `ae0d99263ecb847c2a4991166a18069aa467db68d8c6beb0b5b787c644734218`, four paths, and 26 schemas; generated TypeScript is 21,636 bytes.
+
+Research conclusion: report inspection should remain a bounded replay layer over immutable evidence, not another validator. A selected row explains the persisted requirement/result pair; it cannot spatially identify exact STEP topology, rerun a kernel query, or improve the revision's evidence level.
+
 ## Organic meshes and Blender
 
 - [Blender MCP](https://github.com/ahujasid/blender-mcp) — Blender scene, mesh, material, and Python control through MCP.

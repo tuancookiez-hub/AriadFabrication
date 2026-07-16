@@ -1,19 +1,30 @@
 import { useState } from 'react'
 
+import { EvidenceInspector } from './EvidenceInspector'
 import { ModelInspector } from './ModelInspector'
 import { ToolpathInspector } from './ToolpathInspector'
-import type { Artifact } from './types'
+import type { Artifact, Finding, Inspection } from './types'
 
-type InspectionMode = 'model' | 'toolpath'
+type InspectionMode = 'model' | 'evidence' | 'toolpath'
 
 export function ArtifactInspector({
   previewArtifact,
   gcodeArtifact,
+  inspection,
+  findings,
+  artifacts,
 }: {
   previewArtifact: Artifact | null
   gcodeArtifact: Artifact | null
+  inspection: Inspection
+  findings: Finding[]
+  artifacts: Artifact[]
 }) {
-  const initialMode: InspectionMode = previewArtifact ? 'model' : gcodeArtifact ? 'toolpath' : 'model'
+  const initialMode: InspectionMode = previewArtifact
+    ? 'model'
+    : gcodeArtifact
+      ? 'toolpath'
+      : 'evidence'
   const [mode, setMode] = useState<InspectionMode>(initialMode)
   const [visitedModes, setVisitedModes] = useState<Set<InspectionMode>>(
     () => new Set([initialMode]),
@@ -38,6 +49,13 @@ export function ArtifactInspector({
         </button>
         <button
           type="button"
+          aria-pressed={mode === 'evidence'}
+          onClick={() => selectMode('evidence')}
+        >
+          Evidence
+        </button>
+        <button
+          type="button"
           aria-pressed={mode === 'toolpath'}
           onClick={() => selectMode('toolpath')}
         >
@@ -46,7 +64,15 @@ export function ArtifactInspector({
       </div>
       {visitedModes.has('model') ? (
         <div id="model-inspection-panel" hidden={mode !== 'model'}>
-          <ModelInspector artifact={previewArtifact} key={previewArtifact?.artifact_id ?? 'no-preview'} />
+          <ModelInspector
+            artifact={previewArtifact}
+            key={previewArtifact?.artifact_id ?? 'no-preview'}
+          />
+        </div>
+      ) : null}
+      {visitedModes.has('evidence') ? (
+        <div id="evidence-inspection-panel" hidden={mode !== 'evidence'}>
+          <EvidenceInspector artifacts={artifacts} findings={findings} inspection={inspection} />
         </div>
       ) : null}
       {visitedModes.has('toolpath') ? (

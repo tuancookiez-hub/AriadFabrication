@@ -420,7 +420,7 @@
             "$ref": "#/components/schemas/CapabilitiesView"
           },
           "schema_version": {
-            "const": "1.0.0",
+            "const": "1.1.0",
             "title": "Schema Version",
             "type": "string"
           },
@@ -442,6 +442,529 @@
           "capabilities"
         ],
         "title": "HealthResponse",
+        "type": "object"
+      },
+      "InspectionArtifactView": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "checksum_sha256": {
+            "title": "Checksum Sha256",
+            "type": "string"
+          },
+          "checksum_verified": {
+            "const": true,
+            "title": "Checksum Verified",
+            "type": "boolean"
+          },
+          "evidence_mode": {
+            "enum": [
+              "real",
+              "simulated",
+              "fixture",
+              "unavailable"
+            ],
+            "title": "Evidence Mode",
+            "type": "string"
+          },
+          "producer": {
+            "title": "Producer",
+            "type": "string"
+          },
+          "producer_version": {
+            "title": "Producer Version",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "size_bytes": {
+            "title": "Size Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "artifact_id",
+          "role",
+          "checksum_sha256",
+          "size_bytes",
+          "producer",
+          "producer_version",
+          "evidence_mode",
+          "checksum_verified"
+        ],
+        "title": "InspectionArtifactView",
+        "type": "object"
+      },
+      "InspectionCheckView": {
+        "additionalProperties": false,
+        "properties": {
+          "actual": {
+            "title": "Actual"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "check_id": {
+            "title": "Check Id",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "passed": {
+            "title": "Passed",
+            "type": "boolean"
+          },
+          "remediation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remediation"
+          },
+          "requirement": {
+            "title": "Requirement"
+          },
+          "tolerance_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tolerance Mm"
+          }
+        },
+        "required": [
+          "check_id",
+          "category",
+          "description",
+          "passed",
+          "actual",
+          "requirement",
+          "tolerance_mm",
+          "remediation"
+        ],
+        "title": "InspectionCheckView",
+        "type": "object"
+      },
+      "InspectionFeatureView": {
+        "additionalProperties": false,
+        "properties": {
+          "dimensions_mm": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Dimensions Mm",
+            "type": "object"
+          },
+          "feature_id": {
+            "title": "Feature Id",
+            "type": "string"
+          },
+          "fixture": {
+            "title": "Fixture",
+            "type": "boolean"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "required": {
+            "title": "Required",
+            "type": "boolean"
+          },
+          "source": {
+            "const": "persisted_revision_spec",
+            "title": "Source",
+            "type": "string"
+          },
+          "tolerance_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tolerance Mm"
+          }
+        },
+        "required": [
+          "feature_id",
+          "kind",
+          "dimensions_mm",
+          "quantity",
+          "tolerance_mm",
+          "required",
+          "notes",
+          "source",
+          "fixture"
+        ],
+        "title": "InspectionFeatureView",
+        "type": "object"
+      },
+      "InspectionMessageView": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "remediation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remediation"
+          },
+          "severity": {
+            "enum": [
+              "warning",
+              "error"
+            ],
+            "title": "Severity",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "severity",
+          "code",
+          "title",
+          "message",
+          "remediation"
+        ],
+        "title": "InspectionMessageView",
+        "type": "object"
+      },
+      "InspectionProfileView": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact": {
+            "$ref": "#/components/schemas/InspectionArtifactView"
+          },
+          "claim_boundary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Claim Boundary"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "profile_id": {
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "profile_kind": {
+            "enum": [
+              "printer",
+              "material",
+              "process",
+              "orientation"
+            ],
+            "title": "Profile Kind",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "values": {
+            "additionalProperties": true,
+            "title": "Values",
+            "type": "object"
+          }
+        },
+        "required": [
+          "profile_kind",
+          "artifact",
+          "profile_id",
+          "name",
+          "status",
+          "claim_boundary",
+          "values"
+        ],
+        "title": "InspectionProfileView",
+        "type": "object"
+      },
+      "InspectionReportView": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact": {
+            "$ref": "#/components/schemas/InspectionArtifactView"
+          },
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/InspectionCheckView"
+            },
+            "title": "Checks",
+            "type": "array"
+          },
+          "claim_boundary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Claim Boundary"
+          },
+          "evidence_level": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Level"
+          },
+          "measurements": {
+            "additionalProperties": true,
+            "title": "Measurements",
+            "type": "object"
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/InspectionMessageView"
+            },
+            "title": "Messages",
+            "type": "array"
+          },
+          "passed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Passed"
+          },
+          "report_kind": {
+            "enum": [
+              "geometry",
+              "printability",
+              "gcode_preflight"
+            ],
+            "title": "Report Kind",
+            "type": "string"
+          },
+          "schema_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Schema Version"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "report_kind",
+          "title",
+          "artifact",
+          "schema_version",
+          "status",
+          "passed",
+          "evidence_level",
+          "claim_boundary",
+          "measurements",
+          "checks",
+          "messages"
+        ],
+        "title": "InspectionReportView",
+        "type": "object"
+      },
+      "InspectionUnavailableView": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Artifact Id"
+          },
+          "checksum_sha256": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Checksum Sha256"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "reason": {
+            "enum": [
+              "multiple_records",
+              "file_missing",
+              "size_limit",
+              "size_mismatch",
+              "checksum_mismatch",
+              "invalid_json",
+              "unsupported_shape"
+            ],
+            "title": "Reason",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "role",
+          "artifact_id",
+          "checksum_sha256",
+          "reason",
+          "message"
+        ],
+        "title": "InspectionUnavailableView",
+        "type": "object"
+      },
+      "InspectionView": {
+        "additionalProperties": false,
+        "properties": {
+          "claim_boundary": {
+            "title": "Claim Boundary",
+            "type": "string"
+          },
+          "features": {
+            "items": {
+              "$ref": "#/components/schemas/InspectionFeatureView"
+            },
+            "title": "Features",
+            "type": "array"
+          },
+          "max_json_bytes": {
+            "title": "Max Json Bytes",
+            "type": "integer"
+          },
+          "profiles": {
+            "items": {
+              "$ref": "#/components/schemas/InspectionProfileView"
+            },
+            "title": "Profiles",
+            "type": "array"
+          },
+          "reports": {
+            "items": {
+              "$ref": "#/components/schemas/InspectionReportView"
+            },
+            "title": "Reports",
+            "type": "array"
+          },
+          "unavailable": {
+            "items": {
+              "$ref": "#/components/schemas/InspectionUnavailableView"
+            },
+            "title": "Unavailable",
+            "type": "array"
+          }
+        },
+        "required": [
+          "features",
+          "reports",
+          "profiles",
+          "unavailable",
+          "max_json_bytes",
+          "claim_boundary"
+        ],
+        "title": "InspectionView",
         "type": "object"
       },
       "JobView": {
@@ -571,6 +1094,9 @@
           "capabilities": {
             "$ref": "#/components/schemas/CapabilitiesView"
           },
+          "inspection": {
+            "$ref": "#/components/schemas/InspectionView"
+          },
           "job": {
             "$ref": "#/components/schemas/JobView"
           },
@@ -592,7 +1118,7 @@
             "$ref": "#/components/schemas/RevisionView"
           },
           "schema_version": {
-            "const": "1.0.0",
+            "const": "1.1.0",
             "title": "Schema Version",
             "type": "string"
           },
@@ -615,7 +1141,8 @@
           "job",
           "revision",
           "stages",
-          "package"
+          "package",
+          "inspection"
         ],
         "title": "RevisionDetailResponse",
         "type": "object"
@@ -634,7 +1161,7 @@
             "type": "array"
           },
           "schema_version": {
-            "const": "1.0.0",
+            "const": "1.1.0",
             "title": "Schema Version",
             "type": "string"
           }
@@ -1088,7 +1615,7 @@
     "description": "This API replays persisted records. It cannot upload G-code, select a printer, heat hardware, move hardware, or start manufacturing.",
     "summary": "Read-only access to persisted fabrication evidence.",
     "title": "Ariad Fabrication Journey API",
-    "version": "1.0.0"
+    "version": "1.1.0"
   },
   "openapi": "3.1.0",
   "paths": {

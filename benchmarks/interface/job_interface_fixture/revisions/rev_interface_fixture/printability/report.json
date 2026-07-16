@@ -1,0 +1,62 @@
+{
+  "checks": [
+    {
+      "actual": {
+        "x": 30.0,
+        "y": 24.49,
+        "z": 50.0
+      },
+      "category": "volume",
+      "check_id": "build_volume",
+      "description": "Fixture model fits the fixture profile envelope",
+      "passed": true,
+      "remediation": "Select a compatible profile or revise the design.",
+      "requirement": {
+        "x": 220.0,
+        "y": 220.0,
+        "z": 250.0
+      }
+    },
+    {
+      "actual": 4.0,
+      "category": "feature",
+      "check_id": "minimum_wall",
+      "description": "Fixture minimum wall exceeds the fixture rule",
+      "passed": true,
+      "remediation": "Increase the wall in a new revision.",
+      "requirement": 1.2
+    },
+    {
+      "actual": "disabled",
+      "category": "process",
+      "check_id": "support_policy",
+      "description": "Fixture process keeps generated supports disabled",
+      "passed": true,
+      "remediation": "Revise orientation or explicitly change the process.",
+      "requirement": "disabled"
+    }
+  ],
+  "claim_boundary": "Interface fixture values demonstrate evidence presentation only. They are not CAD, slicer, manufacturing, or physical evidence.",
+  "errors": [],
+  "evidence_level": "R3",
+  "measurements": {
+    "bed_contact_area_mm2": 339.29,
+    "minimum_wall_mm": 4.0,
+    "oriented_size_mm": {
+      "x": 30.0,
+      "y": 24.49,
+      "z": 50.0
+    }
+  },
+  "passed": true,
+  "schema_version": "1.0.0-interface-fixture",
+  "status": "passed_with_warnings",
+  "warnings": [
+    {
+      "code": "fixture.physical_behavior_unknown",
+      "evidence": "These values are interface fixtures and were never printed.",
+      "physical_resolution": "Print and measure a separately recorded revision later.",
+      "title": "Physical behavior remains unknown"
+    }
+  ]
+}

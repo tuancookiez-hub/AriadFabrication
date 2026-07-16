@@ -1,8 +1,10 @@
+import hashlib
 import json
 from pathlib import Path
 import shutil
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
@@ -74,8 +76,33 @@ class JourneyRepositoryTests(unittest.TestCase):
         self.assertEqual(len(detail.stages[3].findings), 2)
         self.assertTrue(all(stage.evidence_mode == "fixture" for stage in detail.stages))
         self.assertFalse(detail.capabilities.hardware_actions)
+        self.assertEqual(detail.schema_version, "1.1.0")
+        self.assertEqual(
+            [report.report_kind for report in detail.inspection.reports],
+            ["geometry", "printability", "gcode_preflight"],
+        )
+        self.assertEqual(
+            [len(report.checks) for report in detail.inspection.reports],
+            [3, 3, 3],
+        )
+        self.assertTrue(
+            all(
+                report.artifact.checksum_verified
+                and report.artifact.evidence_mode == "fixture"
+                for report in detail.inspection.reports
+            )
+        )
+        self.assertEqual(len(detail.inspection.profiles), 4)
+        self.assertEqual(len(detail.inspection.features), 7)
+        self.assertTrue(all(item.fixture for item in detail.inspection.features))
+        self.assertFalse(detail.inspection.unavailable)
 
-        listing = repository.list_revisions()
+        with patch.object(
+            repository,
+            "_read_inspection_json",
+            side_effect=AssertionError("listing must not parse inspection artifacts"),
+        ):
+            listing = repository.list_revisions()
         self.assertEqual(len(listing.revisions), 5)
         primary = next(item for item in listing.revisions if item.revision_id == REVISION_ID)
         self.assertEqual(primary.availability, "available")
@@ -113,7 +140,9 @@ class JourneyRepositoryTests(unittest.TestCase):
                     detail.stages[-1].findings[0].severity,
                     scenario["finding_severity"],
                 )
-
+                self.assertFalse(detail.inspection.reports)
+                self.assertFalse(detail.inspection.profiles)
+                self.assertFalse(detail.inspection.features)
     def test_artifact_download_is_checksum_verified(self):
         repository = JourneyRepository(FIXTURE_ROOT)
         artifact = repository.get_artifact(JOB_ID, REVISION_ID, "art_fixture_note")
@@ -136,6 +165,75 @@ class JourneyRepositoryTests(unittest.TestCase):
                 JourneyRepository(copied_root).get_artifact(
                     JOB_ID, REVISION_ID, "art_fixture_note"
                 )
+
+    def test_inspection_report_checksum_drift_is_visible_and_not_parsed(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            copied_root = Path(temporary) / "interface"
+            shutil.copytree(FIXTURE_ROOT, copied_root)
+            report = (
+                copied_root
+                / JOB_ID
+                / "revisions"
+                / REVISION_ID
+                / "design"
+                / "geometry_validation.json"
+            )
+            payload = report.read_bytes()
+            mutated = payload.replace(
+                b"Fixture kernel-validity row",
+                b"Fixture kernel-validity ROW",
+            )
+            self.assertEqual(len(mutated), len(payload))
+            self.assertNotEqual(mutated, payload)
+            report.write_bytes(mutated)
+
+            detail = JourneyRepository(copied_root).get_revision(JOB_ID, REVISION_ID)
+            self.assertNotIn(
+                "geometry",
+                [item.report_kind for item in detail.inspection.reports],
+            )
+            unavailable = next(
+                item
+                for item in detail.inspection.unavailable
+                if item.role == "geometry_validation_report"
+            )
+            self.assertEqual(unavailable.reason, "checksum_mismatch")
+
+    def test_inspection_json_shape_and_size_fail_closed(self):
+        cases = (
+            (b"{", "invalid_json"),
+            (b"x" * (2 * 1024 * 1024 + 1), "size_limit"),
+        )
+        for payload, expected_reason in cases:
+            with self.subTest(reason=expected_reason), tempfile.TemporaryDirectory() as temporary:
+                copied_root = Path(temporary) / "interface"
+                shutil.copytree(FIXTURE_ROOT, copied_root)
+                revision_root = copied_root / JOB_ID / "revisions" / REVISION_ID
+                report = revision_root / "design" / "geometry_validation.json"
+                report.write_bytes(payload)
+                checksum = hashlib.sha256(payload).hexdigest()
+                for record_name in ("journey.json", "manifest.json"):
+                    record_path = revision_root / record_name
+                    record = json.loads(record_path.read_text(encoding="utf-8"))
+                    artifact = next(
+                        item
+                        for item in record["artifacts"]
+                        if item["artifact_id"] == "art_fixture_geometry_report"
+                    )
+                    artifact["checksum_sha256"] = checksum
+                    artifact["size_bytes"] = len(payload)
+                    record_path.write_text(
+                        json.dumps(record, indent=2, sort_keys=True) + "\n",
+                        encoding="utf-8",
+                    )
+
+                detail = JourneyRepository(copied_root).get_revision(JOB_ID, REVISION_ID)
+                unavailable = next(
+                    item
+                    for item in detail.inspection.unavailable
+                    if item.role == "geometry_validation_report"
+                )
+                self.assertEqual(unavailable.reason, expected_reason)
 
     def test_path_identifiers_cannot_escape_the_root(self):
         repository = JourneyRepository(FIXTURE_ROOT)
@@ -162,6 +260,11 @@ class JourneyRepositoryTests(unittest.TestCase):
                 copied_root / JOB_ID / "revisions" / REVISION_ID / "journey.json"
             )
             journey = json.loads(journey_path.read_text(encoding="utf-8"))
+            primary_artifact_ids = {
+                item["artifact_id"]
+                for item in journey["artifacts"]
+                if item["revision_id"] == REVISION_ID
+            }
             second_revision = dict(journey["revisions"][0])
             second_revision["revision_id"] = "rev_other"
             second_revision["number"] = 2
@@ -188,7 +291,7 @@ class JourneyRepositoryTests(unittest.TestCase):
                 for stage in detail.stages
                 for artifact in stage.artifacts
             }
-            self.assertEqual(artifact_ids, {"art_fixture_note"})
+            self.assertEqual(artifact_ids, primary_artifact_ids)
 
     def test_cross_stage_record_reference_fails_closed(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -232,6 +335,7 @@ class InterfaceHttpTests(unittest.TestCase):
         detail = self.client.get(f"/api/v1/revisions/{JOB_ID}/{REVISION_ID}")
         self.assertEqual(detail.status_code, 200)
         payload = detail.json()
+        self.assertEqual(payload["schema_version"], "1.1.0")
         self.assertEqual(
             [stage["stage"] for stage in payload["stages"]],
             [item[0] for item in STAGES],
@@ -240,6 +344,8 @@ class InterfaceHttpTests(unittest.TestCase):
             payload["package"]["allowed_claim"],
             "Interface fixture only — no fabrication evidence.",
         )
+        self.assertEqual(len(payload["inspection"]["reports"]), 3)
+        self.assertEqual(len(payload["inspection"]["profiles"]), 4)
 
         artifact = self.client.get(
             f"/api/v1/revisions/{JOB_ID}/{REVISION_ID}/artifacts/art_fixture_note"

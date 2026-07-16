@@ -1,0 +1,15 @@
+{
+  "build_volume_mm": {
+    "x": 220.0,
+    "y": 220.0,
+    "z": 250.0
+  },
+  "claim_boundary": "Interface fixture values demonstrate evidence presentation only. They are not CAD, slicer, manufacturing, or physical evidence.",
+  "extruder_count": 1,
+  "name": "Fixture 220 mm FDM envelope",
+  "nozzle_diameter_mm": 0.4,
+  "profile_id": "fixture_open_fdm_220_v1",
+  "schema_version": "1.0.0-interface-fixture",
+  "status": "interface_fixture",
+  "technology": "FDM"
+}

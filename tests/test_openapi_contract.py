@@ -39,7 +39,7 @@ class OpenApiContractTests(unittest.TestCase):
         self.assertEqual(capabilities["properties"]["hardware_actions"]["const"], False)
 
         health = document["components"]["schemas"]["HealthResponse"]["properties"]
-        self.assertEqual(health["schema_version"]["const"], "1.0.0")
+        self.assertEqual(health["schema_version"]["const"], "1.1.0")
         self.assertEqual(health["service"]["const"], "ariad-interface-api")
         self.assertEqual(health["status"]["const"], "ok")
 
@@ -53,6 +53,14 @@ class OpenApiContractTests(unittest.TestCase):
             "GcodeSummaryView",
             "HardwareView",
             "HealthResponse",
+            "InspectionArtifactView",
+            "InspectionCheckView",
+            "InspectionFeatureView",
+            "InspectionMessageView",
+            "InspectionProfileView",
+            "InspectionReportView",
+            "InspectionUnavailableView",
+            "InspectionView",
             "JobView",
             "PackageView",
             "RevisionDetailResponse",

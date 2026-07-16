@@ -33,7 +33,7 @@ def create_app(runs_root: Path | str = Path("runs")) -> FastAPI:
             "This API replays persisted records. It cannot upload G-code, select a printer, "
             "heat hardware, move hardware, or start manufacturing."
         ),
-        version="1.0.0",
+        version=INTERFACE_API_VERSION,
         docs_url=None,
         redoc_url=None,
         openapi_url=None,

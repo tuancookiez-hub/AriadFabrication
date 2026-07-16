@@ -178,7 +178,7 @@ These labels must appear in both reports and the interface.
 
 ## Current M4 interface gate
 
-The read-only M4-A through M4-C application slices preserve evidence rather than creating it:
+The read-only M4-A through M4-D application slices preserve evidence rather than creating it:
 
 - The API groups stages, events, findings, and artifacts only through IDs already persisted in `journey.json` and `manifest.json`.
 - A missing manifest remains `manifest_available: false`; it does not erase an otherwise inspectable incomplete journey or promote it.
@@ -186,6 +186,8 @@ The read-only M4-A through M4-C application slices preserve evidence rather than
 - The committed interface family uses `evidence_mode: fixture` at every stage. It includes complete, `needs_input`, failed Geometry, failed Printability, and incomplete Package paths, and the complete package permits only “Interface fixture only — no fabrication evidence.”
 - API capabilities and artifact responses explicitly report that hardware actions are unavailable.
 - The canonical OpenAPI snapshot contains only GET contracts, marks the read-only capability constants and emitted response fields as required, generates the browser response types, and fails backend or frontend checks when either snapshot or generated code drifts.
+- API 1.1 parses only the recorded geometry, printability, preflight, printer, material, process, and orientation roles after verifying each file against its persisted size and SHA-256. JSON is capped at 2 MiB, 500 checks, 100 messages/features, 128 top-level inspection fields, depth 16, and 20,000 nodes; missing, oversized, changed, invalid, ambiguous, or unsupported sources become explicit unavailable records rather than pass states.
+- The evidence explorer selects persisted requirements and records for explanation only. It does not spatially highlight STEP features, recompute measurements, rerun validators, or turn a selected pass into new evidence.
 - The React interface keeps fixture, warning, claim, physical-evidence, and disconnected-hardware boundaries visible and contains no “printable” badge.
 - The GLB inspector reads only checksum-verified preview artifacts, caps input at 64 MiB / two million triangles, and states that STEP remains exact geometry.
 - The G-code worker caps input at 64 MiB / one million linear segments, samples only oversized display layers, and states that playback is not collision, extrusion, thermal, structural, or physical simulation. Unsupported arc commands are counted and disclosed rather than silently drawn as lines; the current Golden Part contains none.

@@ -179,6 +179,26 @@ This file records accepted project-level decisions. Change an accepted decision 
 
 **Consequence:** Treat `src/ariad_fabrication/api/models.py` as the response-model source, regenerate the snapshot and TypeScript in the same change, and reject unexplained generated-file differences.
 
+### D-023 — Add bounded persisted-evidence inspection without revalidation
+
+**Status:** Accepted for M4-D on 2026-07-16.
+
+**Decision:** Advance the read API to 1.1.0 and expose a normalized inspection view over persisted specification features plus the known `geometry_validation_report`, `printability_report`, `gcode_preflight`, `printer_profile`, `material_profile`, `process_profile`, and `orientation_profile` roles. Verify report/profile size and SHA-256 before parsing. Keep revision listings lightweight and parse detail evidence only when a revision is opened.
+
+**Evidence boundary:** The browser may select requirements, checks, findings, profiles, measurements, and artifact records for explanation. It must not imply that selection spatially identifies STEP topology, rerun geometry or printability code, alter a finding, promote an evidence level, or provide physical proof. General artifact checksums remain recorded values until the checksum-verifying open/download route is used; report/profile sources explicitly state when verification occurred before parsing.
+
+**Resource and failure policy:** Known JSON inputs are capped at 2 MiB, 500 checks, 100 messages, 100 specification features, 128 inspection fields, nesting depth 16, and 20,000 nodes. Missing files, duplicate roles, size drift, checksum drift, invalid JSON, non-finite values, or unsupported shapes produce explicit unavailable records and no parsed pass state. Gate fixtures expose no complete-feature inspection data.
+
+**Evidence:** The deterministic complete fixture contains eight artifacts and yields three reports with nine fixture checks, four fixture profiles, and seven fixture-labelled requirements. An existing real R4 revision yielded 61 persisted checks, five physical-warning messages, four profiles, and seven requirements with no unavailable source. Tests cover deterministic fixture bytes, checksum mutation, valid-checksum invalid JSON, the size ceiling, generated contract drift, unavailable presentation, and lightweight listings. The current OpenAPI snapshot is 42,933 bytes with SHA-256 `ae0d99263ecb847c2a4991166a18069aa467db68d8c6beb0b5b787c644734218`, four paths, and 26 schemas.
+
+**Dependency reason:** No runtime or development dependency was added. The parser uses the existing Python standard library and Pydantic response boundary; the React explorer uses existing application primitives.
+
+**Runtime impact:** One local cold read of the existing R4 detail produced an 81,588-byte compact JSON response in approximately 39.9 ms; the fixture detail produced 22,952 bytes in approximately 16.6 ms. These observations are not latency guarantees. The production application entry is approximately 100.4 KB gzip and CSS is approximately 4.3 KB gzip; the previously lazy Three.js path is unchanged.
+
+**Removal path:** Remove the inspection models/parser, API 1.1 field, fixture report/profile artifacts, `EvidenceInspector.tsx`, and the Evidence tab. Artifact downloads, stage records, GLB preview, toolpath playback, and R0–R4 pipeline evidence remain intact.
+
+**Consequence:** Future report types must earn an explicit role adapter, bound, corruption tests, generated-contract update, and claim language. Do not pass arbitrary artifact JSON directly through to the browser as trusted evidence.
+
 ## Deferred decisions
 
 These require later evidence and should not be decided through preference alone:

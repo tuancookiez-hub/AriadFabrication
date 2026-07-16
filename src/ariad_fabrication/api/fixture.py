@@ -100,6 +100,222 @@ GATE_SCENARIOS = (
     },
 )
 
+FIXTURE_INSPECTION_BOUNDARY = (
+    "Interface fixture values demonstrate evidence presentation only. They are not CAD, "
+    "slicer, manufacturing, or physical evidence."
+)
+
+
+def _complete_fixture_evidence() -> tuple[dict[str, Any], ...]:
+    return (
+        {
+            "artifact_id": "art_fixture_geometry_report",
+            "role": "geometry_validation_report",
+            "path": "design/geometry_validation.json",
+            "stage_run_id": "run_fixture_geometry_validation",
+            "value": {
+                "schema_version": "1.0.0-interface-fixture",
+                "status": "passed",
+                "passed": True,
+                "evidence_level": "R2",
+                "claim_boundary": FIXTURE_INSPECTION_BOUNDARY,
+                "measurements": {
+                    "design_envelope": {"x": 30.0, "y": 24.49, "z": 50.0},
+                    "solid_body_count": 1,
+                    "stake_bore_diameter": 12.6,
+                },
+                "checks": [
+                    {
+                        "check_id": "kernel_valid",
+                        "description": "Fixture kernel-validity row",
+                        "actual": True,
+                        "expected": True,
+                        "passed": True,
+                        "tolerance_mm": None,
+                    },
+                    {
+                        "check_id": "stake_bore_diameter",
+                        "description": "Fixture stake bore matches the frozen target",
+                        "actual": 12.6,
+                        "expected": 12.6,
+                        "passed": True,
+                        "tolerance_mm": 0.2,
+                    },
+                    {
+                        "check_id": "solid_body_count",
+                        "description": "Fixture shape contains one body",
+                        "actual": 1,
+                        "expected": 1,
+                        "passed": True,
+                        "tolerance_mm": None,
+                    },
+                ],
+                "warnings": [],
+                "errors": [],
+            },
+        },
+        {
+            "artifact_id": "art_fixture_printer_profile",
+            "role": "printer_profile",
+            "path": "profiles/printer.json",
+            "stage_run_id": "run_fixture_printability_validation",
+            "value": {
+                "schema_version": "1.0.0-interface-fixture",
+                "profile_id": "fixture_open_fdm_220_v1",
+                "name": "Fixture 220 mm FDM envelope",
+                "status": "interface_fixture",
+                "technology": "FDM",
+                "build_volume_mm": {"x": 220.0, "y": 220.0, "z": 250.0},
+                "nozzle_diameter_mm": 0.4,
+                "extruder_count": 1,
+                "claim_boundary": FIXTURE_INSPECTION_BOUNDARY,
+            },
+        },
+        {
+            "artifact_id": "art_fixture_material_profile",
+            "role": "material_profile",
+            "path": "profiles/material.json",
+            "stage_run_id": "run_fixture_printability_validation",
+            "value": {
+                "schema_version": "1.0.0-interface-fixture",
+                "profile_id": "fixture_petg_v1",
+                "name": "Fixture PETG values",
+                "status": "interface_fixture_uncalibrated",
+                "material_type": "PETG",
+                "selected_nozzle_temperature_c": 240.0,
+                "selected_bed_temperature_c": 90.0,
+                "fan_percent": {"minimum": 30, "maximum": 50},
+                "claim_boundary": FIXTURE_INSPECTION_BOUNDARY,
+            },
+        },
+        {
+            "artifact_id": "art_fixture_process_profile",
+            "role": "process_profile",
+            "path": "profiles/process.json",
+            "stage_run_id": "run_fixture_printability_validation",
+            "value": {
+                "schema_version": "1.0.0-interface-fixture",
+                "profile_id": "fixture_020_no_support_v1",
+                "name": "Fixture 0.20 mm process",
+                "status": "interface_fixture",
+                "layer_height_mm": 0.2,
+                "perimeters": 3,
+                "infill_percent": 30,
+                "infill_pattern": "gyroid",
+                "support_policy": "disabled",
+                "claim_boundary": FIXTURE_INSPECTION_BOUNDARY,
+            },
+        },
+        {
+            "artifact_id": "art_fixture_orientation_profile",
+            "role": "orientation_profile",
+            "path": "profiles/orientation.json",
+            "stage_run_id": "run_fixture_printability_validation",
+            "value": {
+                "schema_version": "1.0.0-interface-fixture",
+                "orientation_id": "fixture_upright_centered_v1",
+                "name": "Fixture upright centered orientation",
+                "status": "interface_fixture",
+                "source_up_axis": "Z",
+                "ensure_on_bed": True,
+                "placement": "centered",
+                "claim_boundary": FIXTURE_INSPECTION_BOUNDARY,
+            },
+        },
+        {
+            "artifact_id": "art_fixture_printability_report",
+            "role": "printability_report",
+            "path": "printability/report.json",
+            "stage_run_id": "run_fixture_printability_validation",
+            "value": {
+                "schema_version": "1.0.0-interface-fixture",
+                "status": "passed_with_warnings",
+                "passed": True,
+                "evidence_level": "R3",
+                "claim_boundary": FIXTURE_INSPECTION_BOUNDARY,
+                "measurements": {
+                    "bed_contact_area_mm2": 339.29,
+                    "minimum_wall_mm": 4.0,
+                    "oriented_size_mm": {"x": 30.0, "y": 24.49, "z": 50.0},
+                },
+                "checks": [
+                    {
+                        "check_id": "build_volume",
+                        "category": "volume",
+                        "description": "Fixture model fits the fixture profile envelope",
+                        "actual": {"x": 30.0, "y": 24.49, "z": 50.0},
+                        "requirement": {"x": 220.0, "y": 220.0, "z": 250.0},
+                        "passed": True,
+                        "remediation": "Select a compatible profile or revise the design.",
+                    },
+                    {
+                        "check_id": "minimum_wall",
+                        "category": "feature",
+                        "description": "Fixture minimum wall exceeds the fixture rule",
+                        "actual": 4.0,
+                        "requirement": 1.2,
+                        "passed": True,
+                        "remediation": "Increase the wall in a new revision.",
+                    },
+                    {
+                        "check_id": "support_policy",
+                        "category": "process",
+                        "description": "Fixture process keeps generated supports disabled",
+                        "actual": "disabled",
+                        "requirement": "disabled",
+                        "passed": True,
+                        "remediation": "Revise orientation or explicitly change the process.",
+                    },
+                ],
+                "warnings": [
+                    {
+                        "code": "fixture.physical_behavior_unknown",
+                        "title": "Physical behavior remains unknown",
+                        "evidence": "These values are interface fixtures and were never printed.",
+                        "physical_resolution": "Print and measure a separately recorded revision later.",
+                    }
+                ],
+                "errors": [],
+            },
+        },
+        {
+            "artifact_id": "art_fixture_gcode_preflight",
+            "role": "gcode_preflight",
+            "path": "slicing/gcode_preflight.json",
+            "stage_run_id": "run_fixture_slicing",
+            "value": {
+                "schema_version": "1.0.0-interface-fixture",
+                "status": "passed",
+                "passed": True,
+                "evidence_level": "R4",
+                "claim_boundary": FIXTURE_INSPECTION_BOUNDARY,
+                "measurements": {},
+                "checks": [
+                    {
+                        "check_id": "has_layers",
+                        "measured": 250,
+                        "requirement": "> 0 fixture layers",
+                        "passed": True,
+                    },
+                    {
+                        "check_id": "forbidden_commands",
+                        "measured": [],
+                        "requirement": "no forbidden commands",
+                        "passed": True,
+                    },
+                    {
+                        "check_id": "profile_layer_height",
+                        "measured": "0.2",
+                        "requirement": "0.2 mm",
+                        "passed": True,
+                    },
+                ],
+                "warnings": ["Fixture preflight is presentation data, not parsed G-code."],
+                "errors": [],
+            },
+        },
+    )
+
 
 def generate_interface_fixture(output_root: Path, golden_spec_path: Path) -> Path:
     output_root = output_root.expanduser().resolve()
@@ -140,6 +356,16 @@ def generate_interface_fixture(output_root: Path, golden_spec_path: Path) -> Pat
         "size_bytes": len(note),
         "stage_run_id": "run_fixture_fabrication_package",
     }
+    artifacts = [artifact]
+    artifacts.extend(
+        _write_fixture_json_artifact(revision_root, descriptor)
+        for descriptor in _complete_fixture_evidence()
+    )
+    artifact_ids_by_stage: dict[str, list[str]] = {}
+    for item in artifacts:
+        artifact_ids_by_stage.setdefault(str(item["stage_run_id"]), []).append(
+            str(item["artifact_id"])
+        )
     findings = [
         {
             "affected_geometry": None,
@@ -199,9 +425,7 @@ def generate_interface_fixture(output_root: Path, golden_spec_path: Path) -> Pat
         stage_runs.append(
             {
                 "approval_ids": [],
-                "artifact_ids": [artifact["artifact_id"]]
-                if stage == "fabrication_package"
-                else [],
+                "artifact_ids": artifact_ids_by_stage.get(stage_id, []),
                 "attempt": 1,
                 "completed_at": FIXTURE_TIMESTAMP,
                 "decision_ids": [],
@@ -229,7 +453,7 @@ def generate_interface_fixture(output_root: Path, golden_spec_path: Path) -> Pat
     )
     journey = {
         "approvals": [],
-        "artifacts": [artifact],
+        "artifacts": artifacts,
         "decisions": [],
         "events": events,
         "findings": findings,
@@ -264,7 +488,7 @@ def generate_interface_fixture(output_root: Path, golden_spec_path: Path) -> Pat
     }
     manifest = {
         "approvals": [],
-        "artifacts": [artifact],
+        "artifacts": artifacts,
         "decisions": [],
         "findings": findings,
         "generated_at": FIXTURE_TIMESTAMP,
@@ -285,8 +509,9 @@ def generate_interface_fixture(output_root: Path, golden_spec_path: Path) -> Pat
     package = {
         "allowed_claim": "Interface fixture only — no fabrication evidence.",
         "claim_boundary": (
-            "This compact record exercises package presentation. It contains no real CAD, "
-            "slicer output, printer profile, G-code, physical observation, or manufacturing authority."
+            "This compact record exercises package and evidence-inspector presentation. It "
+            "contains fixture-shaped reports and profiles but no real CAD, slicer output, "
+            "G-code, physical observation, or manufacturing authority."
         ),
         "classification": "interface_fixture_package",
         "evidence_level": None,
@@ -476,6 +701,39 @@ def _generate_gate_fixture(
         }
         _write_json(revision_root / "manifest.json", manifest)
     return revision_root
+
+
+def _write_fixture_json_artifact(
+    revision_root: Path,
+    descriptor: dict[str, Any],
+) -> dict[str, Any]:
+    relative_path = str(descriptor["path"])
+    output = revision_root / relative_path
+    value = descriptor["value"]
+    if not isinstance(value, dict):
+        raise ValueError("Fixture inspection artifact must contain a JSON object")
+    _write_json(output, value)
+    payload = output.read_bytes()
+    return {
+        "artifact_id": str(descriptor["artifact_id"]),
+        "checksum_sha256": hashlib.sha256(payload).hexdigest(),
+        "created_at": FIXTURE_TIMESTAMP,
+        "evidence_mode": "fixture",
+        "job_id": JOB_ID,
+        "media_type": "application/json",
+        "metadata": {
+            "classification": "interface_fixture",
+            "format": "json",
+        },
+        "parent_artifact_ids": [],
+        "path": relative_path,
+        "producer": "ariad_interface_fixture_generator",
+        "producer_version": "1.0.0",
+        "revision_id": REVISION_ID,
+        "role": str(descriptor["role"]),
+        "size_bytes": len(payload),
+        "stage_run_id": str(descriptor["stage_run_id"]),
+    }
 
 
 def _write_json(path: Path, value: dict[str, Any]) -> None:

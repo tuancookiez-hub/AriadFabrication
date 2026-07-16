@@ -2,7 +2,7 @@
 
 This is the M4 read-only Fabrication Journey client. It renders persisted API records and contains no printer, upload, heat, motion, recovery, or print-start action.
 
-The M4-B inspector can orbit a checksum-verified GLB preview and replay the linear moves in a real G-code artifact by layer. GLB is labelled as tessellated preview rather than exact geometry; G-code is labelled as manufacturing playback rather than engineering or physical simulation. The toolpath parser runs in a Web Worker, fetches the file once, and enforces 64 MiB / one-million-segment limits. The GLB path enforces 64 MiB / two-million-triangle limits.
+The M4-D inspector can orbit a checksum-verified GLB preview, replay the linear moves in a real G-code artifact by layer, and select persisted features, checks, findings, profiles, measurements, and artifact records. GLB is labelled as tessellated preview rather than exact geometry; G-code is labelled as manufacturing playback rather than engineering or physical simulation. Evidence selection never reruns validation or pretends to spatially inspect STEP. The toolpath parser runs in a Web Worker, fetches the file once, and enforces 64 MiB / one-million-segment limits. The GLB path enforces 64 MiB / two-million-triangle limits; report/profile JSON is checksum-verified by API 1.1 before bounded parsing.
 
 ## Local development
 

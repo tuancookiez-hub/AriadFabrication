@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import hashlib
 import json
+import math
 from pathlib import Path, PurePosixPath
 import re
 from typing import Any, Mapping
@@ -17,6 +18,14 @@ from .models import (
     FindingView,
     GcodeSummaryView,
     HardwareView,
+    InspectionArtifactView,
+    InspectionCheckView,
+    InspectionFeatureView,
+    InspectionMessageView,
+    InspectionProfileView,
+    InspectionReportView,
+    InspectionUnavailableView,
+    InspectionView,
     JobView,
     PackageView,
     RevisionDetailResponse,
@@ -33,7 +42,37 @@ from .models import (
 _ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$")
 _SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 _MAX_JSON_BYTES = 32 * 1024 * 1024
+_MAX_INSPECTION_JSON_BYTES = 2 * 1024 * 1024
+_MAX_INSPECTION_CHECKS = 500
+_MAX_INSPECTION_FEATURES = 100
+_MAX_INSPECTION_MESSAGES = 100
+_MAX_INSPECTION_FIELDS = 128
+_MAX_INSPECTION_DEPTH = 16
+_MAX_INSPECTION_NODES = 20_000
 _PHYSICAL_LEVELS = {"R6", "R7"}
+_REPORT_ROLES = {
+    "geometry_validation_report": ("geometry", "Geometry validation"),
+    "printability_report": ("printability", "Printability assessment"),
+    "gcode_preflight": ("gcode_preflight", "G-code preflight"),
+}
+_PROFILE_ROLES = {
+    "printer_profile": "printer",
+    "material_profile": "material",
+    "process_profile": "process",
+    "orientation_profile": "orientation",
+}
+_PROFILE_HEADER_FIELDS = {
+    "schema_version",
+    "profile_id",
+    "orientation_id",
+    "name",
+    "status",
+    "claim_boundary",
+}
+_INSPECTION_CLAIM_BOUNDARY = (
+    "Inspection values are replayed from checksum-verified persisted reports and profiles. "
+    "Selection does not rerun validation, inspect exact STEP geometry, or provide physical proof."
+)
 
 
 class JourneyReadError(RuntimeError):
@@ -81,6 +120,10 @@ class _LoadedRevision:
     approvals: dict[str, dict[str, Any]]
 
 
+class _InspectionShapeError(ValueError):
+    pass
+
+
 class JourneyRepository:
     """Read one immutable revision tree without offering mutation or hardware actions."""
 
@@ -109,7 +152,7 @@ class JourneyRepository:
             job_id = revision_root.parent.parent.name
             revision_id = revision_root.name
             try:
-                detail = self.get_revision(job_id, revision_id)
+                detail = self._get_revision(job_id, revision_id, include_inspection=False)
             except JourneyReadError as exc:
                 items.append(
                     RevisionSummary(
@@ -171,6 +214,15 @@ class JourneyRepository:
         )
 
     def get_revision(self, job_id: str, revision_id: str) -> RevisionDetailResponse:
+        return self._get_revision(job_id, revision_id, include_inspection=True)
+
+    def _get_revision(
+        self,
+        job_id: str,
+        revision_id: str,
+        *,
+        include_inspection: bool,
+    ) -> RevisionDetailResponse:
         loaded = self._load(job_id, revision_id)
         job = _mapping(loaded.journey.get("job"), "journey.job")
         stage_views = [self._stage_view(loaded, stage_id) for stage_id in loaded.revision["stage_run_ids"]]
@@ -199,6 +251,11 @@ class JourneyRepository:
             ),
             stages=stage_views,
             package=self._package_view(loaded.package),
+            inspection=(
+                self._inspection_view(loaded)
+                if include_inspection
+                else _empty_inspection_view()
+            ),
         )
 
     def get_artifact(self, job_id: str, revision_id: str, artifact_id: str) -> ArtifactFile:
@@ -506,6 +563,207 @@ class JourneyRepository:
             unresolved_warning_count=len(warnings),
         )
 
+    def _inspection_view(self, loaded: _LoadedRevision) -> InspectionView:
+        features: list[InspectionFeatureView] = []
+        reports: list[InspectionReportView] = []
+        profiles: list[InspectionProfileView] = []
+        unavailable: list[InspectionUnavailableView] = []
+
+        is_gate_fixture = loaded.fixture is not None and loaded.fixture.get("scenario") is not None
+        if not is_gate_fixture:
+            try:
+                features = _inspection_feature_views(
+                    _mapping(loaded.revision.get("spec"), "revision.spec"),
+                    fixture=loaded.fixture is not None,
+                )
+            except (InvalidRevisionError, _InspectionShapeError):
+                unavailable.append(
+                    InspectionUnavailableView(
+                        role="revision_spec_features",
+                        artifact_id=None,
+                        checksum_sha256=None,
+                        reason="unsupported_shape",
+                        message=(
+                            "The persisted revision features do not match the bounded inspection shape."
+                        ),
+                    )
+                )
+
+        for role, (report_kind, title) in _REPORT_ROLES.items():
+            artifact, value, error = self._read_inspection_json(loaded, role)
+            if error is not None:
+                unavailable.append(error)
+            elif artifact is not None and value is not None:
+                try:
+                    reports.append(
+                        _inspection_report_view(
+                            report_kind=report_kind,
+                            title=title,
+                            artifact=artifact,
+                            value=value,
+                        )
+                    )
+                except _InspectionShapeError:
+                    unavailable.append(
+                        _inspection_unavailable(
+                            loaded,
+                            role,
+                            "unsupported_shape",
+                            "The checksum-verified report does not match the bounded inspection shape.",
+                        )
+                    )
+
+        for role, profile_kind in _PROFILE_ROLES.items():
+            artifact, value, error = self._read_inspection_json(loaded, role)
+            if error is not None:
+                unavailable.append(error)
+            elif artifact is not None and value is not None:
+                try:
+                    profiles.append(
+                        _inspection_profile_view(
+                            profile_kind=profile_kind,
+                            artifact=artifact,
+                            value=value,
+                        )
+                    )
+                except _InspectionShapeError:
+                    unavailable.append(
+                        _inspection_unavailable(
+                            loaded,
+                            role,
+                            "unsupported_shape",
+                            "The checksum-verified profile does not match the bounded inspection shape.",
+                        )
+                    )
+
+        return InspectionView(
+            features=features,
+            reports=reports,
+            profiles=profiles,
+            unavailable=unavailable,
+            max_json_bytes=_MAX_INSPECTION_JSON_BYTES,
+            claim_boundary=_INSPECTION_CLAIM_BOUNDARY,
+        )
+
+    def _read_inspection_json(
+        self,
+        loaded: _LoadedRevision,
+        role: str,
+    ) -> tuple[
+        InspectionArtifactView | None,
+        dict[str, Any] | None,
+        InspectionUnavailableView | None,
+    ]:
+        matches = [item for item in loaded.artifacts.values() if item.get("role") == role]
+        if not matches:
+            return None, None, None
+        if len(matches) != 1:
+            return (
+                None,
+                None,
+                InspectionUnavailableView(
+                    role=role,
+                    artifact_id=None,
+                    checksum_sha256=None,
+                    reason="multiple_records",
+                    message="More than one persisted artifact claims this inspection role.",
+                ),
+            )
+        record = matches[0]
+        artifact_id = _text(record.get("artifact_id"), "artifact.artifact_id")
+        checksum = _checksum(record.get("checksum_sha256"), "artifact.checksum_sha256")
+        path = self._artifact_path(loaded.root, record)
+        if not path.is_file():
+            return None, None, _inspection_unavailable_for_record(
+                role, artifact_id, checksum, "file_missing", "The recorded report file is missing."
+            )
+        actual_size = path.stat().st_size
+        if actual_size > _MAX_INSPECTION_JSON_BYTES:
+            return None, None, _inspection_unavailable_for_record(
+                role,
+                artifact_id,
+                checksum,
+                "size_limit",
+                "The recorded report exceeds the bounded inspection size limit.",
+            )
+        expected_size = record.get("size_bytes")
+        if expected_size is not None and actual_size != _integer(
+            expected_size, "artifact.size_bytes"
+        ):
+            return None, None, _inspection_unavailable_for_record(
+                role,
+                artifact_id,
+                checksum,
+                "size_mismatch",
+                "The recorded report size does not match the persisted artifact record.",
+            )
+        try:
+            payload = path.read_bytes()
+        except OSError:
+            return None, None, _inspection_unavailable_for_record(
+                role, artifact_id, checksum, "file_missing", "The recorded report cannot be read."
+            )
+        if len(payload) > _MAX_INSPECTION_JSON_BYTES:
+            return None, None, _inspection_unavailable_for_record(
+                role,
+                artifact_id,
+                checksum,
+                "size_limit",
+                "The recorded report exceeds the bounded inspection size limit.",
+            )
+        if expected_size is not None and len(payload) != _integer(
+            expected_size, "artifact.size_bytes"
+        ):
+            return None, None, _inspection_unavailable_for_record(
+                role,
+                artifact_id,
+                checksum,
+                "size_mismatch",
+                "The recorded report size changed while it was being read.",
+            )
+        if hashlib.sha256(payload).hexdigest() != checksum:
+            return None, None, _inspection_unavailable_for_record(
+                role,
+                artifact_id,
+                checksum,
+                "checksum_mismatch",
+                "The recorded report checksum does not match its persisted artifact record.",
+            )
+        try:
+            value = json.loads(
+                payload.decode("utf-8"),
+                parse_constant=_reject_inspection_json_constant,
+            )
+        except (UnicodeError, json.JSONDecodeError, ValueError, RecursionError):
+            return None, None, _inspection_unavailable_for_record(
+                role,
+                artifact_id,
+                checksum,
+                "invalid_json",
+                "The checksum-verified report is not bounded UTF-8 JSON.",
+            )
+        if not isinstance(value, dict) or not _inspection_json_is_bounded(value):
+            return None, None, _inspection_unavailable_for_record(
+                role,
+                artifact_id,
+                checksum,
+                "unsupported_shape",
+                "The checksum-verified report exceeds the bounded inspection shape.",
+            )
+        artifact = InspectionArtifactView(
+            artifact_id=artifact_id,
+            role=role,
+            checksum_sha256=checksum,
+            size_bytes=actual_size,
+            producer=_text(record.get("producer"), "artifact.producer"),
+            producer_version=_text(
+                record.get("producer_version"), "artifact.producer_version"
+            ),
+            evidence_mode=_text(record.get("evidence_mode"), "artifact.evidence_mode"),
+            checksum_verified=True,
+        )
+        return artifact, value, None
+
     def _records(
         self,
         index: dict[str, dict[str, Any]],
@@ -542,6 +800,280 @@ class JourneyRepository:
         if not candidate.is_relative_to(revision_root):
             raise InvalidRevisionError("artifact path escapes its revision")
         return candidate
+
+
+def _empty_inspection_view() -> InspectionView:
+    return InspectionView(
+        features=[],
+        reports=[],
+        profiles=[],
+        unavailable=[],
+        max_json_bytes=_MAX_INSPECTION_JSON_BYTES,
+        claim_boundary=_INSPECTION_CLAIM_BOUNDARY,
+    )
+
+
+def _inspection_feature_views(
+    spec: dict[str, Any],
+    *,
+    fixture: bool,
+) -> list[InspectionFeatureView]:
+    raw_features = spec.get("features", [])
+    if not isinstance(raw_features, list) or len(raw_features) > _MAX_INSPECTION_FEATURES:
+        raise _InspectionShapeError("inspection features are not bounded")
+    features: list[InspectionFeatureView] = []
+    for raw in raw_features:
+        if not isinstance(raw, dict):
+            raise _InspectionShapeError("inspection feature must be an object")
+        raw_dimensions = raw.get("dimensions_mm", {})
+        if not isinstance(raw_dimensions, dict) or len(raw_dimensions) > 32:
+            raise _InspectionShapeError("inspection feature dimensions are not bounded")
+        dimensions: dict[str, float] = {}
+        for name, value in raw_dimensions.items():
+            if not isinstance(name, str) or not name.strip():
+                raise _InspectionShapeError("inspection dimension name is invalid")
+            number = _inspection_optional_float(value)
+            if number is None:
+                raise _InspectionShapeError("inspection dimension value is required")
+            dimensions[name] = number
+        quantity = raw.get("quantity")
+        if isinstance(quantity, bool) or not isinstance(quantity, int) or quantity < 1:
+            raise _InspectionShapeError("inspection feature quantity is invalid")
+        required = raw.get("required")
+        if not isinstance(required, bool):
+            raise _InspectionShapeError("inspection feature required state is invalid")
+        features.append(
+            InspectionFeatureView(
+                feature_id=_inspection_text(raw.get("feature_id")),
+                kind=_inspection_text(raw.get("kind")),
+                dimensions_mm=dimensions,
+                quantity=quantity,
+                tolerance_mm=_inspection_optional_float(raw.get("tolerance_mm")),
+                required=required,
+                notes=_inspection_optional_text(raw.get("notes")),
+                source="persisted_revision_spec",
+                fixture=fixture,
+            )
+        )
+    return features
+
+
+def _inspection_report_view(
+    *,
+    report_kind: str,
+    title: str,
+    artifact: InspectionArtifactView,
+    value: dict[str, Any],
+) -> InspectionReportView:
+    raw_checks = value.get("checks", [])
+    if not isinstance(raw_checks, list) or len(raw_checks) > _MAX_INSPECTION_CHECKS:
+        raise _InspectionShapeError("inspection report checks are not bounded")
+    checks: list[InspectionCheckView] = []
+    for raw in raw_checks:
+        if not isinstance(raw, dict):
+            raise _InspectionShapeError("inspection check must be an object")
+        check_id = _inspection_text(raw.get("check_id"))
+        passed = raw.get("passed")
+        if not isinstance(passed, bool):
+            raise _InspectionShapeError("inspection check pass state must be a boolean")
+        actual = raw.get("actual") if "actual" in raw else raw.get("measured")
+        requirement = raw.get("expected") if "expected" in raw else raw.get("requirement")
+        checks.append(
+            InspectionCheckView(
+                check_id=check_id,
+                category=_inspection_optional_text(raw.get("category")),
+                description=(
+                    _inspection_optional_text(raw.get("description"))
+                    or check_id.replace("_", " ")
+                ),
+                passed=passed,
+                actual=actual,
+                requirement=requirement,
+                tolerance_mm=_inspection_optional_float(raw.get("tolerance_mm")),
+                remediation=_inspection_optional_text(raw.get("remediation")),
+            )
+        )
+    raw_measurements = value.get("measurements", {})
+    if not isinstance(raw_measurements, dict) or len(raw_measurements) > _MAX_INSPECTION_FIELDS:
+        raise _InspectionShapeError("inspection measurements are not bounded")
+    raw_passed = value.get("passed")
+    if raw_passed is not None and not isinstance(raw_passed, bool):
+        raise _InspectionShapeError("inspection report pass state must be a boolean or null")
+    messages = [
+        *_inspection_messages(value.get("warnings", []), severity="warning"),
+        *_inspection_messages(value.get("errors", []), severity="error"),
+    ]
+    return InspectionReportView(
+        report_kind=report_kind,
+        title=title,
+        artifact=artifact,
+        schema_version=_inspection_optional_text(value.get("schema_version")),
+        status=_inspection_optional_text(value.get("status")),
+        passed=raw_passed,
+        evidence_level=_inspection_optional_text(value.get("evidence_level")),
+        claim_boundary=_inspection_optional_text(value.get("claim_boundary")),
+        measurements=raw_measurements,
+        checks=checks,
+        messages=messages,
+    )
+
+
+def _inspection_profile_view(
+    *,
+    profile_kind: str,
+    artifact: InspectionArtifactView,
+    value: dict[str, Any],
+) -> InspectionProfileView:
+    values = {key: item for key, item in value.items() if key not in _PROFILE_HEADER_FIELDS}
+    if len(values) > _MAX_INSPECTION_FIELDS:
+        raise _InspectionShapeError("inspection profile fields are not bounded")
+    return InspectionProfileView(
+        profile_kind=profile_kind,
+        artifact=artifact,
+        profile_id=_inspection_text(value.get("profile_id") or value.get("orientation_id")),
+        name=_inspection_text(value.get("name")),
+        status=_inspection_text(value.get("status")),
+        claim_boundary=_inspection_optional_text(value.get("claim_boundary")),
+        values=values,
+    )
+
+
+def _inspection_messages(value: Any, *, severity: str) -> list[InspectionMessageView]:
+    if not isinstance(value, list) or len(value) > _MAX_INSPECTION_MESSAGES:
+        raise _InspectionShapeError("inspection messages are not bounded")
+    messages: list[InspectionMessageView] = []
+    for item in value:
+        if isinstance(item, str):
+            message = _inspection_text(item)
+            messages.append(
+                InspectionMessageView(
+                    severity=severity,
+                    code=None,
+                    title=f"Recorded {severity}",
+                    message=message,
+                    remediation=None,
+                )
+            )
+            continue
+        if not isinstance(item, dict):
+            raise _InspectionShapeError("inspection message must be text or an object")
+        code = _inspection_optional_text(item.get("code"))
+        title = _inspection_optional_text(item.get("title")) or code or f"Recorded {severity}"
+        message = (
+            _inspection_optional_text(item.get("evidence"))
+            or _inspection_optional_text(item.get("message"))
+            or title
+        )
+        messages.append(
+            InspectionMessageView(
+                severity=severity,
+                code=code,
+                title=title,
+                message=message,
+                remediation=(
+                    _inspection_optional_text(item.get("physical_resolution"))
+                    or _inspection_optional_text(item.get("remediation"))
+                ),
+            )
+        )
+    return messages
+
+
+def _inspection_unavailable(
+    loaded: _LoadedRevision,
+    role: str,
+    reason: str,
+    message: str,
+) -> InspectionUnavailableView:
+    matches = [item for item in loaded.artifacts.values() if item.get("role") == role]
+    if len(matches) != 1:
+        return InspectionUnavailableView(
+            role=role,
+            artifact_id=None,
+            checksum_sha256=None,
+            reason=reason,
+            message=message,
+        )
+    record = matches[0]
+    checksum = _inspection_optional_text(record.get("checksum_sha256"))
+    if checksum is not None and not _SHA256_PATTERN.fullmatch(checksum.lower()):
+        checksum = None
+    return InspectionUnavailableView(
+        role=role,
+        artifact_id=_inspection_optional_text(record.get("artifact_id")),
+        checksum_sha256=checksum.lower() if checksum is not None else None,
+        reason=reason,
+        message=message,
+    )
+
+
+def _inspection_unavailable_for_record(
+    role: str,
+    artifact_id: str,
+    checksum: str,
+    reason: str,
+    message: str,
+) -> InspectionUnavailableView:
+    return InspectionUnavailableView(
+        role=role,
+        artifact_id=artifact_id,
+        checksum_sha256=checksum,
+        reason=reason,
+        message=message,
+    )
+
+
+def _inspection_text(value: Any) -> str:
+    normalized = str(value).strip() if value is not None else ""
+    if not normalized:
+        raise _InspectionShapeError("inspection text is required")
+    return normalized
+
+
+def _inspection_optional_text(value: Any) -> str | None:
+    if value is None:
+        return None
+    normalized = str(value).strip()
+    return normalized or None
+
+
+def _inspection_optional_float(value: Any) -> float | None:
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        raise _InspectionShapeError("inspection number cannot be a boolean")
+    try:
+        result = float(value)
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise _InspectionShapeError("inspection number is invalid") from exc
+    if not math.isfinite(result):
+        raise _InspectionShapeError("inspection number must be finite")
+    return result
+
+
+def _reject_inspection_json_constant(value: str) -> None:
+    raise ValueError(f"non-finite JSON constant is not allowed: {value}")
+
+
+def _inspection_json_is_bounded(value: Any) -> bool:
+    stack: list[tuple[Any, int]] = [(value, 0)]
+    nodes = 0
+    while stack:
+        item, depth = stack.pop()
+        nodes += 1
+        if nodes > _MAX_INSPECTION_NODES or depth > _MAX_INSPECTION_DEPTH:
+            return False
+        if isinstance(item, dict):
+            if not all(isinstance(key, str) for key in item):
+                return False
+            stack.extend((child, depth + 1) for child in item.values())
+        elif isinstance(item, list):
+            stack.extend((child, depth + 1) for child in item)
+        elif isinstance(item, float) and not math.isfinite(item):
+            return False
+        elif item is not None and not isinstance(item, (str, int, float, bool)):
+            return False
+    return True
 
 
 def _load_json(

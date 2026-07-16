@@ -1,0 +1,32 @@
+{
+  "checks": [
+    {
+      "check_id": "has_layers",
+      "measured": 250,
+      "passed": true,
+      "requirement": "> 0 fixture layers"
+    },
+    {
+      "check_id": "forbidden_commands",
+      "measured": [],
+      "passed": true,
+      "requirement": "no forbidden commands"
+    },
+    {
+      "check_id": "profile_layer_height",
+      "measured": "0.2",
+      "passed": true,
+      "requirement": "0.2 mm"
+    }
+  ],
+  "claim_boundary": "Interface fixture values demonstrate evidence presentation only. They are not CAD, slicer, manufacturing, or physical evidence.",
+  "errors": [],
+  "evidence_level": "R4",
+  "measurements": {},
+  "passed": true,
+  "schema_version": "1.0.0-interface-fixture",
+  "status": "passed",
+  "warnings": [
+    "Fixture preflight is presentation data, not parsed G-code."
+  ]
+}

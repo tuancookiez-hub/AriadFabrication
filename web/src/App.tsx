@@ -238,28 +238,26 @@ function StageCard({ stage, position }: { stage: Stage; position: number }) {
 }
 
 export function JourneyView({ detail }: { detail: RevisionDetail }) {
-  const warningCount = detail.stages.flatMap((stage) => stage.findings).filter(
+  const findings = detail.stages.flatMap((stage) => stage.findings)
+  const artifacts = detail.stages.flatMap((stage) => stage.artifacts)
+  const warningCount = findings.filter(
     (finding) => !finding.resolved && ['warning', 'error', 'critical'].includes(finding.severity),
   ).length
   const latestEvidence = [...detail.stages]
     .reverse()
     .find((stage) => stage.evidence_level)?.evidence_level
-  const previewArtifact = detail.stages
-    .flatMap((stage) => stage.artifacts)
-    .find(
-      (artifact) =>
-        artifact.available &&
-        artifact.role === 'preview_model' &&
-        artifact.media_type === 'model/gltf-binary',
-    )
-  const gcodeArtifact = detail.stages
-    .flatMap((stage) => stage.artifacts)
-    .find(
-      (artifact) =>
-        artifact.available &&
-        artifact.role === 'gcode' &&
-        artifact.media_type === 'text/x.gcode',
-    )
+  const previewArtifact = artifacts.find(
+    (artifact) =>
+      artifact.available &&
+      artifact.role === 'preview_model' &&
+      artifact.media_type === 'model/gltf-binary',
+  )
+  const gcodeArtifact = artifacts.find(
+    (artifact) =>
+      artifact.available &&
+      artifact.role === 'gcode' &&
+      artifact.media_type === 'text/x.gcode',
+  )
 
   return (
     <AppShell>
@@ -319,9 +317,12 @@ export function JourneyView({ detail }: { detail: RevisionDetail }) {
         <aside className="inspector-column">
           <div className="sticky-panel">
             <p className="eyebrow">Inspection surface</p>
-            <h2>Model and toolpath</h2>
+            <h2>Model, evidence, and toolpath</h2>
             <ArtifactInspector
+              artifacts={artifacts}
+              findings={findings}
               gcodeArtifact={gcodeArtifact ?? null}
+              inspection={detail.inspection}
               key={detail.revision.revision_id}
               previewArtifact={previewArtifact ?? null}
             />

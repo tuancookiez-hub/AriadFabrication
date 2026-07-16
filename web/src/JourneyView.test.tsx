@@ -3,10 +3,26 @@ import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 
 import { JourneyView } from './App'
-import type { RevisionDetail } from './types'
+import { EvidenceInspector } from './EvidenceInspector'
+import type { Artifact, Inspection, RevisionDetail } from './types'
+
+const reportArtifact: Artifact = {
+  artifact_id: 'artifact_geometry_report',
+  role: 'geometry_validation_report',
+  media_type: 'application/json',
+  checksum_sha256: 'a'.repeat(64),
+  size_bytes: 512,
+  producer: 'fixture',
+  producer_version: '1.0.0',
+  evidence_mode: 'fixture',
+  stage_run_id: 'run_fixture_printability',
+  available: true,
+  download_url: '/fixture/geometry-report',
+  metadata: { classification: 'interface_fixture' },
+}
 
 const detail: RevisionDetail = {
-  schema_version: '1.0.0',
+  schema_version: '1.1.0',
   capabilities: { read_only: true, hardware_actions: false },
   source: {
     kind: 'interface_fixture',
@@ -62,12 +78,66 @@ const detail: RevisionDetail = {
           data: {},
         },
       ],
-      artifacts: [],
+      artifacts: [reportArtifact],
       decisions: [],
       approvals: [],
     },
   ],
   package: null,
+  inspection: {
+    features: [
+      {
+        feature_id: 'stake_bore',
+        kind: 'cylindrical_mating_bore',
+        dimensions_mm: { diameter: 12.6, depth: 50 },
+        quantity: 1,
+        tolerance_mm: 0.2,
+        required: true,
+        notes: 'Fixture requirement only.',
+        source: 'persisted_revision_spec',
+        fixture: true,
+      },
+    ],
+    reports: [
+      {
+        report_kind: 'geometry',
+        title: 'Geometry validation',
+        artifact: {
+          artifact_id: reportArtifact.artifact_id,
+          role: reportArtifact.role,
+          checksum_sha256: reportArtifact.checksum_sha256,
+          size_bytes: reportArtifact.size_bytes ?? 0,
+          producer: reportArtifact.producer,
+          producer_version: reportArtifact.producer_version,
+          evidence_mode: 'fixture',
+          checksum_verified: true,
+        },
+        schema_version: '1.0.0-interface-fixture',
+        status: 'passed',
+        passed: true,
+        evidence_level: 'R2',
+        claim_boundary: 'Fixture report only.',
+        measurements: { stake_bore_diameter_mm: 12.6 },
+        checks: [
+          {
+            check_id: 'stake_bore_diameter',
+            category: 'feature',
+            description: 'Fixture bore matches the fixture requirement.',
+            passed: true,
+            actual: 12.6,
+            requirement: 12.6,
+            tolerance_mm: 0.2,
+            remediation: null,
+          },
+        ],
+        messages: [],
+      },
+    ],
+    profiles: [],
+    unavailable: [],
+    max_json_bytes: 2 * 1024 * 1024,
+    claim_boundary: 'Fixture values are replayed without rerunning validation.',
+  },
 }
 
 describe('JourneyView', () => {
@@ -82,9 +152,42 @@ describe('JourneyView', () => {
     expect(screen.getByText('No fabrication-package claim recorded')).toBeInTheDocument()
     expect(screen.getByText('Physical behavior remains unknown')).toBeInTheDocument()
     expect(screen.getByText('Disconnected and read-only')).toBeInTheDocument()
+    expect(screen.getByText('Persisted evidence replay')).toBeInTheDocument()
+    expect(screen.getByText('Verified before parsing')).toBeInTheDocument()
+    expect(screen.getByText(/does not highlight exact geometry/i)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Features 1' }))
+    expect(screen.getByText(/requested feature from the revision specification/i)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Artifacts 1' }))
+    expect(screen.getByText(reportArtifact.checksum_sha256)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Model' }))
     expect(screen.getByText('No GLB preview recorded')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Toolpath' }))
     expect(screen.getByText('No G-code recorded')).toBeInTheDocument()
     expect(screen.queryByText('Printable')).not.toBeInTheDocument()
+  })
+
+  it('keeps a corrupt inspection source unavailable instead of presenting its checks', () => {
+    const inspection: Inspection = {
+      features: [],
+      reports: [],
+      profiles: [],
+      unavailable: [
+        {
+          role: 'geometry_validation_report',
+          artifact_id: 'artifact_geometry_report',
+          checksum_sha256: 'b'.repeat(64),
+          reason: 'checksum_mismatch',
+          message: 'The recorded report checksum does not match.',
+        },
+      ],
+      max_json_bytes: 2 * 1024 * 1024,
+      claim_boundary: 'Only verified reports may be parsed.',
+    }
+
+    render(<EvidenceInspector artifacts={[]} findings={[]} inspection={inspection} />)
+
+    expect(screen.getByText('Inspection sources unavailable')).toBeInTheDocument()
+    expect(screen.getByText(/recorded report checksum does not match/i)).toBeInTheDocument()
+    expect(screen.queryByText('Passed')).not.toBeInTheDocument()
   })
 })

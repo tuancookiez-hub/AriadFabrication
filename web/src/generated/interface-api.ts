@@ -215,7 +215,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.0.0";
+            schema_version: "1.1.0";
             /**
              * Service
              * @constant
@@ -231,6 +231,173 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** InspectionArtifactView */
+        InspectionArtifactView: {
+            /** Artifact Id */
+            artifact_id: string;
+            /** Checksum Sha256 */
+            checksum_sha256: string;
+            /**
+             * Checksum Verified
+             * @constant
+             */
+            checksum_verified: true;
+            /**
+             * Evidence Mode
+             * @enum {string}
+             */
+            evidence_mode: "real" | "simulated" | "fixture" | "unavailable";
+            /** Producer */
+            producer: string;
+            /** Producer Version */
+            producer_version: string;
+            /** Role */
+            role: string;
+            /** Size Bytes */
+            size_bytes: number;
+        };
+        /** InspectionCheckView */
+        InspectionCheckView: {
+            /** Actual */
+            actual: unknown;
+            /** Category */
+            category: string | null;
+            /** Check Id */
+            check_id: string;
+            /** Description */
+            description: string;
+            /** Passed */
+            passed: boolean;
+            /** Remediation */
+            remediation: string | null;
+            /** Requirement */
+            requirement: unknown;
+            /** Tolerance Mm */
+            tolerance_mm: number | null;
+        };
+        /** InspectionFeatureView */
+        InspectionFeatureView: {
+            /** Dimensions Mm */
+            dimensions_mm: {
+                [key: string]: number;
+            };
+            /** Feature Id */
+            feature_id: string;
+            /** Fixture */
+            fixture: boolean;
+            /** Kind */
+            kind: string;
+            /** Notes */
+            notes: string | null;
+            /** Quantity */
+            quantity: number;
+            /** Required */
+            required: boolean;
+            /**
+             * Source
+             * @constant
+             */
+            source: "persisted_revision_spec";
+            /** Tolerance Mm */
+            tolerance_mm: number | null;
+        };
+        /** InspectionMessageView */
+        InspectionMessageView: {
+            /** Code */
+            code: string | null;
+            /** Message */
+            message: string;
+            /** Remediation */
+            remediation: string | null;
+            /**
+             * Severity
+             * @enum {string}
+             */
+            severity: "warning" | "error";
+            /** Title */
+            title: string;
+        };
+        /** InspectionProfileView */
+        InspectionProfileView: {
+            artifact: components["schemas"]["InspectionArtifactView"];
+            /** Claim Boundary */
+            claim_boundary: string | null;
+            /** Name */
+            name: string;
+            /** Profile Id */
+            profile_id: string;
+            /**
+             * Profile Kind
+             * @enum {string}
+             */
+            profile_kind: "printer" | "material" | "process" | "orientation";
+            /** Status */
+            status: string;
+            /** Values */
+            values: {
+                [key: string]: unknown;
+            };
+        };
+        /** InspectionReportView */
+        InspectionReportView: {
+            artifact: components["schemas"]["InspectionArtifactView"];
+            /** Checks */
+            checks: components["schemas"]["InspectionCheckView"][];
+            /** Claim Boundary */
+            claim_boundary: string | null;
+            /** Evidence Level */
+            evidence_level: string | null;
+            /** Measurements */
+            measurements: {
+                [key: string]: unknown;
+            };
+            /** Messages */
+            messages: components["schemas"]["InspectionMessageView"][];
+            /** Passed */
+            passed: boolean | null;
+            /**
+             * Report Kind
+             * @enum {string}
+             */
+            report_kind: "geometry" | "printability" | "gcode_preflight";
+            /** Schema Version */
+            schema_version: string | null;
+            /** Status */
+            status: string | null;
+            /** Title */
+            title: string;
+        };
+        /** InspectionUnavailableView */
+        InspectionUnavailableView: {
+            /** Artifact Id */
+            artifact_id: string | null;
+            /** Checksum Sha256 */
+            checksum_sha256: string | null;
+            /** Message */
+            message: string;
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "multiple_records" | "file_missing" | "size_limit" | "size_mismatch" | "checksum_mismatch" | "invalid_json" | "unsupported_shape";
+            /** Role */
+            role: string;
+        };
+        /** InspectionView */
+        InspectionView: {
+            /** Claim Boundary */
+            claim_boundary: string;
+            /** Features */
+            features: components["schemas"]["InspectionFeatureView"][];
+            /** Max Json Bytes */
+            max_json_bytes: number;
+            /** Profiles */
+            profiles: components["schemas"]["InspectionProfileView"][];
+            /** Reports */
+            reports: components["schemas"]["InspectionReportView"][];
+            /** Unavailable */
+            unavailable: components["schemas"]["InspectionUnavailableView"][];
         };
         /** JobView */
         JobView: {
@@ -273,6 +440,7 @@ export interface components {
         /** RevisionDetailResponse */
         RevisionDetailResponse: {
             capabilities: components["schemas"]["CapabilitiesView"];
+            inspection: components["schemas"]["InspectionView"];
             job: components["schemas"]["JobView"];
             /** Manifest Available */
             manifest_available: boolean;
@@ -282,7 +450,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.0.0";
+            schema_version: "1.1.0";
             source: components["schemas"]["SourceView"];
             /** Stages */
             stages: components["schemas"]["StageView"][];
@@ -296,7 +464,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.0.0";
+            schema_version: "1.1.0";
         };
         /** RevisionSummary */
         RevisionSummary: {
