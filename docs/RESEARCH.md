@@ -42,6 +42,15 @@ M4-B evidence on 2026-07-16: direct Three.js 0.185.1 loads the actual 241,324-by
 
 Research conclusion: direct Three.js is sufficient for the first bounded GLB viewport and avoids adding a second React renderer. Toolpath parsing remains project-owned because it must preserve Ariad's exact playback/simulation language and resource ceilings. Reconsider a higher-level library only if measured accessibility or lifecycle maintenance outweighs its additional dependency and abstraction cost.
 
+## Interface contract generation
+
+- [openapi-typescript CLI](https://openapi-ts.dev/cli) — official generation and `--check` behavior for converting an OpenAPI document into TypeScript definitions.
+- [openapi-typescript repository](https://github.com/openapi-ts/openapi-typescript) — source, release history, compatibility, and MIT license.
+
+M4-C evidence on 2026-07-16: FastAPI deterministically emits a committed 30,128-byte OpenAPI 3.1 snapshot with four application paths and 18 schemas. `openapi-typescript` 7.13.0 produces a 16,155-byte browser contract from that snapshot. Backend tests require all emitted response fields plus the API-version, health-identity, `read_only: true`, and `hardware_actions: false` constants; CI independently checks the Python snapshot and generated TypeScript for drift. TypeScript is pinned to 5.9.3 because it is in the generator's supported peer range, and the full frontend peer check passes.
+
+Research conclusion: one canonical generated contract is safer than parallel handwritten response interfaces. The generated file remains a build-time artifact; it adds no browser runtime code and does not require exposing FastAPI's documentation or OpenAPI routes at runtime.
+
 ## Organic meshes and Blender
 
 - [Blender MCP](https://github.com/ahujasid/blender-mcp) — Blender scene, mesh, material, and Python control through MCP.

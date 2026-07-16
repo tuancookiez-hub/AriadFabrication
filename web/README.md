@@ -27,6 +27,24 @@ pnpm --dir web dev
 
 The Vite development server proxies `/api` to the loopback-only API on port 8000.
 
+## API contract generation
+
+The browser response types are generated from the committed FastAPI OpenAPI snapshot. Do not edit `src/generated/interface-api.ts` directly.
+
+```powershell
+uv run ariad-interface-openapi
+pnpm --dir web api:types
+```
+
+Use the paired checks without rewriting files:
+
+```powershell
+uv run ariad-interface-openapi --check
+pnpm --dir web api:types:check
+```
+
+Backend models, the canonical snapshot, generated TypeScript, and UI aliases are one fail-closed contract chain. The runtime API itself does not expose OpenAPI or documentation routes.
+
 ## Verification
 
 ```powershell

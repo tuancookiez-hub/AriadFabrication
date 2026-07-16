@@ -1,0 +1,1235 @@
+{
+  "components": {
+    "schemas": {
+      "ArtifactView": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
+          "checksum_sha256": {
+            "title": "Checksum Sha256",
+            "type": "string"
+          },
+          "download_url": {
+            "title": "Download Url",
+            "type": "string"
+          },
+          "evidence_mode": {
+            "enum": [
+              "real",
+              "simulated",
+              "fixture",
+              "unavailable"
+            ],
+            "title": "Evidence Mode",
+            "type": "string"
+          },
+          "media_type": {
+            "title": "Media Type",
+            "type": "string"
+          },
+          "metadata": {
+            "additionalProperties": true,
+            "title": "Metadata",
+            "type": "object"
+          },
+          "producer": {
+            "title": "Producer",
+            "type": "string"
+          },
+          "producer_version": {
+            "title": "Producer Version",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "size_bytes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Size Bytes"
+          },
+          "stage_run_id": {
+            "title": "Stage Run Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "artifact_id",
+          "role",
+          "media_type",
+          "checksum_sha256",
+          "size_bytes",
+          "producer",
+          "producer_version",
+          "evidence_mode",
+          "stage_run_id",
+          "available",
+          "download_url",
+          "metadata"
+        ],
+        "title": "ArtifactView",
+        "type": "object"
+      },
+      "CapabilitiesView": {
+        "additionalProperties": false,
+        "properties": {
+          "hardware_actions": {
+            "const": false,
+            "title": "Hardware Actions",
+            "type": "boolean"
+          },
+          "read_only": {
+            "const": true,
+            "title": "Read Only",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "read_only",
+          "hardware_actions"
+        ],
+        "title": "CapabilitiesView",
+        "type": "object"
+      },
+      "EventView": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "title": "Data",
+            "type": "object"
+          },
+          "event_id": {
+            "title": "Event Id",
+            "type": "string"
+          },
+          "event_type": {
+            "title": "Event Type",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "sequence": {
+            "title": "Sequence",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "timestamp": {
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "required": [
+          "event_id",
+          "event_type",
+          "status",
+          "message",
+          "sequence",
+          "timestamp",
+          "data"
+        ],
+        "title": "EventView",
+        "type": "object"
+      },
+      "FindingView": {
+        "additionalProperties": false,
+        "properties": {
+          "affected_geometry": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Affected Geometry"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "data": {
+            "additionalProperties": true,
+            "title": "Data",
+            "type": "object"
+          },
+          "evidence": {
+            "title": "Evidence",
+            "type": "string"
+          },
+          "evidence_mode": {
+            "enum": [
+              "real",
+              "simulated",
+              "fixture",
+              "unavailable"
+            ],
+            "title": "Evidence Mode",
+            "type": "string"
+          },
+          "finding_id": {
+            "title": "Finding Id",
+            "type": "string"
+          },
+          "remediation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remediation"
+          },
+          "resolution": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolution"
+          },
+          "resolved": {
+            "title": "Resolved",
+            "type": "boolean"
+          },
+          "severity": {
+            "title": "Severity",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "finding_id",
+          "code",
+          "title",
+          "severity",
+          "evidence",
+          "evidence_mode",
+          "remediation",
+          "affected_geometry",
+          "resolved",
+          "resolution",
+          "data"
+        ],
+        "title": "FindingView",
+        "type": "object"
+      },
+      "GcodeSummaryView": {
+        "additionalProperties": false,
+        "properties": {
+          "checksum_sha256": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Checksum Sha256"
+          },
+          "estimated_seconds": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimated Seconds"
+          },
+          "feature_counts": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "integer"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feature Counts"
+          },
+          "filament_length_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filament Length Mm"
+          },
+          "filament_mass_g": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filament Mass G"
+          },
+          "layer_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Layer Count"
+          },
+          "motion_bounds_mm": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "number"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Motion Bounds Mm"
+          },
+          "slicer_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slicer Version"
+          },
+          "temperatures_c": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "items": {
+                    "type": "number"
+                  },
+                  "type": "array"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Temperatures C"
+          }
+        },
+        "required": [
+          "checksum_sha256",
+          "slicer_version",
+          "layer_count",
+          "estimated_seconds",
+          "filament_length_mm",
+          "filament_mass_g",
+          "motion_bounds_mm",
+          "temperatures_c",
+          "feature_counts"
+        ],
+        "title": "GcodeSummaryView",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "HardwareView": {
+        "additionalProperties": false,
+        "properties": {
+          "gcode_uploaded": {
+            "title": "Gcode Uploaded",
+            "type": "boolean"
+          },
+          "print_started": {
+            "title": "Print Started",
+            "type": "boolean"
+          },
+          "printer_connected": {
+            "title": "Printer Connected",
+            "type": "boolean"
+          },
+          "printer_selected": {
+            "title": "Printer Selected",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "printer_selected",
+          "printer_connected",
+          "gcode_uploaded",
+          "print_started"
+        ],
+        "title": "HardwareView",
+        "type": "object"
+      },
+      "HealthResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "capabilities": {
+            "$ref": "#/components/schemas/CapabilitiesView"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "service": {
+            "const": "ariad-interface-api",
+            "title": "Service",
+            "type": "string"
+          },
+          "status": {
+            "const": "ok",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "service",
+          "status",
+          "capabilities"
+        ],
+        "title": "HealthResponse",
+        "type": "object"
+      },
+      "JobView": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "job_id": {
+            "title": "Job Id",
+            "type": "string"
+          },
+          "metadata": {
+            "additionalProperties": true,
+            "title": "Metadata",
+            "type": "object"
+          },
+          "request": {
+            "title": "Request",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "job_id",
+          "title",
+          "request",
+          "status",
+          "created_at",
+          "updated_at",
+          "metadata"
+        ],
+        "title": "JobView",
+        "type": "object"
+      },
+      "PackageView": {
+        "additionalProperties": false,
+        "properties": {
+          "allowed_claim": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allowed Claim"
+          },
+          "claim_boundary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Claim Boundary"
+          },
+          "evidence_level": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Level"
+          },
+          "gcode_summary": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GcodeSummaryView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "hardware": {
+            "$ref": "#/components/schemas/HardwareView"
+          },
+          "slicer": {
+            "additionalProperties": true,
+            "title": "Slicer",
+            "type": "object"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "unresolved_warning_count": {
+            "title": "Unresolved Warning Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "status",
+          "evidence_level",
+          "allowed_claim",
+          "claim_boundary",
+          "hardware",
+          "gcode_summary",
+          "slicer",
+          "unresolved_warning_count"
+        ],
+        "title": "PackageView",
+        "type": "object"
+      },
+      "RevisionDetailResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "capabilities": {
+            "$ref": "#/components/schemas/CapabilitiesView"
+          },
+          "job": {
+            "$ref": "#/components/schemas/JobView"
+          },
+          "manifest_available": {
+            "title": "Manifest Available",
+            "type": "boolean"
+          },
+          "package": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PackageView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "revision": {
+            "$ref": "#/components/schemas/RevisionView"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/SourceView"
+          },
+          "stages": {
+            "items": {
+              "$ref": "#/components/schemas/StageView"
+            },
+            "title": "Stages",
+            "type": "array"
+          }
+        },
+        "required": [
+          "schema_version",
+          "capabilities",
+          "source",
+          "manifest_available",
+          "job",
+          "revision",
+          "stages",
+          "package"
+        ],
+        "title": "RevisionDetailResponse",
+        "type": "object"
+      },
+      "RevisionListResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "capabilities": {
+            "$ref": "#/components/schemas/CapabilitiesView"
+          },
+          "revisions": {
+            "items": {
+              "$ref": "#/components/schemas/RevisionSummary"
+            },
+            "title": "Revisions",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "capabilities",
+          "revisions"
+        ],
+        "title": "RevisionListResponse",
+        "type": "object"
+      },
+      "RevisionSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "achieved_evidence_level": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Achieved Evidence Level"
+          },
+          "availability": {
+            "enum": [
+              "available",
+              "invalid"
+            ],
+            "title": "Availability",
+            "type": "string"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "job_id": {
+            "title": "Job Id",
+            "type": "string"
+          },
+          "job_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Job Status"
+          },
+          "latest_stage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Stage"
+          },
+          "latest_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Status"
+          },
+          "revision_id": {
+            "title": "Revision Id",
+            "type": "string"
+          },
+          "revision_number": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revision Number"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SourceView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "stage_count": {
+            "title": "Stage Count",
+            "type": "integer"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
+          "warning_count": {
+            "title": "Warning Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "job_id",
+          "revision_id",
+          "availability",
+          "title",
+          "job_status",
+          "revision_number",
+          "stage_count",
+          "latest_stage",
+          "latest_status",
+          "achieved_evidence_level",
+          "warning_count",
+          "updated_at",
+          "source",
+          "error"
+        ],
+        "title": "RevisionSummary",
+        "type": "object"
+      },
+      "RevisionView": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          },
+          "parent_revision_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Revision Id"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "revision_id": {
+            "title": "Revision Id",
+            "type": "string"
+          },
+          "spec": {
+            "additionalProperties": true,
+            "title": "Spec",
+            "type": "object"
+          }
+        },
+        "required": [
+          "revision_id",
+          "number",
+          "parent_revision_id",
+          "reason",
+          "created_at",
+          "spec"
+        ],
+        "title": "RevisionView",
+        "type": "object"
+      },
+      "SourceView": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence_mode": {
+            "enum": [
+              "real",
+              "simulated",
+              "fixture",
+              "unavailable",
+              "mixed"
+            ],
+            "title": "Evidence Mode",
+            "type": "string"
+          },
+          "fixture": {
+            "title": "Fixture",
+            "type": "boolean"
+          },
+          "kind": {
+            "enum": [
+              "interface_fixture",
+              "runtime_revision"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "physical_evidence_present": {
+            "title": "Physical Evidence Present",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "kind",
+          "label",
+          "evidence_mode",
+          "fixture",
+          "physical_evidence_present"
+        ],
+        "title": "SourceView",
+        "type": "object"
+      },
+      "StageView": {
+        "additionalProperties": false,
+        "properties": {
+          "approvals": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Approvals",
+            "type": "array"
+          },
+          "artifacts": {
+            "items": {
+              "$ref": "#/components/schemas/ArtifactView"
+            },
+            "title": "Artifacts",
+            "type": "array"
+          },
+          "attempt": {
+            "title": "Attempt",
+            "type": "integer"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "decisions": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Decisions",
+            "type": "array"
+          },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/EventView"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "evidence_level": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Level"
+          },
+          "evidence_mode": {
+            "enum": [
+              "real",
+              "simulated",
+              "fixture",
+              "unavailable"
+            ],
+            "title": "Evidence Mode",
+            "type": "string"
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/components/schemas/FindingView"
+            },
+            "title": "Findings",
+            "type": "array"
+          },
+          "stage": {
+            "title": "Stage",
+            "type": "string"
+          },
+          "stage_run_id": {
+            "title": "Stage Run Id",
+            "type": "string"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "tool": {
+            "$ref": "#/components/schemas/ToolView"
+          }
+        },
+        "required": [
+          "stage_run_id",
+          "stage",
+          "status",
+          "attempt",
+          "evidence_mode",
+          "evidence_level",
+          "tool",
+          "started_at",
+          "completed_at",
+          "summary",
+          "error_message",
+          "events",
+          "findings",
+          "artifacts",
+          "decisions",
+          "approvals"
+        ],
+        "title": "StageView",
+        "type": "object"
+      },
+      "ToolView": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "version"
+        ],
+        "title": "ToolView",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "This API replays persisted records. It cannot upload G-code, select a printer, heat hardware, move hardware, or start manufacturing.",
+    "summary": "Read-only access to persisted fabrication evidence.",
+    "title": "Ariad Fabrication Journey API",
+    "version": "1.0.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/health": {
+      "get": {
+        "operationId": "health_api_v1_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health"
+      }
+    },
+    "/api/v1/revisions": {
+      "get": {
+        "operationId": "revisions_api_v1_revisions_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevisionListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Revisions"
+      }
+    },
+    "/api/v1/revisions/{job_id}/{revision_id}": {
+      "get": {
+        "operationId": "revision_api_v1_revisions__job_id___revision_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "revision_id",
+            "required": true,
+            "schema": {
+              "title": "Revision Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevisionDetailResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revision"
+      }
+    },
+    "/api/v1/revisions/{job_id}/{revision_id}/artifacts/{artifact_id}": {
+      "get": {
+        "operationId": "artifact_api_v1_revisions__job_id___revision_id__artifacts__artifact_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "revision_id",
+            "required": true,
+            "schema": {
+              "title": "Revision Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "artifact_id",
+            "required": true,
+            "schema": {
+              "title": "Artifact Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Artifact"
+      }
+    }
+  }
+}

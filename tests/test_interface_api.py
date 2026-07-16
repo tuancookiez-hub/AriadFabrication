@@ -217,6 +217,12 @@ class InterfaceHttpTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(response.json()["capabilities"]["hardware_actions"])
 
+    def test_runtime_surface_has_no_docs_schema_or_mutation_routes(self):
+        for path in ("/docs", "/redoc", "/openapi.json"):
+            with self.subTest(path=path):
+                self.assertEqual(self.client.get(path).status_code, 404)
+        self.assertEqual(self.client.post("/api/v1/revisions").status_code, 405)
+
     def test_list_detail_and_artifact_contracts(self):
         listing = self.client.get("/api/v1/revisions")
         self.assertEqual(listing.status_code, 200)

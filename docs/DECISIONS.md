@@ -159,6 +159,26 @@ This file records accepted project-level decisions. Change an accepted decision 
 **Removal path:** Remove `three`, `@types/three`, `ModelInspector.tsx`, and the model integration test to return to artifact downloads only. Remove `ToolpathInspector.tsx`, `toolpath.ts`, `toolpath.worker.ts`, and their tests to remove playback. Persisted R0–R4 artifacts and the read API remain unchanged.  
 **Consequence:** Keep richer dimensions, cross-sections, feature selection, and comparison behind the same preview boundary. Reassess a higher-level renderer only if direct Three.js lifecycle or accessibility costs exceed the measured benefit.
 
+### D-022 — Generate the browser API contract from canonical OpenAPI
+
+**Status:** Accepted for M4-C on 2026-07-16.
+
+**Decision:** Generate and commit a canonical OpenAPI 3.1 snapshot from FastAPI, then generate the browser response definitions with exactly `openapi-typescript` 7.13.0. Pin TypeScript to 5.9.3, the newest selected compiler in the generator's supported peer range. This supersedes only D-020's TypeScript 6.0.3 compiler selection; the Python/React application boundary remains unchanged.
+
+**Contract boundary:** Every field emitted by the read API is required in OpenAPI even when its value is nullable or an empty collection. `read_only` is the literal `true`, `hardware_actions` is the literal `false`, and only the four GET application paths enter the snapshot. Runtime `/docs`, `/redoc`, and `/openapi.json` routes are disabled. The frontend imports schema aliases from the generated file instead of maintaining parallel handwritten response interfaces.
+
+**Evidence:** The canonical snapshot is 30,128 bytes with SHA-256 `27b274641a4a0184824d583a710074ab2cdd6063287e2a611a2dd08a86c4dfa4`, four paths, and 18 schemas. Backend tests detect snapshot, route, API-version, health-identity, capability-constant, required-field, and writer drift. Frontend tests run the generator's `--check` before TypeScript and component tests. Both checks run independently in CI, and `pnpm peers check` reports no issue.
+
+**Dependency reason:** Generated definitions make a backend response change fail close at the contract boundary before it can become an unchecked browser assumption. The generator is development-only and contributes no browser runtime code.
+
+**License:** `openapi-typescript` reports MIT; TypeScript reports Apache-2.0. A full transitive and distribution-license audit remains required before public release.
+
+**Runtime impact:** The locked frontend development tree contains 294 package directories, approximately 226.7 MiB across 15,057 files after adding the generator. Production bundle sizes are unchanged because the generator and types are development-only.
+
+**Removal path:** Remove `openapi-typescript`, the two `api:types` scripts, `web/src/generated/`, the interface snapshot generator and snapshot, and restore manually maintained browser response interfaces. The runtime API and persisted evidence remain functional, but automated cross-language drift detection is lost.
+
+**Consequence:** Treat `src/ariad_fabrication/api/models.py` as the response-model source, regenerate the snapshot and TypeScript in the same change, and reject unexplained generated-file differences.
+
 ## Deferred decisions
 
 These require later evidence and should not be decided through preference alone:

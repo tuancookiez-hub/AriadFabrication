@@ -11,6 +11,7 @@ from typing import Any, Mapping
 from urllib.parse import quote
 
 from .models import (
+    INTERFACE_API_VERSION,
     ArtifactView,
     EventView,
     FindingView,
@@ -25,6 +26,7 @@ from .models import (
     SourceView,
     StageView,
     ToolView,
+    read_only_capabilities,
 )
 
 
@@ -88,7 +90,11 @@ class JourneyRepository:
     def list_revisions(self) -> RevisionListResponse:
         items: list[RevisionSummary] = []
         if not self.runs_root.is_dir():
-            return RevisionListResponse(revisions=[])
+            return RevisionListResponse(
+                schema_version=INTERFACE_API_VERSION,
+                capabilities=read_only_capabilities(),
+                revisions=[],
+            )
         candidates = sorted(
             (
                 revision
@@ -110,6 +116,16 @@ class JourneyRepository:
                         job_id=job_id,
                         revision_id=revision_id,
                         availability="invalid",
+                        title=None,
+                        job_status=None,
+                        revision_number=None,
+                        stage_count=0,
+                        latest_stage=None,
+                        latest_status=None,
+                        achieved_evidence_level=None,
+                        warning_count=0,
+                        updated_at=None,
+                        source=None,
                         error=str(exc),
                     )
                 )
@@ -144,10 +160,15 @@ class JourneyRepository:
                     warning_count=warning_count,
                     updated_at=detail.job.updated_at,
                     source=detail.source,
+                    error=None,
                 )
             )
         items.sort(key=lambda item: item.updated_at or "", reverse=True)
-        return RevisionListResponse(revisions=items)
+        return RevisionListResponse(
+            schema_version=INTERFACE_API_VERSION,
+            capabilities=read_only_capabilities(),
+            revisions=items,
+        )
 
     def get_revision(self, job_id: str, revision_id: str) -> RevisionDetailResponse:
         loaded = self._load(job_id, revision_id)
@@ -155,6 +176,8 @@ class JourneyRepository:
         stage_views = [self._stage_view(loaded, stage_id) for stage_id in loaded.revision["stage_run_ids"]]
         source = self._source_view(loaded, stage_views)
         return RevisionDetailResponse(
+            schema_version=INTERFACE_API_VERSION,
+            capabilities=read_only_capabilities(),
             source=source,
             manifest_available=loaded.manifest is not None,
             job=JobView(

@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
 
-INTERFACE_API_VERSION = "1.0.0"
+InterfaceApiVersion = Literal["1.0.0"]
+INTERFACE_API_VERSION: InterfaceApiVersion = "1.0.0"
 
 
 class ApiModel(BaseModel):
@@ -15,23 +16,23 @@ class ApiModel(BaseModel):
 
 
 class CapabilitiesView(ApiModel):
-    read_only: bool = True
-    hardware_actions: bool = False
+    read_only: Literal[True]
+    hardware_actions: Literal[False]
 
 
 class SourceView(ApiModel):
-    kind: str
+    kind: Literal["interface_fixture", "runtime_revision"]
     label: str
-    evidence_mode: str
+    evidence_mode: Literal["real", "simulated", "fixture", "unavailable", "mixed"]
     fixture: bool
     physical_evidence_present: bool
 
 
 class HealthResponse(ApiModel):
-    schema_version: str = INTERFACE_API_VERSION
-    service: str = "ariad-interface-api"
-    status: str = "ok"
-    capabilities: CapabilitiesView = Field(default_factory=CapabilitiesView)
+    schema_version: InterfaceApiVersion
+    service: Literal["ariad-interface-api"]
+    status: Literal["ok"]
+    capabilities: CapabilitiesView
 
 
 class ToolView(ApiModel):
@@ -46,7 +47,7 @@ class EventView(ApiModel):
     message: str
     sequence: int
     timestamp: str
-    data: dict[str, Any] = Field(default_factory=dict)
+    data: dict[str, Any]
 
 
 class FindingView(ApiModel):
@@ -55,12 +56,12 @@ class FindingView(ApiModel):
     title: str
     severity: str
     evidence: str
-    evidence_mode: str
-    remediation: str | None = None
-    affected_geometry: str | None = None
+    evidence_mode: Literal["real", "simulated", "fixture", "unavailable"]
+    remediation: str | None
+    affected_geometry: str | None
     resolved: bool
-    resolution: str | None = None
-    data: dict[str, Any] = Field(default_factory=dict)
+    resolution: str | None
+    data: dict[str, Any]
 
 
 class ArtifactView(ApiModel):
@@ -68,14 +69,14 @@ class ArtifactView(ApiModel):
     role: str
     media_type: str
     checksum_sha256: str
-    size_bytes: int | None = None
+    size_bytes: int | None
     producer: str
     producer_version: str
-    evidence_mode: str
+    evidence_mode: Literal["real", "simulated", "fixture", "unavailable"]
     stage_run_id: str
     available: bool
     download_url: str
-    metadata: dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any]
 
 
 class StageView(ApiModel):
@@ -83,18 +84,18 @@ class StageView(ApiModel):
     stage: str
     status: str
     attempt: int
-    evidence_mode: str
-    evidence_level: str | None = None
+    evidence_mode: Literal["real", "simulated", "fixture", "unavailable"]
+    evidence_level: str | None
     tool: ToolView
-    started_at: str | None = None
-    completed_at: str | None = None
+    started_at: str | None
+    completed_at: str | None
     summary: str
-    error_message: str | None = None
-    events: list[EventView] = Field(default_factory=list)
-    findings: list[FindingView] = Field(default_factory=list)
-    artifacts: list[ArtifactView] = Field(default_factory=list)
-    decisions: list[dict[str, Any]] = Field(default_factory=list)
-    approvals: list[dict[str, Any]] = Field(default_factory=list)
+    error_message: str | None
+    events: list[EventView]
+    findings: list[FindingView]
+    artifacts: list[ArtifactView]
+    decisions: list[dict[str, Any]]
+    approvals: list[dict[str, Any]]
 
 
 class HardwareView(ApiModel):
@@ -105,49 +106,49 @@ class HardwareView(ApiModel):
 
 
 class GcodeSummaryView(ApiModel):
-    checksum_sha256: str | None = None
-    slicer_version: str | None = None
-    layer_count: int | None = None
-    estimated_seconds: int | None = None
-    filament_length_mm: float | None = None
-    filament_mass_g: float | None = None
-    motion_bounds_mm: dict[str, float] | None = None
-    temperatures_c: dict[str, list[float]] | None = None
-    feature_counts: dict[str, int] | None = None
+    checksum_sha256: str | None
+    slicer_version: str | None
+    layer_count: int | None
+    estimated_seconds: int | None
+    filament_length_mm: float | None
+    filament_mass_g: float | None
+    motion_bounds_mm: dict[str, float] | None
+    temperatures_c: dict[str, list[float]] | None
+    feature_counts: dict[str, int] | None
 
 
 class PackageView(ApiModel):
     status: str
-    evidence_level: str | None = None
-    allowed_claim: str | None = None
-    claim_boundary: str | None = None
+    evidence_level: str | None
+    allowed_claim: str | None
+    claim_boundary: str | None
     hardware: HardwareView
-    gcode_summary: GcodeSummaryView | None = None
-    slicer: dict[str, Any] = Field(default_factory=dict)
-    unresolved_warning_count: int = 0
+    gcode_summary: GcodeSummaryView | None
+    slicer: dict[str, Any]
+    unresolved_warning_count: int
 
 
 class RevisionSummary(ApiModel):
     job_id: str
     revision_id: str
-    availability: str
-    title: str | None = None
-    job_status: str | None = None
-    revision_number: int | None = None
-    stage_count: int = 0
-    latest_stage: str | None = None
-    latest_status: str | None = None
-    achieved_evidence_level: str | None = None
-    warning_count: int = 0
-    updated_at: str | None = None
-    source: SourceView | None = None
-    error: str | None = None
+    availability: Literal["available", "invalid"]
+    title: str | None
+    job_status: str | None
+    revision_number: int | None
+    stage_count: int
+    latest_stage: str | None
+    latest_status: str | None
+    achieved_evidence_level: str | None
+    warning_count: int
+    updated_at: str | None
+    source: SourceView | None
+    error: str | None
 
 
 class RevisionListResponse(ApiModel):
-    schema_version: str = INTERFACE_API_VERSION
-    capabilities: CapabilitiesView = Field(default_factory=CapabilitiesView)
-    revisions: list[RevisionSummary] = Field(default_factory=list)
+    schema_version: InterfaceApiVersion
+    capabilities: CapabilitiesView
+    revisions: list[RevisionSummary]
 
 
 class JobView(ApiModel):
@@ -157,24 +158,30 @@ class JobView(ApiModel):
     status: str
     created_at: str
     updated_at: str
-    metadata: dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any]
 
 
 class RevisionView(ApiModel):
     revision_id: str
     number: int
-    parent_revision_id: str | None = None
+    parent_revision_id: str | None
     reason: str
     created_at: str
     spec: dict[str, Any]
 
 
 class RevisionDetailResponse(ApiModel):
-    schema_version: str = INTERFACE_API_VERSION
-    capabilities: CapabilitiesView = Field(default_factory=CapabilitiesView)
+    schema_version: InterfaceApiVersion
+    capabilities: CapabilitiesView
     source: SourceView
     manifest_available: bool
     job: JobView
     revision: RevisionView
     stages: list[StageView]
-    package: PackageView | None = None
+    package: PackageView | None
+
+
+def read_only_capabilities() -> CapabilitiesView:
+    """Return the explicit, schema-visible boundary for the local interface."""
+
+    return CapabilitiesView(read_only=True, hardware_actions=False)

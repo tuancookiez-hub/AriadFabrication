@@ -8,7 +8,13 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 
-from .models import HealthResponse, RevisionDetailResponse, RevisionListResponse
+from .models import (
+    INTERFACE_API_VERSION,
+    HealthResponse,
+    RevisionDetailResponse,
+    RevisionListResponse,
+    read_only_capabilities,
+)
 from .repository import (
     ArtifactIntegrityError,
     ArtifactNotFoundError,
@@ -28,12 +34,20 @@ def create_app(runs_root: Path | str = Path("runs")) -> FastAPI:
             "heat hardware, move hardware, or start manufacturing."
         ),
         version="1.0.0",
+        docs_url=None,
+        redoc_url=None,
+        openapi_url=None,
     )
     app.state.repository = repository
 
     @app.get("/api/v1/health", response_model=HealthResponse)
     def health() -> HealthResponse:
-        return HealthResponse()
+        return HealthResponse(
+            schema_version=INTERFACE_API_VERSION,
+            service="ariad-interface-api",
+            status="ok",
+            capabilities=read_only_capabilities(),
+        )
 
     @app.get("/api/v1/revisions", response_model=RevisionListResponse)
     def revisions() -> RevisionListResponse:

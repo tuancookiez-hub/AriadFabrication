@@ -38,7 +38,7 @@ This repository contains an early Python prototype, not a production pipeline.
 | Slicing | The Golden Part's real PrusaSlicer 2.9.6 run produces a profile-bearing 3MF project and G-code with zero reported mesh repairs or slicer warnings |
 | G-code validation | Profile-specific disconnected preflight checks units, modes, bounds, temperatures, tools, support features, layer height, and forbidden commands before R4 |
 | Fabrication package | One reproducible printer-independent revision contains 36 checksummed artifacts and an explicit R4 claim boundary |
-| User interface | M4-B provides the read-only journey shell, five deterministic stop-state fixtures, checksum-verified downloads, interactive GLB preview, and worker-isolated real G-code layer playback |
+| User interface | M4-C provides the read-only journey shell, five deterministic stop-state fixtures, checksum-verified downloads, interactive GLB preview, worker-isolated real G-code layer playback, and a CI-enforced OpenAPI/TypeScript contract |
 | Printer control | Outside the evidence path; no printer is selected, connected, uploaded to, or authorized |
 | Physical validation | Not started |
 
@@ -87,9 +87,9 @@ M1, M2, and M3 are complete. The deterministic Golden Part path now:
 6. Snapshots a generic uncalibrated 0.4 mm/PETG/0.20 mm/30% infill profile bundle and preserves five physical unknowns as warnings rather than passes.
 7. Runs the approved PrusaSlicer 2.9.6 console, records every command/log/profile/checksum, applies disconnected G-code preflight and a fail-closed warning/repair policy, and assembles 36 real artifacts into an R4 package.
 
-The active milestone is **M4 - Fabrication Journey interface**. M4-B can list and inspect real persisted R2/R4 revisions, orbit the actual GLB preview, replay the actual linear G-code moves by layer off the UI thread, and demonstrate complete, `needs_input`, failed Geometry, failed Printability, and incomplete Package states with explicitly non-evidentiary fixtures. OpenAPI/TypeScript drift checking, richer report/feature inspection, revision comparison, event streaming, browser-triggered execution, and screenshot-level browser QA remain incomplete. R4 is still a digital, profile-specific result: physical adhesion, accuracy, stake fit, strength, weathering, food safety, and print success remain unproven.
+The active milestone is **M4 - Fabrication Journey interface**. M4-C can list and inspect real persisted R2/R4 revisions, orbit the actual GLB preview, replay the actual linear G-code moves by layer off the UI thread, and demonstrate complete, `needs_input`, failed Geometry, failed Printability, and incomplete Package states with explicitly non-evidentiary fixtures. A deterministic FastAPI OpenAPI snapshot now generates the browser's response types and both sides fail CI on drift. Richer report/feature inspection, revision comparison, event streaming, browser-triggered execution, and screenshot-level browser QA remain incomplete. R4 is still a digital, profile-specific result: physical adhesion, accuracy, stake fit, strength, weathering, food safety, and print success remain unproven.
 
-Current verification passes 65 backend tests in the pinned CAD/slicer environment plus frontend dependency-policy, type-check, lint, four deterministic tests, two real-artifact integration tests, production-build, and live HTTP artifact checks. Automated visual browser QA remains outstanding for the reason recorded in `NOW.md`.
+Current verification passes 70 backend tests in the pinned CAD/slicer environment plus OpenAPI snapshot drift, generated-type drift, frontend dependency-policy, type-check, lint, four deterministic tests, two real-artifact integration tests, production-build, and live HTTP artifact checks. Automated visual browser QA remains outstanding for the reason recorded in `NOW.md`.
 
 ## Repository map
 
@@ -107,7 +107,7 @@ Current verification passes 65 backend tests in the pinned CAD/slicer environmen
 |   |-- ROADMAP.md            Milestones and exit criteria; no deadline schedule
 |   |-- DECISIONS.md          Accepted and deferred architecture decisions
 |   `-- RESEARCH.md           Curated references and procurement watchlist
-|-- schemas/v1/              Versioned domain, printability-report, and package contracts
+|-- schemas/v1/              Versioned domain, manufacturing, and interface-API contracts
 |-- benchmarks/
 |   |-- golden_part/         Frozen functional benchmark and expected measurements
 |   |-- 3dbenchy/            Pinned external CC0 printer-calibration fixture
@@ -118,7 +118,7 @@ Current verification passes 65 backend tests in the pinned CAD/slicer environmen
 |   |-- domain/               Immutable specification and journey records
 |   |-- cad/                  Optional worker, Golden Part source, exports, and checks
 |   |-- slicing/              Real CLI adapter, profile contracts, and G-code preflight
-|   `-- api/                  Loopback-only read API and interface-fixture generator
+|   `-- api/                  Loopback-only read API, OpenAPI snapshot, and fixture generator
 |-- tests/                    Current deterministic tests
 |-- web/                      Vite React/TypeScript Fabrication Journey client
 `-- pyproject.toml            Python package metadata

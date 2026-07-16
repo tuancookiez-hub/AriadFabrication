@@ -6,19 +6,20 @@
 
 ## Immediate objective
 
-Continue proving the read-only Fabrication Journey before adding mutation or model-driven generation. The next slice should make Python/TypeScript contract drift fail CI, expose richer persisted geometry/profile/check details, add revision comparison, and close browser-level visual and interaction verification without weakening the M4 evidence contract.
+Continue proving the read-only Fabrication Journey before adding mutation or model-driven generation. Python/TypeScript drift now fails CI; the next slices should expose richer persisted geometry/profile/check details, add revision comparison, and close browser-level visual and interaction verification without weakening the M4 evidence contract.
 
-## M4-A and M4-B implemented
+## M4-A through M4-C implemented
 
 - Added a FastAPI 0.139.1 / Uvicorn 0.51.0 application boundary that binds to loopback and exposes only health, revision-list, revision-detail, and checksum-verified artifact reads.
 - Added a fail-closed repository reader with ID/path confinement, optional-manifest handling for incomplete journeys, ownership checks, manifest/journey consistency checks, compact package summaries, and no hardware endpoint.
 - Added a deterministic committed interface family with fixed IDs and timestamps: complete, Brief `needs_input`, failed Geometry, failed Printability, and incomplete Package records. Each stops at its persisted gate, and the complete package permits only “Interface fixture only — no fabrication evidence.”
-- Added a Vite 8.1.4, React 19.2.7, React Router 7.18.1, and TypeScript 6.0.3 client with job/revision cards, a shipment-style timeline, events, warnings, artifact links, fixture labelling, claim boundaries, disconnected-hardware messaging, responsive layout, and reduced-motion behavior. Vite is exactly pinned to the newest release that passes the active minimum-release-age policy.
+- Added a Vite 8.1.4, React 19.2.7, React Router 7.18.1, and TypeScript 5.9.3 client with job/revision cards, a shipment-style timeline, events, warnings, artifact links, fixture labelling, claim boundaries, disconnected-hardware messaging, responsive layout, and reduced-motion behavior. Vite is exactly pinned to the newest release that passes the active minimum-release-age policy; TypeScript 5.9.3 is pinned to the supported peer range of the contract generator.
 - Added a bounded direct Three.js 0.185.1 GLB inspector with orbit/reset controls, keyboard panning, checksum/size metadata, a 64 MiB / two-million-triangle ceiling, and an explicit tessellated-preview boundary.
 - Added a bounded Web Worker G-code parser and top-down layer player with manual/reduced-motion controls, travel/extrusion distinction, 64 MiB / one-million-segment ceilings, layer sampling, omitted-arc disclosure, and an explicit manufacturing-playback boundary.
 - Added separate production/test TypeScript configurations, frontend lint, deterministic component/parser tests, environment-gated real GLB/G-code integration tests, production build, backend API/fixture/integrity tests, and lightweight GitHub Actions jobs.
+- Added a canonical committed OpenAPI 3.1 snapshot, exact `openapi-typescript` 7.13.0 generation, generated response aliases in the browser, required-field and read-only contract tests, and backend/frontend CI drift checks. The runtime API does not expose documentation, schema, or mutation routes.
 - Verified the API reads the existing ignored real R2/R4 revisions without changing their evidence and serves the compact fixture over HTTP with `hardware_actions: false`.
-- Verified all 65 backend tests pass in the pinned CAD/slicer environment. The frontend lockfile passes its release-age and peer policies; test and production TypeScript checks, ESLint, four deterministic tests, two real-artifact integration tests, and the Vite production build pass. Live Vite-proxied HTTP reads returned the real 241,324-byte GLB and 5,182,593-byte G-code with `evidence-mode: real` and `hardware-action: false`.
+- Verified all 70 backend tests pass in the pinned CAD/slicer environment. The frontend lockfile passes its release-age and peer policies; OpenAPI-generated-type drift, test and production TypeScript checks, ESLint, four deterministic tests, two real-artifact integration tests, and the Vite production build pass. Live Vite-proxied HTTP reads returned the real 241,324-byte GLB and 5,182,593-byte G-code with `evidence-mode: real` and `hardware-action: false`.
 - Recorded anime.js, Motion.dev, Kokonut UI, Bklit UI, and Manus.im as deferred visual references rather than installed dependencies.
 
 ## M3 completed
@@ -39,12 +40,11 @@ Continue proving the read-only Fabrication Journey before adding mutation or mod
 
 ## Next actions
 
-1. Generate or validate frontend contract types against FastAPI's OpenAPI document so Python/TypeScript drift fails CI.
-2. Add exact/oriented geometry metadata, profile/preflight reports, full checksum details, and feature/finding selection to the inspector.
-3. Add persisted revision comparison without recomputing or promoting evidence in the browser.
-4. Perform visual browser QA across desktop/mobile widths and keyboard/reduced-motion paths once the local in-app browser runtime conflict is resolved.
-5. Add event streaming and browser-triggered Golden Part execution only after read contracts, cancellation, idempotency, and failure semantics are frozen.
-6. Evaluate the deferred animation/component references against accessibility, maintenance, bundle size, overlap, license, and removal criteria before adopting any.
+1. Add exact/oriented geometry metadata, profile/preflight reports, full checksum details, and feature/finding selection to the inspector.
+2. Add persisted revision comparison without recomputing or promoting evidence in the browser.
+3. Perform visual browser QA across desktop/mobile widths and keyboard/reduced-motion paths once the local in-app browser runtime conflict is resolved.
+4. Add event streaming and browser-triggered Golden Part execution only after read contracts, cancellation, idempotency, and failure semantics are frozen.
+5. Evaluate the deferred animation/component references against accessibility, maintenance, bundle size, overlap, license, and removal criteria before adopting any.
 
 ## Exit gate for M4
 
