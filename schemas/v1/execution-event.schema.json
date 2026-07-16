@@ -19,7 +19,7 @@
     "hardware_action"
   ],
   "properties": {
-    "schema_version": {"const": "1.0.0"},
+    "schema_version": {"const": "1.1.0"},
     "event_id": {
       "type": "string",
       "pattern": "^exevt_[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$"

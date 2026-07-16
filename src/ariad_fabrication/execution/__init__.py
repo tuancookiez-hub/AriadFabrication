@@ -23,6 +23,7 @@ from .contracts import (
     FABRICATION_PIPELINE_VERSION,
     GOLDEN_PART_BENCHMARK_ID,
     GOLDEN_PART_PROVIDER_ID,
+    HostRuntimeSnapshot,
     NO_HARDWARE_RUNNER_POLICY,
     OCP_VERSION,
     POLICY_VERSION,
@@ -53,6 +54,16 @@ from .store import (
     STORE_SCHEMA_VERSION,
     StoreAdmissionResult,
 )
+from .registry import (
+    ResolvedTarget,
+    TARGET_REGISTRY_VERSION,
+    TREE_ALGORITHM,
+    TargetIntegrityError,
+    TargetRegistryError,
+    TargetUnavailableError,
+    TrustedTargetRegistry,
+)
+from .admission import RegisteredAdmissionResult, RegisteredTargetAdmission
 
 __all__ = [
     "AdmissionDecision",
@@ -82,11 +93,15 @@ __all__ = [
     "FABRICATION_PIPELINE_VERSION",
     "GOLDEN_PART_BENCHMARK_ID",
     "GOLDEN_PART_PROVIDER_ID",
+    "HostRuntimeSnapshot",
     "NO_HARDWARE_RUNNER_POLICY",
     "OCP_VERSION",
     "POLICY_VERSION",
     "PRINTABILITY_VALIDATOR_VERSION",
     "R4ProfileSnapshot",
+    "RegisteredAdmissionResult",
+    "RegisteredTargetAdmission",
+    "ResolvedTarget",
     "RunnerPolicy",
     "MAX_EVENT_LOG_JSON_BYTES",
     "MAX_EVENT_JSON_BYTES",
@@ -96,6 +111,12 @@ __all__ = [
     "STORE_APPLICATION_ID",
     "STORE_SCHEMA_VERSION",
     "StoreAdmissionResult",
+    "TARGET_REGISTRY_VERSION",
+    "TREE_ALGORITHM",
+    "TargetIntegrityError",
+    "TargetRegistryError",
+    "TargetUnavailableError",
+    "TrustedTargetRegistry",
     "assess_admission",
     "bind_execution_identity",
     "interrupt_stale_execution",

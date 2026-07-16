@@ -1,4 +1,5 @@
 from dataclasses import FrozenInstanceError
+from hashlib import sha256
 import json
 from pathlib import Path
 import tomllib
@@ -7,6 +8,7 @@ import unittest
 from ariad_fabrication.execution import (
     AdmissionDecision,
     CadRuntimeSnapshot,
+    EXECUTION_SCHEMA_VERSION,
     ExecutionEvent,
     ExecutionEventType,
     ExecutionFailure,
@@ -19,6 +21,7 @@ from ariad_fabrication.execution import (
     ExecutionStatus,
     ExecutionTarget,
     ExecutionTransitionError,
+    HostRuntimeSnapshot,
     NO_HARDWARE_RUNNER_POLICY,
     R4ProfileSnapshot,
     RunnerPolicy,
@@ -69,6 +72,15 @@ def cad_runtime() -> CadRuntimeSnapshot:
     return CadRuntimeSnapshot(
         python_version="3.11.15",
         python_executable_sha256=EIGHT,
+        cad_runtime_manifest_sha256=SEVEN,
+        python_runtime_sha256=SIX,
+        dependency_environment_sha256=FIVE,
+        host=HostRuntimeSnapshot(
+            system="Windows",
+            release="11",
+            version="10.0.26100",
+            machine="AMD64",
+        ),
     )
 
 
@@ -87,6 +99,7 @@ def r2_plan() -> ExecutionPlan:
         geometry_expectations_sha256=ONE,
         cad_source_sha256=TWO,
         dependency_lock_sha256=THREE,
+        application_bundle_sha256=FOUR,
         cad_runtime=cad_runtime(),
     )
 
@@ -98,6 +111,7 @@ def r4_plan() -> ExecutionPlan:
         geometry_expectations_sha256=ONE,
         cad_source_sha256=TWO,
         dependency_lock_sha256=THREE,
+        application_bundle_sha256=FOUR,
         cad_runtime=cad_runtime(),
         printability_validator_version="1.0.0",
         fabrication_pipeline_version="1.0.0",
@@ -109,7 +123,12 @@ def r4_plan() -> ExecutionPlan:
             orientation_sha256=SIX,
             slicer_config_sha256=SEVEN,
         ),
-        slicer=SlicerSnapshot(executable_sha256=EIGHT),
+        slicer=SlicerSnapshot(
+            executable_sha256=EIGHT,
+            portable_archive_sha256=SEVEN,
+            installation_manifest_sha256=SIX,
+            installation_tree_sha256=FIVE,
+        ),
     )
 
 
@@ -215,9 +234,38 @@ class ExecutionRequestAndPlanTests(unittest.TestCase):
                 benchmark_id="other",
             )
 
+    def test_v1_1_contract_rejects_legacy_v1_0_records_fail_closed(self):
+        self.assertEqual(EXECUTION_SCHEMA_VERSION, "1.1.0")
+        legacy_request = request().to_dict()
+        legacy_request["schema_version"] = "1.0.0"
+        with self.assertRaises(PersistedSchemaValidationError):
+            ExecutionRequest.from_mapping(legacy_request)
+
+        legacy_record = queued_record().to_dict()
+        legacy_record["schema_version"] = "1.0.0"
+        legacy_record["request"]["schema_version"] = "1.0.0"
+        with self.assertRaises(PersistedSchemaValidationError):
+            ExecutionRecord.from_mapping(legacy_record)
+
+        event = ExecutionEvent(
+            execution_id="exec_test",
+            sequence=1,
+            event_type=ExecutionEventType.REQUEST_ACCEPTED,
+            status=ExecutionStatus.QUEUED,
+            occurred_at="2026-07-16T00:00:00+00:00",
+            message="accepted",
+        ).to_dict()
+        event["schema_version"] = "1.0.0"
+        with self.assertRaises(PersistedSchemaValidationError):
+            ExecutionEvent.from_mapping(event)
+
     def test_r2_and_r4_plans_have_disjoint_identity_requirements(self):
         self.assertIsNone(r2_plan().profiles)
         self.assertEqual(r4_plan().slicer.slicer_version, "2.9.6")
+        self.assertEqual(
+            r4_plan().canonical_sha256(),
+            sha256(r4_plan().canonical_bytes()).hexdigest(),
+        )
 
         with self.assertRaisesRegex(ValueError, "cannot contain R4"):
             ExecutionPlan(
@@ -226,6 +274,7 @@ class ExecutionRequestAndPlanTests(unittest.TestCase):
                 geometry_expectations_sha256=ONE,
                 cad_source_sha256=TWO,
                 dependency_lock_sha256=THREE,
+                application_bundle_sha256=FOUR,
                 cad_runtime=cad_runtime(),
                 printability_expectations_sha256=TWO,
             )
@@ -236,14 +285,36 @@ class ExecutionRequestAndPlanTests(unittest.TestCase):
                 geometry_expectations_sha256=ONE,
                 cad_source_sha256=TWO,
                 dependency_lock_sha256=THREE,
+                application_bundle_sha256=FOUR,
                 cad_runtime=cad_runtime(),
             )
         with self.assertRaisesRegex(ValueError, "lowercase SHA-256"):
-            SlicerSnapshot(executable_sha256="A" * 64)
+            SlicerSnapshot(
+                executable_sha256="A" * 64,
+                portable_archive_sha256=SEVEN,
+                installation_manifest_sha256=SIX,
+                installation_tree_sha256=FIVE,
+            )
         with self.assertRaisesRegex(ValueError, "CPython 3.11"):
             CadRuntimeSnapshot(
                 python_version="3.12.0",
                 python_executable_sha256=EIGHT,
+                cad_runtime_manifest_sha256=SEVEN,
+                python_runtime_sha256=SIX,
+                dependency_environment_sha256=FIVE,
+                host=HostRuntimeSnapshot(
+                    system="Windows",
+                    release="11",
+                    version="10.0.26100",
+                    machine="AMD64",
+                ),
+            )
+        with self.assertRaisesRegex(ValueError, "must be Windows"):
+            HostRuntimeSnapshot(
+                system="Linux",
+                release="6.0",
+                version="6.0.0",
+                machine="x86_64",
             )
 
         plan = r4_plan()

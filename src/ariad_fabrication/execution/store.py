@@ -43,7 +43,7 @@ from .contracts import (
 )
 
 
-STORE_SCHEMA_VERSION = 1
+STORE_SCHEMA_VERSION = 2
 STORE_APPLICATION_ID = 0x41524944  # "ARID"
 MAX_RECORD_JSON_BYTES = 256 * 1024
 MAX_EVENT_JSON_BYTES = 128 * 1024
@@ -932,6 +932,20 @@ class ExecutionControlStore:
         normalized = _execution_id(execution_id)
         with self._transaction(immediate=False) as connection:
             return self._load_snapshot(connection, normalized)
+
+    def lookup_request(self, request: ExecutionRequest) -> ExecutionSnapshot | None:
+        """Return the immutable original for an idempotency key, if one exists."""
+
+        if not isinstance(request, ExecutionRequest):
+            raise ValueError("request must be an ExecutionRequest")
+        with self._transaction(immediate=False) as connection:
+            row = connection.execute(
+                "SELECT execution_id FROM executions WHERE idempotency_key = ?",
+                (request.idempotency_key,),
+            ).fetchone()
+            if row is None:
+                return None
+            return self._load_snapshot(connection, row["execution_id"])
 
     def list_records(
         self,

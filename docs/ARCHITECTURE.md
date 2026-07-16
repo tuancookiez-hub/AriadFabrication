@@ -171,20 +171,20 @@ Toolpath playback is not structural or thermal proof.
 |---|---|---|
 | Domain and workers | Python 3.11 | Matches the existing package and CadQuery ecosystem |
 | CAD | CadQuery backed by OCCT | Functional lane; source is a first-class artifact |
-| API | FastAPI on the existing Python domain | M4-A implements a loopback-only, read-only filesystem boundary; M4-O adds an internal store, but mutation and streaming remain unavailable |
+| API | FastAPI on the existing Python domain | M4-A implements a loopback-only, read-only filesystem boundary; M4-O/M4-P add an internal store, registry, and admission path, but mutation and streaming remain unavailable |
 | Browser interface | Vite + React + TypeScript | M4-M implements journey evidence, bounded revision discovery/pages, bounded persisted-file snapshots, verified artifact delivery, strict persisted lifecycle/scalar/time/root/report/profile/schema/lineage/package/content-identity contracts, direct Three.js preview, worker-owned toolpath playback, generated API response types, bounded persisted-evidence selection, server-owned revision comparison, and tested keyboard/contrast/reduced-motion foundations |
 | Model integration | OpenAI Responses API with strict structured output and function tools | Model output cannot bypass deterministic gates |
 | Slicing | Adapter over PrusaSlicer and/or OrcaSlicer CLI | Profiles and tool versions are recorded |
-| Metadata | SQLite initially | M4-O implements the internal transactional execution control store; filesystem artifacts remain the evidence source |
+| Metadata | SQLite initially | M4-O/M4-P implement the internal transactional execution control store and immutable registered-plan admission; filesystem artifacts remain the evidence source |
 | Optional control plane | Go later if justified | Suitable for a printer-side agent or deployment service, not required for CAD |
 
 Dependencies are not considered installed merely because they appear in this target table.
 
 ## No-hardware execution control plane
 
-M4-N defines a control-plane state machine separately from Journey stage state. It admits only the registered Golden Part to R2 or R4, snapshots every approved input identity before acceptance, allows one active and four queued executions, and freezes idempotency, FIFO, cancellation, lease, crash, resource, event, and failure behavior. M4-O implements its internal persistence in a strict SQLite schema with transactional admission/start/cancel/terminal writes, append-only events, fenced leases, stale-run reconciliation, exact schema/integrity checks, and bounded replay.
+M4-N defines a control-plane state machine separately from Journey stage state. It admits only the registered Golden Part to R2 or R4, snapshots every approved input identity before acceptance, allows one active and four queued executions, and freezes idempotency, FIFO, cancellation, lease, crash, resource, event, and failure behavior. M4-O implements its internal persistence in a strict SQLite schema with transactional admission/start/cancel/terminal writes, append-only events, fenced leases, stale-run reconciliation, exact schema/integrity checks, and bounded replay. M4-P adds the closed registry and admission coordinator: the caller selects only R2 or R4, while the registry content-identifies the application bundle, fixed assets, locked CAD runtime, host, profiles, PrusaSlicer archive, and complete installation before the store accepts an immutable plan.
 
-No process runner or mutation surface uses the store yet. The current CAD and slicer wrappers are synchronous subprocess calls: they have per-command timeouts but not cooperative cancellation, bounded streaming logs, one total wall deadline, or enforceable process-tree memory/network limits. The store itself launches nothing, is not wired into FastAPI, and cannot create Journey evidence or contact hardware. Therefore the GET-only API must not expose a Run endpoint. [The no-hardware execution contract](EXECUTION.md) remains the gate for the future adapter.
+No process runner or mutation surface uses the store or registry yet. The current CAD and slicer wrappers are synchronous subprocess calls: they have per-command timeouts but not cooperative cancellation, bounded streaming logs, one total wall deadline, enforced import boundaries, or enforceable process-tree memory/network limits. The registry proves the registered content observed by its manifests but is not an OS sandbox. The control plane launches nothing, is not wired into FastAPI, and cannot create Journey evidence or contact hardware. Therefore the GET-only API must not expose a Run endpoint. [The no-hardware execution contract](EXECUTION.md) remains the gate for the future adapter.
 
 ## Provider boundaries
 
@@ -210,7 +210,7 @@ Each provider must have a deterministic fixture for tests and must report whethe
 
 ## Current implementation mapping
 
-M3 implements one complete printer-independent Golden Part path through R4, M4-A through M4-M expose its persisted records through a read-only application slice, M4-N freezes the no-hardware execution boundary, and M4-O persists that boundary without exposing it through HTTP:
+M3 implements one complete printer-independent Golden Part path through R4, M4-A through M4-M expose its persisted records through a read-only application slice, M4-N freezes the no-hardware execution boundary, M4-O persists that boundary, and M4-P seals target identity and admission without exposing execution through HTTP:
 
 - `domain/spec.py` implements immutable `PartSpec` 1.0.0 and design-readiness rules.
 - `domain/journey.py` implements jobs, immutable revisions and records, append-only events, artifact lineage, and manifests.
@@ -229,8 +229,10 @@ M3 implements one complete printer-independent Golden Part path through R4, M4-A
 - `cad/validation.py` queries the re-imported STEP through OCCT and evaluates 25 frozen feature, clearance, and dimensional checks.
 - `cad/stl.py`, `cad/glb.py`, and `cad/canonical.py` verify compatibility topology, write/inspect the browser preview, and remove volatile exporter metadata used in reproducibility hashes.
 - `cad/pipeline.py` advances the Golden Part journey through Design R1 and Geometry Validation R2, records 15 artifacts and lineage edges, and persists the journey and manifest.
-- `execution/contracts.py` defines immutable request, R2/R4 plan, policy, lease, failure, record, and event values plus pure admission, start, identity binding, cancellation, terminal transition, lease-renewal, and stale-run interruption operations. It launches nothing, persists nothing, streams nothing, and cannot contact hardware.
+- `execution/contracts.py` defines immutable request, R2/R4 plan, host/runtime/toolchain snapshots, policy, lease, failure, record, and event values plus pure admission, start, identity binding, cancellation, terminal transition, lease-renewal, and stale-run interruption operations. It launches nothing, persists nothing, streams nothing, and cannot contact hardware.
+- `execution/registry.py` resolves only the fixed R2/R4 allowlist, validates bounded manifests, hashes the application/CAD/slicer identities, returns internally selected paths, and re-verifies an accepted plan. `execution/admission.py` preserves idempotent replay/conflict before resolving genuinely new keys. Neither launches a process or exposes HTTP.
 - `execution/store.py` implements the internal SQLite control index, exact schema/application identity, checksummed replay, bounded event history, FIFO/lease/cancellation transactions, concurrent initialization, and stale-run reconciliation. It remains separate from the filesystem Journey evidence source and from every HTTP route.
+- `toolchains/v1/` stores generated content manifests for the traced CAD execution runtime and approved PrusaSlicer portable archive/installation. The binaries remain ignored; `scripts/` contains deterministic regeneration/check commands.
 - `slicing/profiles.py` strictly parses and schema-validates the four production profile contracts before typed construction, then validates them against the exact PrusaSlicer INI so metadata cannot drift silently from executable settings.
 - `slicing/printability.py` materializes a centered Z-up STEP, applies exact profile, volume, bed-contact, wall/feature, layer, overhang, bounded-bridge, support, orientation, and first-layer-clearance checks without importing CadQuery into the lightweight path, and schema-validates the complete report before publication.
 - `slicing/prusaslicer.py` invokes one approved local PrusaSlicer executable, records model repairs and warnings, schema-validates disconnected preflight before publication, and exports a real profile-bearing 3MF project plus G-code without hardware access.

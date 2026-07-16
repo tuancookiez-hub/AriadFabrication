@@ -26,7 +26,7 @@
     "claim_boundary"
   ],
   "properties": {
-    "schema_version": {"const": "1.0.0"},
+    "schema_version": {"const": "1.1.0"},
     "execution_id": {"$ref": "#/$defs/executionId"},
     "accepted_sequence": {"type": "integer", "minimum": 1},
     "request": {"$ref": "#/$defs/request"},
@@ -242,7 +242,7 @@
         "hardware_actions"
       ],
       "properties": {
-        "schema_version": {"const": "1.0.0"},
+        "schema_version": {"const": "1.1.0"},
         "idempotency_key": {
           "type": "string",
           "minLength": 1,
@@ -284,12 +284,23 @@
     "slicer": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["adapter_id", "adapter_version", "slicer_version", "executable_sha256"],
+      "required": [
+        "adapter_id",
+        "adapter_version",
+        "slicer_version",
+        "executable_sha256",
+        "portable_archive_sha256",
+        "installation_manifest_sha256",
+        "installation_tree_sha256"
+      ],
       "properties": {
         "adapter_id": {"const": "prusaslicer_cli"},
         "adapter_version": {"const": "1.0.0"},
         "slicer_version": {"const": "2.9.6"},
-        "executable_sha256": {"$ref": "#/$defs/sha256"}
+        "executable_sha256": {"$ref": "#/$defs/sha256"},
+        "portable_archive_sha256": {"$ref": "#/$defs/sha256"},
+        "installation_manifest_sha256": {"$ref": "#/$defs/sha256"},
+        "installation_tree_sha256": {"$ref": "#/$defs/sha256"}
       }
     },
     "cadRuntime": {
@@ -298,6 +309,10 @@
       "required": [
         "python_version",
         "python_executable_sha256",
+        "cad_runtime_manifest_sha256",
+        "python_runtime_sha256",
+        "dependency_environment_sha256",
+        "host",
         "cadquery_version",
         "ocp_version"
       ],
@@ -307,8 +322,23 @@
           "pattern": "^3\\.11\\.[0-9]+$"
         },
         "python_executable_sha256": {"$ref": "#/$defs/sha256"},
+        "cad_runtime_manifest_sha256": {"$ref": "#/$defs/sha256"},
+        "python_runtime_sha256": {"$ref": "#/$defs/sha256"},
+        "dependency_environment_sha256": {"$ref": "#/$defs/sha256"},
+        "host": {"$ref": "#/$defs/hostRuntime"},
         "cadquery_version": {"const": "2.8.0"},
         "ocp_version": {"const": "7.9.3.1.1"}
+      }
+    },
+    "hostRuntime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system", "release", "version", "machine"],
+      "properties": {
+        "system": {"const": "Windows"},
+        "release": {"type": "string", "minLength": 1, "maxLength": 128},
+        "version": {"type": "string", "minLength": 1, "maxLength": 128},
+        "machine": {"enum": ["AMD64", "amd64", "x86_64", "X86_64"]}
       }
     },
     "plan": {
@@ -321,6 +351,7 @@
         "cad_worker_version",
         "cad_source_sha256",
         "dependency_lock_sha256",
+        "application_bundle_sha256",
         "cad_runtime",
         "part_spec_sha256",
         "geometry_expectations_sha256",
@@ -338,6 +369,7 @@
         "cad_worker_version": {"const": "1.0.0"},
         "cad_source_sha256": {"$ref": "#/$defs/sha256"},
         "dependency_lock_sha256": {"$ref": "#/$defs/sha256"},
+        "application_bundle_sha256": {"$ref": "#/$defs/sha256"},
         "cad_runtime": {"$ref": "#/$defs/cadRuntime"},
         "part_spec_sha256": {"$ref": "#/$defs/sha256"},
         "geometry_expectations_sha256": {"$ref": "#/$defs/sha256"},

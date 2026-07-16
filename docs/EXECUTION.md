@@ -1,10 +1,10 @@
 # No-hardware execution contract
 
-**Contract version:** 1.0.0
+**Contract version:** 1.1.0
 
 **Policy version:** 1.0.0
 
-**Status:** Implemented as schemas, immutable Python records, pure lifecycle operations, and an internal transactional SQLite control store. No process runner, event transport, mutation endpoint, or browser Run control exists yet.
+**Status:** Implemented as schemas, immutable Python records, pure lifecycle operations, an internal transactional SQLite control store, and a checkout-local trusted target registry with idempotency-aware admission. No process runner, event transport, mutation endpoint, or browser Run control exists yet.
 
 ## Purpose
 
@@ -42,7 +42,7 @@ The canonical request is UTF-8 JSON with sorted keys and no insignificant whites
 
 ## Immutable execution identity
 
-Identity is snapshotted before acceptance, not looked up again midway through a run.
+Identity is snapshotted before acceptance and must be re-verified against that immutable plan immediately before launch. It is never silently rebound midway through a run.
 
 | Identity | R2 | R4 |
 |---|---:|---:|
@@ -50,7 +50,11 @@ Identity is snapshotted before acceptance, not looked up again midway through a 
 | CAD worker version | Required | Required |
 | CAD provider source SHA-256 | Required | Required |
 | dependency-lock SHA-256 | Required | Required |
-| CPython 3.11 patch version and executable SHA-256 | Required | Required |
+| Ariad application source/schema bundle SHA-256 | Required | Required |
+| CPython 3.11 patch version and active executable SHA-256 | Required | Required |
+| Curated CPython runtime tree and manifest SHA-256 | Required | Required |
+| Traced locked-dependency environment tree SHA-256 | Required | Required |
+| Windows system/release/version/machine snapshot | Required | Required |
 | CadQuery 2.8.0 and OCP 7.9.3.1.1 identities | Required | Required |
 | PartSpec SHA-256 | Required | Required |
 | geometry expectations SHA-256 | Required | Required |
@@ -58,9 +62,14 @@ Identity is snapshotted before acceptance, not looked up again midway through a 
 | printability validator and fabrication-pipeline versions | Forbidden | Required |
 | printer/material/process/orientation IDs and SHA-256 values | Forbidden | Required |
 | composite slicer-config SHA-256 | Forbidden | Required |
-| slicer adapter ID/version, PrusaSlicer 2.9.6 identity, executable SHA-256 | Forbidden | Required |
+| slicer adapter ID/version and PrusaSlicer 2.9.6 executable SHA-256 | Forbidden | Required |
+| PrusaSlicer portable archive, manifest, and complete installation-tree SHA-256 | Forbidden | Required |
 
 Paths are intentionally absent from the persisted request and plan. A trusted adapter may resolve repository-owned assets and the approved executable, but their accepted content identities cannot change after queue admission. A mismatch at launch fails closed rather than silently rebinding the plan.
+
+M4-P implements that resolution through `TrustedTargetRegistry`. Its public resolver accepts only `golden_part_r2` or `golden_part_r4`; every path, profile, provider, executable, and manifest location is selected internally. It validates fixed benchmark/profile SHA-256 approvals, the current Ariad source/schema tree, exact locked distributions, the curated CPython runtime, traced dependency files and startup hooks, `pyvenv.cfg`, and the active 64-bit Windows host. R4 additionally verifies the separately pinned PrusaSlicer release archive and every file in the approved portable installation. `RegisteredTargetAdmission` resolves only genuinely new idempotency keys and preserves replay/conflict access to the immutable original even if today's toolchain has drifted.
+
+The CAD dependency manifest is intentionally trace-derived: it records the exact files observed while the registered R4 Python lane succeeds, and it is bound to the current Ariad application-bundle hash. This is reproducibility and drift evidence, not process-confinement evidence. Until the adapter enforces an import allowlist, sanitized environment, and OS policy, it has not proved that an unmanifested module can never load. The host snapshot detects release/version/machine drift but does not content-hash Windows system DLLs.
 
 ## State model
 
@@ -111,7 +120,7 @@ The cancellation endpoint is idempotent. Repeated cancellation does not rewrite 
 
 The first store uses Python's standard-library SQLite with transactional rows for executions, idempotency keys, leases, and append-only events. Large Journey artifacts remain in revision directories. SQLite is a control-plane index, not an alternate source of fabrication evidence.
 
-M4-O implements store schema 1 behind `ExecutionControlStore` with no HTTP route or process launcher. It uses an Ariad application ID, WAL mode with `synchronous=FULL`, strict tables, immutable metadata, exact DDL fingerprints, startup integrity/foreign-key checks, canonical JSON and SHA-256 replay, a separate immutable accepted-plan hash, and database triggers for queue, active-run, transition, append, ownership, timestamp, counter, and terminal-state invariants. Every operation revalidates the schema before reading or mutating control state.
+M4-O implements the store behind `ExecutionControlStore`; M4-P advances it to schema 2 so the expanded 1.1.0 plan identity is persisted exactly. No schema-1 migration is offered because no HTTP mutation surface or production control database existed. The store uses an Ariad application ID, WAL mode with `synchronous=FULL`, strict tables, immutable metadata, exact DDL fingerprints, startup integrity/foreign-key checks, canonical JSON and SHA-256 replay, a separate immutable accepted-plan hash, and database triggers for queue, active-run, transition, append, ownership, timestamp, counter, and terminal-state invariants. Every operation revalidates the schema before reading or mutating control state.
 
 Record JSON is capped at 256 KiB. Individual stored event JSON is capped at 128 KiB and total event JSON at 8 MiB per execution. The store preserves the frozen 10,000-event ceiling while reserving one slot and one maximum-sized event for a terminal failure, cancellation, success, or interruption. List reads return no more than 100 record values without allocating every history; full snapshots and event replay remain bounded. Concurrent initialization is serialized with a bounded WAL retry, and stale leases are reconciled transactionally before the next FIFO start.
 
@@ -190,7 +199,7 @@ Failure stages may name only Brief through Fabrication Package. `manufacturing` 
 The GET-only API and read-only browser remain unchanged until all of these are implemented and tested:
 
 1. [x] A transactional SQLite control store with idempotency, FIFO admission, event sequences, leases, and startup reconciliation. M4-O implements it internally and keeps it unreachable from HTTP.
-2. [ ] A target registry that snapshots and re-verifies all R2/R4 identities before acceptance and launch.
+2. [x] A target registry that snapshots and re-verifies all R2/R4 identities before acceptance and launch. M4-P implements acceptance and explicit `reverify`; the future adapter must call it at launch.
 3. [ ] Cancellable process-group adapters with bounded streaming stdout/stderr, one total deadline, and deterministic process-tree cleanup.
 4. [ ] Enforceable workspace, memory, child-process, network-denial, and slicer-thread controls for the host platform.
 5. [ ] Atomic Journey snapshot and execution-event coordination with retained partial evidence.
@@ -200,4 +209,4 @@ The GET-only API and read-only browser remain unchanged until all of these are i
 9. [ ] A browser control that exposes queue, cancellation, failure, and claim boundaries without invented progress.
 10. [ ] The existing read, CAD, slicer, packaging, frontend, wheel, and live HTTP gates continuing to pass after the adapter is connected.
 
-Until then, `schemas/v1/execution-*.schema.json` and `ariad_fabrication.execution` are a tested contract and internal control store, not a working background job service.
+Until then, `schemas/v1/execution-*.schema.json` and `ariad_fabrication.execution` are a tested contract, registry, admission path, and internal control store—not a working background job service.

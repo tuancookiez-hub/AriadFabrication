@@ -25,7 +25,7 @@ from ..schema_validation import (
 )
 
 
-EXECUTION_SCHEMA_VERSION = "1.0.0"
+EXECUTION_SCHEMA_VERSION = "1.1.0"
 POLICY_VERSION = "1.0.0"
 GOLDEN_PART_BENCHMARK_ID = "opengrow_stake_electronics_clamp_v1"
 GOLDEN_PART_PROVIDER_ID = GOLDEN_PART_BENCHMARK_ID
@@ -417,6 +417,9 @@ class R4ProfileSnapshot:
 @dataclass(frozen=True)
 class SlicerSnapshot:
     executable_sha256: str
+    portable_archive_sha256: str
+    installation_manifest_sha256: str
+    installation_tree_sha256: str
     adapter_id: str = "prusaslicer_cli"
     adapter_version: str = "1.0.0"
     slicer_version: str = "2.9.6"
@@ -430,15 +433,25 @@ class SlicerSnapshot:
         for name, value in expected.items():
             if getattr(self, name) != value:
                 raise ValueError(f"{name} must be {value!r}")
-        object.__setattr__(
-            self,
+        for name in (
             "executable_sha256",
-            _sha256(self.executable_sha256, "executable_sha256"),
-        )
+            "portable_archive_sha256",
+            "installation_manifest_sha256",
+            "installation_tree_sha256",
+        ):
+            object.__setattr__(self, name, _sha256(getattr(self, name), name))
 
     @classmethod
     def from_mapping(cls, value: Any) -> "SlicerSnapshot":
-        names = {"adapter_id", "adapter_version", "slicer_version", "executable_sha256"}
+        names = {
+            "adapter_id",
+            "adapter_version",
+            "slicer_version",
+            "executable_sha256",
+            "portable_archive_sha256",
+            "installation_manifest_sha256",
+            "installation_tree_sha256",
+        }
         mapping = _exact_keys(value, names, "slicer snapshot")
         return cls(**{name: mapping[name] for name in names})
 
@@ -448,6 +461,43 @@ class SlicerSnapshot:
             "adapter_version": self.adapter_version,
             "slicer_version": self.slicer_version,
             "executable_sha256": self.executable_sha256,
+            "portable_archive_sha256": self.portable_archive_sha256,
+            "installation_manifest_sha256": self.installation_manifest_sha256,
+            "installation_tree_sha256": self.installation_tree_sha256,
+        }
+
+
+@dataclass(frozen=True)
+class HostRuntimeSnapshot:
+    system: str
+    release: str
+    version: str
+    machine: str
+
+    def __post_init__(self) -> None:
+        for name in ("system", "release", "version", "machine"):
+            object.__setattr__(
+                self,
+                name,
+                _required_text(getattr(self, name), f"host {name}", maximum=128),
+            )
+        if self.system != "Windows":
+            raise ValueError("host system must be Windows")
+        if self.machine.lower() not in {"amd64", "x86_64"}:
+            raise ValueError("host machine must identify Windows x86-64")
+
+    @classmethod
+    def from_mapping(cls, value: Any) -> "HostRuntimeSnapshot":
+        names = {"system", "release", "version", "machine"}
+        mapping = _exact_keys(value, names, "host runtime snapshot")
+        return cls(**{name: mapping[name] for name in names})
+
+    def to_dict(self) -> dict[str, str]:
+        return {
+            "system": self.system,
+            "release": self.release,
+            "version": self.version,
+            "machine": self.machine,
         }
 
 
@@ -455,6 +505,10 @@ class SlicerSnapshot:
 class CadRuntimeSnapshot:
     python_version: str
     python_executable_sha256: str
+    cad_runtime_manifest_sha256: str
+    python_runtime_sha256: str
+    dependency_environment_sha256: str
+    host: HostRuntimeSnapshot
     cadquery_version: str = CADQUERY_VERSION
     ocp_version: str = OCP_VERSION
 
@@ -470,26 +524,66 @@ class CadRuntimeSnapshot:
             "python_executable_sha256",
             _sha256(self.python_executable_sha256, "python_executable_sha256"),
         )
+        object.__setattr__(
+            self,
+            "cad_runtime_manifest_sha256",
+            _sha256(
+                self.cad_runtime_manifest_sha256,
+                "cad_runtime_manifest_sha256",
+            ),
+        )
+        object.__setattr__(
+            self,
+            "python_runtime_sha256",
+            _sha256(self.python_runtime_sha256, "python_runtime_sha256"),
+        )
+        object.__setattr__(
+            self,
+            "dependency_environment_sha256",
+            _sha256(
+                self.dependency_environment_sha256,
+                "dependency_environment_sha256",
+            ),
+        )
         if self.cadquery_version != CADQUERY_VERSION:
             raise ValueError(f"cadquery_version must be {CADQUERY_VERSION!r}")
         if self.ocp_version != OCP_VERSION:
             raise ValueError(f"ocp_version must be {OCP_VERSION!r}")
+        if not isinstance(self.host, HostRuntimeSnapshot):
+            raise ValueError("CAD runtime requires a host runtime snapshot")
 
     @classmethod
     def from_mapping(cls, value: Any) -> "CadRuntimeSnapshot":
         names = {
             "python_version",
             "python_executable_sha256",
+            "cad_runtime_manifest_sha256",
+            "python_runtime_sha256",
+            "dependency_environment_sha256",
+            "host",
             "cadquery_version",
             "ocp_version",
         }
         mapping = _exact_keys(value, names, "CAD runtime snapshot")
-        return cls(**{name: mapping[name] for name in names})
+        return cls(
+            **{
+                name: (
+                    HostRuntimeSnapshot.from_mapping(mapping[name])
+                    if name == "host"
+                    else mapping[name]
+                )
+                for name in names
+            }
+        )
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "python_version": self.python_version,
             "python_executable_sha256": self.python_executable_sha256,
+            "cad_runtime_manifest_sha256": self.cad_runtime_manifest_sha256,
+            "python_runtime_sha256": self.python_runtime_sha256,
+            "dependency_environment_sha256": self.dependency_environment_sha256,
+            "host": self.host.to_dict(),
             "cadquery_version": self.cadquery_version,
             "ocp_version": self.ocp_version,
         }
@@ -502,6 +596,7 @@ class ExecutionPlan:
     geometry_expectations_sha256: str
     cad_source_sha256: str
     dependency_lock_sha256: str
+    application_bundle_sha256: str
     cad_runtime: CadRuntimeSnapshot
     printability_validator_version: str | None = None
     fabrication_pipeline_version: str | None = None
@@ -538,6 +633,11 @@ class ExecutionPlan:
             self,
             "dependency_lock_sha256",
             _sha256(self.dependency_lock_sha256, "dependency_lock_sha256"),
+        )
+        object.__setattr__(
+            self,
+            "application_bundle_sha256",
+            _sha256(self.application_bundle_sha256, "application_bundle_sha256"),
         )
         object.__setattr__(
             self,
@@ -588,6 +688,7 @@ class ExecutionPlan:
             "cad_worker_version",
             "cad_source_sha256",
             "dependency_lock_sha256",
+            "application_bundle_sha256",
             "cad_runtime",
             "part_spec_sha256",
             "geometry_expectations_sha256",
@@ -606,6 +707,7 @@ class ExecutionPlan:
             cad_worker_version=mapping["cad_worker_version"],
             cad_source_sha256=mapping["cad_source_sha256"],
             dependency_lock_sha256=mapping["dependency_lock_sha256"],
+            application_bundle_sha256=mapping["application_bundle_sha256"],
             cad_runtime=CadRuntimeSnapshot.from_mapping(mapping["cad_runtime"]),
             part_spec_sha256=mapping["part_spec_sha256"],
             geometry_expectations_sha256=mapping["geometry_expectations_sha256"],
@@ -637,6 +739,7 @@ class ExecutionPlan:
             "cad_worker_version": self.cad_worker_version,
             "cad_source_sha256": self.cad_source_sha256,
             "dependency_lock_sha256": self.dependency_lock_sha256,
+            "application_bundle_sha256": self.application_bundle_sha256,
             "cad_runtime": self.cad_runtime.to_dict(),
             "part_spec_sha256": self.part_spec_sha256,
             "geometry_expectations_sha256": self.geometry_expectations_sha256,
@@ -647,6 +750,12 @@ class ExecutionPlan:
             "slicer": self.slicer.to_dict() if self.slicer else None,
             "hardware_actions": self.hardware_actions,
         }
+
+    def canonical_bytes(self) -> bytes:
+        return _canonical_json_bytes(self.to_dict())
+
+    def canonical_sha256(self) -> str:
+        return sha256(self.canonical_bytes()).hexdigest()
 
 
 _POLICY_VALUES: dict[str, Any] = {
@@ -1613,6 +1722,7 @@ __all__ = [
     "FABRICATION_PIPELINE_VERSION",
     "GOLDEN_PART_BENCHMARK_ID",
     "GOLDEN_PART_PROVIDER_ID",
+    "HostRuntimeSnapshot",
     "NO_HARDWARE_RUNNER_POLICY",
     "OCP_VERSION",
     "POLICY_VERSION",

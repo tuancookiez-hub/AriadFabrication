@@ -23,9 +23,11 @@ from ariad_fabrication.execution import (
     ExecutionStoreIntegrityError,
     ExecutionTarget,
     ExecutionTransitionError,
+    HostRuntimeSnapshot,
     MAX_EVENT_JSON_BYTES,
     R4ProfileSnapshot,
     SlicerSnapshot,
+    STORE_SCHEMA_VERSION,
 )
 
 
@@ -43,6 +45,15 @@ def cad_runtime() -> CadRuntimeSnapshot:
     return CadRuntimeSnapshot(
         python_version="3.11.15",
         python_executable_sha256=HASHES[0],
+        cad_runtime_manifest_sha256=HASHES[1],
+        python_runtime_sha256=HASHES[2],
+        dependency_environment_sha256=HASHES[3],
+        host=HostRuntimeSnapshot(
+            system="Windows",
+            release="11",
+            version="10.0.26100",
+            machine="AMD64",
+        ),
     )
 
 
@@ -53,6 +64,7 @@ def r2_plan() -> ExecutionPlan:
         geometry_expectations_sha256=HASHES[2],
         cad_source_sha256=HASHES[3],
         dependency_lock_sha256=HASHES[4],
+        application_bundle_sha256=HASHES[5],
         cad_runtime=cad_runtime(),
     )
 
@@ -64,6 +76,7 @@ def r4_plan() -> ExecutionPlan:
         geometry_expectations_sha256=HASHES[2],
         cad_source_sha256=HASHES[3],
         dependency_lock_sha256=HASHES[4],
+        application_bundle_sha256=HASHES[5],
         cad_runtime=cad_runtime(),
         printability_validator_version="1.0.0",
         fabrication_pipeline_version="1.0.0",
@@ -75,7 +88,12 @@ def r4_plan() -> ExecutionPlan:
             orientation_sha256=HASHES[3],
             slicer_config_sha256=HASHES[4],
         ),
-        slicer=SlicerSnapshot(executable_sha256=HASHES[5]),
+        slicer=SlicerSnapshot(
+            executable_sha256=HASHES[5],
+            portable_archive_sha256=HASHES[6],
+            installation_manifest_sha256=HASHES[7],
+            installation_tree_sha256=HASHES[8],
+        ),
     )
 
 
@@ -559,6 +577,17 @@ class ExecutionControlStoreTests(unittest.TestCase):
             connection.execute("PRAGMA application_id = 123")
         with self.assertRaisesRegex(ExecutionStoreIntegrityError, "another application"):
             ExecutionControlStore(foreign_path)
+
+    def test_store_schema_two_rejects_legacy_schema_one_without_migration(self):
+        self.assertEqual(STORE_SCHEMA_VERSION, 2)
+        legacy_path = Path(self.temporary.name) / "legacy-schema-one.sqlite3"
+        ExecutionControlStore(legacy_path)
+        with closing(sqlite3.connect(legacy_path)) as connection:
+            connection.execute("PRAGMA user_version = 1")
+        with self.assertRaisesRegex(
+            ExecutionStoreIntegrityError, "unsupported execution store schema version 1"
+        ):
+            ExecutionControlStore(legacy_path)
 
     def test_terminal_event_semantic_drift_fails_closed(self):
         admission = self.admit_r2("terminal-event-integrity")
