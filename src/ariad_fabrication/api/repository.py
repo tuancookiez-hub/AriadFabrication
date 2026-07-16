@@ -43,7 +43,12 @@ from .models import (
 
 _ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$")
 _SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
+_MEDIA_TYPE_PATTERN = re.compile(
+    r"^[!#$%&'*+\-.^_`|~0-9A-Za-z]+/[!#$%&'*+\-.^_`|~0-9A-Za-z]+$"
+)
+_EVIDENCE_MODES = {"real", "simulated", "fixture", "unavailable"}
 _MAX_JSON_BYTES = 32 * 1024 * 1024
+MAX_ARTIFACT_DOWNLOAD_BYTES = 64 * 1024 * 1024
 _MAX_INSPECTION_JSON_BYTES = 2 * 1024 * 1024
 _MAX_INSPECTION_CHECKS = 500
 _MAX_INSPECTION_FEATURES = 100
@@ -97,12 +102,17 @@ class ArtifactIntegrityError(JourneyReadError):
     pass
 
 
+class ArtifactTooLargeError(JourneyReadError):
+    pass
+
+
 @dataclass(frozen=True)
-class ArtifactFile:
-    path: Path
+class VerifiedArtifactSnapshot:
+    content: bytes
     filename: str
     media_type: str
     checksum_sha256: str
+    size_bytes: int
     evidence_mode: str
 
 
@@ -275,7 +285,12 @@ class JourneyRepository:
             ),
         )
 
-    def get_artifact(self, job_id: str, revision_id: str, artifact_id: str) -> ArtifactFile:
+    def get_artifact(
+        self,
+        job_id: str,
+        revision_id: str,
+        artifact_id: str,
+    ) -> VerifiedArtifactSnapshot:
         loaded = self._load(job_id, revision_id)
         artifact = loaded.artifacts.get(artifact_id)
         if artifact is None:
@@ -283,21 +298,51 @@ class JourneyRepository:
         path = self._artifact_path(loaded.root, artifact)
         if not path.is_file():
             raise ArtifactNotFoundError("recorded artifact file is unavailable")
+        media_type = _media_type(artifact.get("media_type"), "artifact.media_type")
+        evidence_mode = _evidence_mode(
+            artifact.get("evidence_mode"), "artifact.evidence_mode"
+        )
         expected_size = artifact.get("size_bytes")
-        if expected_size is not None and path.stat().st_size != _integer(
-            expected_size, "artifact.size_bytes"
-        ):
+        recorded_size = (
+            _integer(expected_size, "artifact.size_bytes")
+            if expected_size is not None
+            else None
+        )
+        if recorded_size is not None and recorded_size > MAX_ARTIFACT_DOWNLOAD_BYTES:
+            raise ArtifactTooLargeError(
+                f"recorded artifact exceeds the {MAX_ARTIFACT_DOWNLOAD_BYTES}-byte "
+                "verified-download limit"
+            )
+        read_size = (
+            recorded_size + 1
+            if recorded_size is not None
+            else MAX_ARTIFACT_DOWNLOAD_BYTES + 1
+        )
+        try:
+            with path.open("rb") as artifact_file:
+                content = artifact_file.read(read_size)
+        except FileNotFoundError as exc:
+            raise ArtifactNotFoundError("recorded artifact file is unavailable") from exc
+        except OSError as exc:
+            raise ArtifactIntegrityError("recorded artifact file could not be read") from exc
+        if len(content) > MAX_ARTIFACT_DOWNLOAD_BYTES:
+            raise ArtifactTooLargeError(
+                f"artifact exceeds the {MAX_ARTIFACT_DOWNLOAD_BYTES}-byte "
+                "verified-download limit"
+            )
+        if recorded_size is not None and len(content) != recorded_size:
             raise ArtifactIntegrityError("recorded artifact size does not match the file")
         expected_hash = _checksum(artifact.get("checksum_sha256"), "artifact.checksum_sha256")
-        actual_hash = _file_sha256(path)
+        actual_hash = hashlib.sha256(content).hexdigest()
         if actual_hash != expected_hash:
             raise ArtifactIntegrityError("recorded artifact checksum does not match the file")
-        return ArtifactFile(
-            path=path,
+        return VerifiedArtifactSnapshot(
+            content=content,
             filename=path.name,
-            media_type=_text(artifact.get("media_type"), "artifact.media_type"),
+            media_type=media_type,
             checksum_sha256=expected_hash,
-            evidence_mode=_text(artifact.get("evidence_mode"), "artifact.evidence_mode"),
+            size_bytes=len(content),
+            evidence_mode=evidence_mode,
         )
 
     def _load(self, job_id: str, revision_id: str) -> _LoadedRevision:
@@ -421,7 +466,9 @@ class JourneyRepository:
                 title=_text(item.get("title"), "finding.title"),
                 severity=_text(item.get("severity"), "finding.severity"),
                 evidence=_text(item.get("evidence"), "finding.evidence"),
-                evidence_mode=_text(item.get("evidence_mode"), "finding.evidence_mode"),
+                evidence_mode=_evidence_mode(
+                    item.get("evidence_mode"), "finding.evidence_mode"
+                ),
                 remediation=_optional_text(item.get("remediation")),
                 affected_geometry=_optional_text(item.get("affected_geometry")),
                 resolved=bool(item.get("resolved", False)),
@@ -462,7 +509,9 @@ class JourneyRepository:
             stage=_text(stage.get("stage"), "stage.stage"),
             status=_text(stage.get("status"), "stage.status"),
             attempt=_integer(stage.get("attempt"), "stage.attempt", minimum=1),
-            evidence_mode=_text(stage.get("evidence_mode"), "stage.evidence_mode"),
+            evidence_mode=_evidence_mode(
+                stage.get("evidence_mode"), "stage.evidence_mode"
+            ),
             evidence_level=_optional_text(stage.get("evidence_level")),
             tool=ToolView(
                 name=_text(tool.get("name"), "stage.tool.name"),
@@ -491,7 +540,7 @@ class JourneyRepository:
         return ArtifactView(
             artifact_id=artifact_id,
             role=_text(artifact.get("role"), "artifact.role"),
-            media_type=_text(artifact.get("media_type"), "artifact.media_type"),
+            media_type=_media_type(artifact.get("media_type"), "artifact.media_type"),
             checksum_sha256=_checksum(
                 artifact.get("checksum_sha256"), "artifact.checksum_sha256"
             ),
@@ -504,7 +553,9 @@ class JourneyRepository:
             producer_version=_text(
                 artifact.get("producer_version"), "artifact.producer_version"
             ),
-            evidence_mode=_text(artifact.get("evidence_mode"), "artifact.evidence_mode"),
+            evidence_mode=_evidence_mode(
+                artifact.get("evidence_mode"), "artifact.evidence_mode"
+            ),
             stage_run_id=_text(artifact.get("stage_run_id"), "artifact.stage_run_id"),
             available=available,
             download_url=(
@@ -776,7 +827,9 @@ class JourneyRepository:
             producer_version=_text(
                 record.get("producer_version"), "artifact.producer_version"
             ),
-            evidence_mode=_text(record.get("evidence_mode"), "artifact.evidence_mode"),
+            evidence_mode=_evidence_mode(
+                record.get("evidence_mode"), "artifact.evidence_mode"
+            ),
             checksum_verified=True,
         )
         return artifact, value, None
@@ -1140,6 +1193,20 @@ def _text(value: Any, name: str) -> str:
     normalized = str(value).strip() if value is not None else ""
     if not normalized:
         raise InvalidRevisionError(f"{name} is required")
+    return normalized
+
+
+def _evidence_mode(value: Any, name: str) -> str:
+    normalized = _text(value, name)
+    if normalized not in _EVIDENCE_MODES:
+        raise InvalidRevisionError(f"{name} is not a supported evidence mode")
+    return normalized
+
+
+def _media_type(value: Any, name: str) -> str:
+    normalized = _text(value, name)
+    if not _MEDIA_TYPE_PATTERN.fullmatch(normalized):
+        raise InvalidRevisionError(f"{name} is not a valid type/subtype media type")
     return normalized
 
 

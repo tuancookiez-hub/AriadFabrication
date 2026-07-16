@@ -69,6 +69,14 @@ The current canonical API snapshot is 54,318 bytes with SHA-256 `1f177747402776e
 
 Research conclusion: revision comparison should remain a semantic lens over persisted evidence, not an equivalence checker. A zero-row result can support traceability and review, but it cannot establish identical B-rep topology, manufacturing behavior, or physical performance.
 
+## Verified artifact delivery
+
+M4-F local evidence on 2026-07-16: API 1.2.1 captures an artifact into memory under a 64 MiB ceiling, verifies the captured bytes against the persisted size and SHA-256, and constructs the HTTP response from that same snapshot. A forced mutation of the backing path after verification no longer changes response content. The fixture note returned 178 bytes with the exact expected hash plus explicit verified-snapshot, evidence-mode, ceiling, no-cache, no-sniff, attachment, and disconnected-hardware headers.
+
+OpenAPI now describes the artifact success body as binary rather than JSON, declares 404/409/413 error bodies, and records the integrity and safety headers. Media type and evidence mode are validated before header construction; CR/LF-bearing values fail as revision-integrity errors. The current snapshot is 58,589 bytes with SHA-256 `a98aff4a7b609536a08b85bea5d11919a20210daccfd90427bd68b39415cff38`, five paths, and 31 schemas; generated TypeScript is 30,693 bytes.
+
+Research conclusion: checksum verification and response streaming must share one immutable byte identity. The in-memory snapshot is appropriate for the loopback M4 ceiling; a larger or multi-user deployment should move to content-addressed immutable storage or sealed temporary snapshots rather than restoring a mutable path race.
+
 ## Organic meshes and Blender
 
 - [Blender MCP](https://github.com/ahujasid/blender-mcp) — Blender scene, mesh, material, and Python control through MCP.

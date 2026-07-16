@@ -7,8 +7,8 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict
 
 
-InterfaceApiVersion = Literal["1.2.0"]
-INTERFACE_API_VERSION: InterfaceApiVersion = "1.2.0"
+InterfaceApiVersion = Literal["1.2.1"]
+INTERFACE_API_VERSION: InterfaceApiVersion = "1.2.1"
 
 
 class ApiModel(BaseModel):
@@ -33,6 +33,10 @@ class HealthResponse(ApiModel):
     service: Literal["ariad-interface-api"]
     status: Literal["ok"]
     capabilities: CapabilitiesView
+
+
+class ErrorResponse(ApiModel):
+    detail: str
 
 
 class ToolView(ApiModel):

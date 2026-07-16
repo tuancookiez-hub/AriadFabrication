@@ -221,6 +221,11 @@ export interface components {
             /** Title */
             title: string;
         };
+        /** ErrorResponse */
+        ErrorResponse: {
+            /** Detail */
+            detail: string;
+        };
         /** EventView */
         EventView: {
             /** Data */
@@ -315,7 +320,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.2.0";
+            schema_version: "1.2.1";
             /**
              * Service
              * @constant
@@ -569,7 +574,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.2.0";
+            schema_version: "1.2.1";
             /** Summaries */
             summaries: components["schemas"]["ComparisonAreaSummaryView"][];
             /** Total Change Count */
@@ -588,7 +593,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.2.0";
+            schema_version: "1.2.1";
             source: components["schemas"]["SourceView"];
             /** Stages */
             stages: components["schemas"]["StageView"][];
@@ -602,7 +607,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.2.0";
+            schema_version: "1.2.1";
         };
         /** RevisionSummary */
         RevisionSummary: {
@@ -788,6 +793,24 @@ export interface operations {
                     "application/json": components["schemas"]["RevisionComparisonResponse"];
                 };
             };
+            /** @description Persisted revision was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Persisted revision failed integrity checks. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -840,6 +863,24 @@ export interface operations {
                     "application/json": components["schemas"]["RevisionDetailResponse"];
                 };
             };
+            /** @description Persisted revision was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Persisted revision failed integrity checks. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -864,13 +905,50 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Successful Response */
+            /** @description Bounded binary snapshot whose bytes passed recorded size and SHA-256 checks. */
             200: {
+                headers: {
+                    "Cache-Control"?: "no-store";
+                    /** @description Attachment filename encoded according to RFC 5987. */
+                    "Content-Disposition"?: string;
+                    /** @description Quoted recorded SHA-256 of the returned snapshot. */
+                    ETag?: string;
+                    "X-Ariad-Evidence-Mode"?: "real" | "simulated" | "fixture" | "unavailable";
+                    "X-Ariad-Hardware-Action"?: "false";
+                    "X-Ariad-Integrity"?: "sha256-verified-snapshot";
+                    "X-Ariad-Max-Artifact-Bytes"?: 67108864;
+                    "X-Content-Type-Options"?: "nosniff";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+            /** @description Persisted revision was not found. */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Persisted revision failed integrity checks. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Artifact exceeds the verified-download resource ceiling. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Validation Error */

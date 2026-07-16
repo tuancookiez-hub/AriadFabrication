@@ -26,7 +26,7 @@ const baseRevision: ComparisonRevision = {
 }
 
 const comparison: RevisionComparison = {
-  schema_version: '1.2.0',
+  schema_version: '1.2.1',
   capabilities: { read_only: true, hardware_actions: false },
   base: baseRevision,
   candidate: {

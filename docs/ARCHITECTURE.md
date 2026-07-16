@@ -172,7 +172,7 @@ Toolpath playback is not structural or thermal proof.
 | Domain and workers | Python 3.11 | Matches the existing package and CadQuery ecosystem |
 | CAD | CadQuery backed by OCCT | Functional lane; source is a first-class artifact |
 | API | FastAPI on the existing Python domain | M4-A implements a loopback-only, read-only filesystem boundary; job execution and streaming remain later |
-| Browser interface | Vite + React + TypeScript | M4-E implements journey evidence, direct Three.js preview, worker-owned toolpath playback, generated API response types, bounded persisted-evidence selection, and server-owned revision comparison |
+| Browser interface | Vite + React + TypeScript | M4-F implements journey evidence, verified artifact snapshots, direct Three.js preview, worker-owned toolpath playback, generated API response types, bounded persisted-evidence selection, and server-owned revision comparison |
 | Model integration | OpenAI Responses API with strict structured output and function tools | Model output cannot bypass deterministic gates |
 | Slicing | Adapter over PrusaSlicer and/or OrcaSlicer CLI | Profiles and tool versions are recorded |
 | Metadata | SQLite initially | Filesystem stores large artifacts; migration path remains open |
@@ -203,7 +203,7 @@ Each provider must have a deterministic fixture for tests and must report whethe
 
 ## Current implementation mapping
 
-M3 implements one complete printer-independent Golden Part path through R4, and M4-A through M4-E expose its persisted records through a read-only application slice:
+M3 implements one complete printer-independent Golden Part path through R4, and M4-A through M4-F expose its persisted records through a read-only application slice:
 
 - `domain/spec.py` implements immutable `PartSpec` 1.0.0 and design-readiness rules.
 - `domain/journey.py` implements jobs, immutable revisions and records, append-only events, artifact lineage, and manifests.
@@ -226,9 +226,9 @@ M3 implements one complete printer-independent Golden Part path through R4, and 
 - `slicing/prusaslicer.py` invokes one approved local PrusaSlicer executable, records model repairs and warnings, and exports a real profile-bearing 3MF project plus G-code without hardware access.
 - `slicing/gcode.py` parses real G-code and applies disconnected profile-specific checks for units, modes, bounds, temperatures, tools, support features, layer height, and forbidden commands.
 - `slicing/pipeline.py` advances the same revision through R3, R4 slicing, and package completeness; snapshots all profiles; records every command/log/checksum/lineage edge; and fails closed under the frozen repair/warning policy.
-- `api/repository.py` loads revision-scoped journeys, optional manifests and packages, groups records only through persisted IDs, confines artifact paths, verifies size/checksum before download, parses only known report/profile roles after a separate bounded checksum gate, and delegates normalized revision diffs without mutation. Revision listings skip detail-report parsing.
+- `api/repository.py` loads revision-scoped journeys, optional manifests and packages, groups records only through persisted IDs, confines artifact paths, captures artifact bytes once under a 64 MiB ceiling, verifies that snapshot against recorded size/SHA-256, validates response media/evidence values, parses only known report/profile roles after a separate bounded checksum gate, and delegates normalized revision diffs without mutation. Revision listings skip detail-report parsing.
 - `api/comparison.py` computes deterministic semantic diffs over normalized persisted stages, requirements, features, reports, checks, findings, profiles, artifacts, and package state. It omits generated IDs/timestamps, enforces record/change/value ceilings, and never reruns an evidence-producing stage.
-- `api/app.py` exposes loopback-only health, revision-list, revision-detail, revision-comparison, and artifact routes while advertising `hardware_actions: false` in every application contract.
+- `api/app.py` exposes loopback-only health, revision-list, revision-detail, revision-comparison, and verified-snapshot artifact routes while advertising `hardware_actions: false` in every application contract. Binary, 404, integrity-conflict, and size-limit responses are explicit in OpenAPI.
 - `api/openapi.py` deterministically generates and checks the committed OpenAPI snapshot without reading journey data; runtime documentation/schema routes remain disabled.
 - `api/fixture.py` deterministically generates the committed `benchmarks/interface/` family. Every stage is labelled `fixture`; complete parent/child, `needs_input`, failed Geometry, failed Printability, and incomplete Package journeys stop at their persisted gate.
 - `web/` contains the Vite React/TypeScript client, shipment-style timeline, warning and claim presentation, artifact links, fixture boundary, reduced-motion behavior, bounded Three.js GLB inspection, worker-owned G-code layer playback, a selectable feature/check/finding/profile/artifact evidence explorer, a persisted revision picker/diff view, generated OpenAPI response aliases, real-artifact integration tests, lint/type checks, and production build.

@@ -77,7 +77,7 @@ class JourneyRepositoryTests(unittest.TestCase):
         self.assertEqual(len(detail.stages[3].findings), 2)
         self.assertTrue(all(stage.evidence_mode == "fixture" for stage in detail.stages))
         self.assertFalse(detail.capabilities.hardware_actions)
-        self.assertEqual(detail.schema_version, "1.2.0")
+        self.assertEqual(detail.schema_version, "1.2.1")
         self.assertEqual(
             [report.report_kind for report in detail.inspection.reports],
             ["geometry", "printability", "gcode_preflight"],
@@ -153,7 +153,8 @@ class JourneyRepositoryTests(unittest.TestCase):
         repository = JourneyRepository(FIXTURE_ROOT)
         artifact = repository.get_artifact(JOB_ID, REVISION_ID, "art_fixture_note")
         self.assertEqual(artifact.evidence_mode, "fixture")
-        self.assertIn(b"not a fabrication package", artifact.path.read_bytes())
+        self.assertIn(b"not a fabrication package", artifact.content)
+        self.assertEqual(artifact.size_bytes, len(artifact.content))
 
         with tempfile.TemporaryDirectory() as temporary:
             copied_root = Path(temporary) / "interface"
@@ -341,7 +342,7 @@ class InterfaceHttpTests(unittest.TestCase):
         detail = self.client.get(f"/api/v1/revisions/{JOB_ID}/{REVISION_ID}")
         self.assertEqual(detail.status_code, 200)
         payload = detail.json()
-        self.assertEqual(payload["schema_version"], "1.2.0")
+        self.assertEqual(payload["schema_version"], "1.2.1")
         self.assertEqual(
             [stage["stage"] for stage in payload["stages"]],
             [item[0] for item in STAGES],
@@ -358,7 +359,98 @@ class InterfaceHttpTests(unittest.TestCase):
         )
         self.assertEqual(artifact.status_code, 200)
         self.assertEqual(artifact.headers["x-ariad-evidence-mode"], "fixture")
+        self.assertEqual(
+            artifact.headers["x-ariad-integrity"],
+            "sha256-verified-snapshot",
+        )
         self.assertEqual(artifact.headers["x-ariad-hardware-action"], "false")
+
+    def test_artifact_response_cannot_drift_after_repository_verification(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            copied_root = Path(temporary) / "interface"
+            shutil.copytree(FIXTURE_ROOT, copied_root)
+            app = create_app(copied_root)
+            repository = app.state.repository
+            original_get = repository.get_artifact
+            note = (
+                copied_root
+                / JOB_ID
+                / "revisions"
+                / REVISION_ID
+                / "notes"
+                / "interface-fixture.txt"
+            )
+            expected = note.read_bytes()
+
+            def verified_then_mutated(*args):
+                snapshot = original_get(*args)
+                note.write_bytes(b"mutated only after the verified snapshot was captured")
+                return snapshot
+
+            with patch.object(
+                repository,
+                "get_artifact",
+                side_effect=verified_then_mutated,
+            ):
+                response = TestClient(app).get(
+                    f"/api/v1/revisions/{JOB_ID}/{REVISION_ID}/artifacts/art_fixture_note"
+                )
+
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.content, expected)
+            self.assertEqual(response.headers["content-length"], str(len(expected)))
+            self.assertEqual(response.headers["cache-control"], "no-store")
+            self.assertEqual(response.headers["x-content-type-options"], "nosniff")
+            self.assertEqual(
+                response.headers["etag"],
+                f'"{hashlib.sha256(expected).hexdigest()}"',
+            )
+            self.assertTrue(
+                response.headers["content-disposition"].startswith("attachment;")
+            )
+
+    def test_artifact_response_rejects_the_verified_download_ceiling(self):
+        with patch(
+            "ariad_fabrication.api.repository.MAX_ARTIFACT_DOWNLOAD_BYTES",
+            16,
+        ):
+            response = self.client.get(
+                f"/api/v1/revisions/{JOB_ID}/{REVISION_ID}/artifacts/art_fixture_note"
+            )
+
+        self.assertEqual(response.status_code, 413)
+        self.assertIn("16-byte verified-download limit", response.json()["detail"])
+
+    def test_artifact_response_rejects_untrusted_header_values(self):
+        cases = (
+            ("evidence_mode", "fixture\r\nX-Untrusted: yes"),
+            ("media_type", "text/plain\r\nX-Untrusted: yes"),
+        )
+        for field, value in cases:
+            with self.subTest(field=field), tempfile.TemporaryDirectory() as temporary:
+                copied_root = Path(temporary) / "interface"
+                shutil.copytree(FIXTURE_ROOT, copied_root)
+                revision_root = copied_root / JOB_ID / "revisions" / REVISION_ID
+                for record_name in ("journey.json", "manifest.json"):
+                    record_path = revision_root / record_name
+                    record = json.loads(record_path.read_text(encoding="utf-8"))
+                    artifact = next(
+                        item
+                        for item in record["artifacts"]
+                        if item["artifact_id"] == "art_fixture_note"
+                    )
+                    artifact[field] = value
+                    record_path.write_text(
+                        json.dumps(record, indent=2, sort_keys=True) + "\n",
+                        encoding="utf-8",
+                    )
+
+                response = TestClient(create_app(copied_root)).get(
+                    f"/api/v1/revisions/{JOB_ID}/{REVISION_ID}/artifacts/art_fixture_note"
+                )
+
+                self.assertEqual(response.status_code, 409)
+                self.assertNotIn("x-untrusted", response.headers)
 
     def test_missing_and_invalid_revisions_do_not_look_successful(self):
         missing = self.client.get("/api/v1/revisions/job_missing/rev_missing")

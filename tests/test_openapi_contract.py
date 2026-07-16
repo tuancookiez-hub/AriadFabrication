@@ -40,7 +40,7 @@ class OpenApiContractTests(unittest.TestCase):
         self.assertEqual(capabilities["properties"]["hardware_actions"]["const"], False)
 
         health = document["components"]["schemas"]["HealthResponse"]["properties"]
-        self.assertEqual(health["schema_version"]["const"], "1.2.0")
+        self.assertEqual(health["schema_version"]["const"], "1.2.1")
         self.assertEqual(health["service"]["const"], "ariad-interface-api")
         self.assertEqual(health["status"]["const"], "ok")
 
@@ -53,6 +53,7 @@ class OpenApiContractTests(unittest.TestCase):
             "ComparisonChangeView",
             "ComparisonRevisionView",
             "EventView",
+            "ErrorResponse",
             "FindingView",
             "GcodeSummaryView",
             "HardwareView",
@@ -80,6 +81,34 @@ class OpenApiContractTests(unittest.TestCase):
             with self.subTest(model=model_name):
                 schema = schemas[model_name]
                 self.assertEqual(set(schema["required"]), set(schema["properties"]))
+
+    def test_artifact_contract_is_binary_bounded_and_integrity_labelled(self):
+        document = generate_openapi_document()
+        operation = document["paths"][
+            "/api/v1/revisions/{job_id}/{revision_id}/artifacts/{artifact_id}"
+        ]["get"]
+        responses = operation["responses"]
+
+        self.assertEqual(set(responses), {"200", "404", "409", "413", "422"})
+        binary = responses["200"]["content"]["application/octet-stream"]["schema"]
+        self.assertEqual(binary, {"type": "string", "format": "binary"})
+        headers = responses["200"]["headers"]
+        self.assertEqual(
+            headers["X-Ariad-Integrity"]["schema"]["const"],
+            "sha256-verified-snapshot",
+        )
+        self.assertEqual(
+            headers["X-Ariad-Hardware-Action"]["schema"]["const"],
+            "false",
+        )
+        self.assertEqual(
+            headers["X-Ariad-Max-Artifact-Bytes"]["schema"]["const"],
+            64 * 1024 * 1024,
+        )
+        for status in ("404", "409", "413"):
+            with self.subTest(status=status):
+                schema = responses[status]["content"]["application/json"]["schema"]
+                self.assertEqual(schema["$ref"], "#/components/schemas/ErrorResponse")
 
     def test_writer_is_canonical_and_check_detects_drift(self):
         with tempfile.TemporaryDirectory() as temporary:

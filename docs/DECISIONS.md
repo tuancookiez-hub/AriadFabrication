@@ -219,6 +219,24 @@ This file records accepted project-level decisions. Change an accepted decision 
 
 **Consequence:** Future comparison areas must define a stable semantic key, exclude runtime noise, preserve claim boundaries, and earn explicit resource/failure tests. Do not move the authoritative diff into the browser or interpret a zero-row result as equivalence proof.
 
+### D-025 — Serve bounded verified artifact snapshots
+
+**Status:** Accepted for M4-F on 2026-07-16.
+
+**Decision:** Advance the read API to 1.2.1 and replace path-backed `FileResponse` delivery with one bounded in-memory snapshot. Read at most the recorded size plus one byte, never more than 64 MiB plus one byte, and construct the response only from the bytes whose size and SHA-256 were accepted. Do not reopen the filesystem path after verification.
+
+**Integrity and transport boundary:** A recorded artifact larger than 64 MiB or an unrecorded-size artifact that crosses the same ceiling returns 413. Missing files return 404; malformed revisions, size/checksum drift, unreadable files, invalid evidence modes, and invalid type/subtype media values return 409. Successful responses use the validated recorded media type, RFC 5987 attachment filename, checksum ETag, `sha256-verified-snapshot`, evidence mode, 64 MiB ceiling, `no-store`, `nosniff`, and `hardware-action: false` headers. The generic OpenAPI content schema is binary `application/octet-stream`; runtime `Content-Type` remains the validated recorded type.
+
+**Evidence:** A regression test mutates the backing file after repository verification but before response construction and proves that HTTP still returns the original byte-identical snapshot and matching checksum. Additional tests enforce the 413 ceiling, reject CR/LF-bearing media/evidence metadata before header construction, require binary/error/header OpenAPI semantics, and preserve existing checksum-drift failures. A live loopback HTTP check returned the 178-byte fixture snapshot with its exact recorded SHA-256 and every required boundary header. The full pinned suite passes 84 backend tests; frontend contract generation, seven deterministic tests, two real-artifact integration tests, lint, and production build pass.
+
+**Contract evidence:** The canonical OpenAPI snapshot is 58,589 bytes with SHA-256 `a98aff4a7b609536a08b85bea5d11919a20210daccfd90427bd68b39415cff38`, five GET paths, and 31 schemas. Generated TypeScript is 30,693 bytes with SHA-256 `737b3ffc3a0ed0144ced4d1dbbf61850a247669e0967c14e360ca5a2cde37d1f`.
+
+**Resource and dependency impact:** No dependency was added. Each concurrent artifact response may retain up to 64 MiB until Starlette finishes constructing/sending the response; the ceiling matches the existing GLB and G-code browser input limits and is acceptable for the loopback-only M4 service. Production frontend bundle sizes are unchanged.
+
+**Removal path:** Reverting to path-backed streaming removes the per-response memory snapshot but reintroduces the verify-then-send race. A future replacement must preserve snapshot identity, resource limits, headers, and tests, for example through an immutable content-addressed store or a sealed temporary snapshot.
+
+**Consequence:** Every claim that an artifact download is checksum-verified now applies to the bytes actually returned. Other persisted file readers must adopt bounded snapshot reads before their size ceilings can be described as allocation bounds.
+
 ## Deferred decisions
 
 These require later evidence and should not be decided through preference alone:

@@ -4,11 +4,12 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+from urllib.parse import quote
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, HTTPException, Response
 
 from .models import (
+    ErrorResponse,
     INTERFACE_API_VERSION,
     HealthResponse,
     RevisionComparisonResponse,
@@ -19,10 +20,62 @@ from .models import (
 from .repository import (
     ArtifactIntegrityError,
     ArtifactNotFoundError,
+    ArtifactTooLargeError,
     InvalidRevisionError,
     JourneyRepository,
+    MAX_ARTIFACT_DOWNLOAD_BYTES,
     RevisionNotFoundError,
 )
+
+
+_REVISION_ERROR_RESPONSES = {
+    404: {"model": ErrorResponse, "description": "Persisted revision was not found."},
+    409: {"model": ErrorResponse, "description": "Persisted revision failed integrity checks."},
+}
+_ARTIFACT_RESPONSES = {
+    200: {
+        "description": "Bounded binary snapshot whose bytes passed recorded size and SHA-256 checks.",
+        "content": {
+            "application/octet-stream": {
+                "schema": {"type": "string", "format": "binary"}
+            }
+        },
+        "headers": {
+            "ETag": {
+                "description": "Quoted recorded SHA-256 of the returned snapshot.",
+                "schema": {"type": "string"},
+            },
+            "Content-Disposition": {
+                "description": "Attachment filename encoded according to RFC 5987.",
+                "schema": {"type": "string"},
+            },
+            "X-Ariad-Evidence-Mode": {
+                "schema": {
+                    "type": "string",
+                    "enum": ["real", "simulated", "fixture", "unavailable"],
+                }
+            },
+            "X-Ariad-Integrity": {
+                "schema": {"type": "string", "const": "sha256-verified-snapshot"}
+            },
+            "X-Ariad-Hardware-Action": {
+                "schema": {"type": "string", "const": "false"}
+            },
+            "X-Ariad-Max-Artifact-Bytes": {
+                "schema": {"type": "integer", "const": MAX_ARTIFACT_DOWNLOAD_BYTES}
+            },
+            "Cache-Control": {"schema": {"type": "string", "const": "no-store"}},
+            "X-Content-Type-Options": {
+                "schema": {"type": "string", "const": "nosniff"}
+            },
+        },
+    },
+    **_REVISION_ERROR_RESPONSES,
+    413: {
+        "model": ErrorResponse,
+        "description": "Artifact exceeds the verified-download resource ceiling.",
+    },
+}
 
 
 def create_app(runs_root: Path | str = Path("runs")) -> FastAPI:
@@ -57,6 +110,7 @@ def create_app(runs_root: Path | str = Path("runs")) -> FastAPI:
     @app.get(
         "/api/v1/revision-comparison",
         response_model=RevisionComparisonResponse,
+        responses=_REVISION_ERROR_RESPONSES,
     )
     def revision_comparison(
         base_job_id: str,
@@ -79,6 +133,7 @@ def create_app(runs_root: Path | str = Path("runs")) -> FastAPI:
     @app.get(
         "/api/v1/revisions/{job_id}/{revision_id}",
         response_model=RevisionDetailResponse,
+        responses=_REVISION_ERROR_RESPONSES,
     )
     def revision(job_id: str, revision_id: str) -> RevisionDetailResponse:
         try:
@@ -88,22 +143,33 @@ def create_app(runs_root: Path | str = Path("runs")) -> FastAPI:
         except InvalidRevisionError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
 
-    @app.get("/api/v1/revisions/{job_id}/{revision_id}/artifacts/{artifact_id}")
-    def artifact(job_id: str, revision_id: str, artifact_id: str) -> FileResponse:
+    @app.get(
+        "/api/v1/revisions/{job_id}/{revision_id}/artifacts/{artifact_id}",
+        response_class=Response,
+        responses=_ARTIFACT_RESPONSES,
+    )
+    def artifact(job_id: str, revision_id: str, artifact_id: str) -> Response:
         try:
             item = repository.get_artifact(job_id, revision_id, artifact_id)
         except (RevisionNotFoundError, ArtifactNotFoundError) as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
         except (InvalidRevisionError, ArtifactIntegrityError) as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
-        return FileResponse(
-            item.path,
+        except ArtifactTooLargeError as exc:
+            raise HTTPException(status_code=413, detail=str(exc)) from exc
+        encoded_filename = quote(item.filename, safe="")
+        return Response(
+            content=item.content,
             media_type=item.media_type,
-            filename=item.filename,
             headers={
                 "ETag": f'"{item.checksum_sha256}"',
+                "Content-Disposition": f"attachment; filename*=UTF-8''{encoded_filename}",
                 "X-Ariad-Evidence-Mode": item.evidence_mode,
+                "X-Ariad-Integrity": "sha256-verified-snapshot",
                 "X-Ariad-Hardware-Action": "false",
+                "X-Ariad-Max-Artifact-Bytes": str(MAX_ARTIFACT_DOWNLOAD_BYTES),
+                "Cache-Control": "no-store",
+                "X-Content-Type-Options": "nosniff",
             },
         )
 

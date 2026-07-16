@@ -366,6 +366,20 @@
         "title": "ComparisonRevisionView",
         "type": "object"
       },
+      "ErrorResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          }
+        },
+        "required": [
+          "detail"
+        ],
+        "title": "ErrorResponse",
+        "type": "object"
+      },
       "EventView": {
         "additionalProperties": false,
         "properties": {
@@ -681,7 +695,7 @@
             "$ref": "#/components/schemas/CapabilitiesView"
           },
           "schema_version": {
-            "const": "1.2.0",
+            "const": "1.2.1",
             "title": "Schema Version",
             "type": "string"
           },
@@ -1412,7 +1426,7 @@
             "type": "integer"
           },
           "schema_version": {
-            "const": "1.2.0",
+            "const": "1.2.1",
             "title": "Schema Version",
             "type": "string"
           },
@@ -1479,7 +1493,7 @@
             "$ref": "#/components/schemas/RevisionView"
           },
           "schema_version": {
-            "const": "1.2.0",
+            "const": "1.2.1",
             "title": "Schema Version",
             "type": "string"
           },
@@ -1522,7 +1536,7 @@
             "type": "array"
           },
           "schema_version": {
-            "const": "1.2.0",
+            "const": "1.2.1",
             "title": "Schema Version",
             "type": "string"
           }
@@ -1988,7 +2002,7 @@
     "description": "This API replays persisted records. It cannot upload G-code, select a printer, heat hardware, move hardware, or start manufacturing.",
     "summary": "Read-only access to persisted fabrication evidence.",
     "title": "Ariad Fabrication Journey API",
-    "version": "1.2.0"
+    "version": "1.2.1"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -2062,6 +2076,26 @@
             },
             "description": "Successful Response"
           },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Persisted revision was not found."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Persisted revision failed integrity checks."
+          },
           "422": {
             "content": {
               "application/json": {
@@ -2128,6 +2162,26 @@
             },
             "description": "Successful Response"
           },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Persisted revision was not found."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Persisted revision failed integrity checks."
+          },
           "422": {
             "content": {
               "application/json": {
@@ -2177,11 +2231,99 @@
         "responses": {
           "200": {
             "content": {
-              "application/json": {
-                "schema": {}
+              "application/octet-stream": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
               }
             },
-            "description": "Successful Response"
+            "description": "Bounded binary snapshot whose bytes passed recorded size and SHA-256 checks.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
+              "Content-Disposition": {
+                "description": "Attachment filename encoded according to RFC 5987.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "ETag": {
+                "description": "Quoted recorded SHA-256 of the returned snapshot.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Ariad-Evidence-Mode": {
+                "schema": {
+                  "enum": [
+                    "real",
+                    "simulated",
+                    "fixture",
+                    "unavailable"
+                  ],
+                  "type": "string"
+                }
+              },
+              "X-Ariad-Hardware-Action": {
+                "schema": {
+                  "const": "false",
+                  "type": "string"
+                }
+              },
+              "X-Ariad-Integrity": {
+                "schema": {
+                  "const": "sha256-verified-snapshot",
+                  "type": "string"
+                }
+              },
+              "X-Ariad-Max-Artifact-Bytes": {
+                "schema": {
+                  "const": 67108864,
+                  "type": "integer"
+                }
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "const": "nosniff",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Persisted revision was not found."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Persisted revision failed integrity checks."
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Artifact exceeds the verified-download resource ceiling."
           },
           "422": {
             "content": {
