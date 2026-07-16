@@ -1,0 +1,197 @@
+# No-hardware execution contract
+
+**Contract version:** 1.0.0
+
+**Policy version:** 1.0.0
+
+**Status:** Implemented as schemas, immutable Python records, pure lifecycle operations, and tests. No persistent runner, event transport, mutation endpoint, or browser Run control exists yet.
+
+## Purpose
+
+This contract defines how Ariad may later execute its existing deterministic Golden Part pipeline from the local application. It exists before the runner so queueing, cancellation, crashes, resource limits, and identity cannot be improvised inside an HTTP handler.
+
+The contract is deliberately narrower than the CLI:
+
+- only `opengrow_stake_electronics_clamp_v1` is admitted;
+- the only targets are `golden_part_r2` and `golden_part_r4`;
+- the requester cannot supply a filesystem path, CAD provider, profile, slicer, executable, command, environment, or hardware option;
+- every request, record, and event states that hardware actions are false;
+- success means only that the requested software evidence gate was reached;
+- no printer is selected, contacted, heated, moved, uploaded to, or started.
+
+The current `ariad --golden-part` and `--golden-part-r2` commands remain direct synchronous developer commands. They do not satisfy this job-runner contract merely because they can produce R2 or R4 evidence.
+
+## Admission order
+
+A future adapter must perform admission in this order:
+
+1. Accept one JSON object no larger than 16 KiB and validate `execution-request.schema.json` without scalar coercion or undeclared fields.
+2. Require a local authenticated capability. For a browser request, require JSON-only content, an exact loopback/same-origin policy, and an unpredictable anti-CSRF capability tied to the application process. Loopback binding alone is not CSRF protection.
+3. Resolve the target through the fixed registry. Never accept caller-selected paths, providers, profiles, executables, or commands.
+4. Before accepting a record, verify every required dependency and snapshot the exact input identities. R4 admission must reject if the approved slicer is absent, has the wrong identity, or the required resource policy cannot be enforced. A rejected admission does not create a plausible failed evidence run.
+5. In one store transaction, resolve the idempotency key, check the one-active/four-queued limits, allocate a monotonic accepted sequence, and persist the queued record plus `request_accepted` event.
+
+The canonical request is UTF-8 JSON with sorted keys and no insignificant whitespace. Its SHA-256 is stored with the request.
+
+### Idempotency
+
+- Same key and byte-equivalent canonical request: return the original execution, regardless of its status.
+- Same key and different canonical request: return an idempotency conflict; never mutate or replace the original.
+- New key with four waiting executions: reject as queue full.
+- Accepted executions use their persisted `accepted_sequence` for FIFO order. Filesystem order and client timestamps never choose the next job.
+
+## Immutable execution identity
+
+Identity is snapshotted before acceptance, not looked up again midway through a run.
+
+| Identity | R2 | R4 |
+|---|---:|---:|
+| Benchmark and registered provider | Required | Required |
+| CAD worker version | Required | Required |
+| CAD provider source SHA-256 | Required | Required |
+| dependency-lock SHA-256 | Required | Required |
+| CPython 3.11 patch version and executable SHA-256 | Required | Required |
+| CadQuery 2.8.0 and OCP 7.9.3.1.1 identities | Required | Required |
+| PartSpec SHA-256 | Required | Required |
+| geometry expectations SHA-256 | Required | Required |
+| printability expectations SHA-256 | Forbidden | Required |
+| printability validator and fabrication-pipeline versions | Forbidden | Required |
+| printer/material/process/orientation IDs and SHA-256 values | Forbidden | Required |
+| composite slicer-config SHA-256 | Forbidden | Required |
+| slicer adapter ID/version, PrusaSlicer 2.9.6 identity, executable SHA-256 | Forbidden | Required |
+
+Paths are intentionally absent from the persisted request and plan. A trusted adapter may resolve repository-owned assets and the approved executable, but their accepted content identities cannot change after queue admission. A mismatch at launch fails closed rather than silently rebinding the plan.
+
+## State model
+
+Execution status is separate from a Journey stage status. The execution record owns scheduling and process lifecycle; persisted `StageRun` records continue to own fabrication evidence.
+
+```mermaid
+stateDiagram-v2
+    [*] --> queued: accepted atomically
+    queued --> running: lease acquired
+    queued --> cancelled: cancel wins before start
+    running --> cancellation_requested: cancel wins while active
+    running --> succeeded: terminal commit wins
+    running --> failed: terminal failure
+    running --> interrupted: stale lease / runner loss
+    cancellation_requested --> cancelled: process group stopped
+    cancellation_requested --> failed: stop or persistence failure
+    cancellation_requested --> interrupted: runner lost
+    succeeded --> [*]
+    failed --> [*]
+    cancelled --> [*]
+    interrupted --> [*]
+```
+
+Terminal records are immutable. There is no transition from `cancellation_requested` to `succeeded`, and there is no automatic resume from `interrupted`.
+
+### Cancellation linearization
+
+Cancellation and completion must contend on the same transactional execution row:
+
+- if terminal completion commits first, a later cancel returns the unchanged terminal record;
+- if queued cancellation commits first, the execution becomes `cancelled` without ever starting;
+- if active cancellation commits first, the record becomes `cancellation_requested`, no next stage may start, and the execution can no longer succeed;
+- the runner requests cooperative shutdown, then terminates the complete process tree after the ten-second grace ceiling;
+- snapshots, logs, artifacts, findings, and Journey events already persisted are retained. Cancellation never rolls back or deletes evidence.
+
+The cancellation endpoint is idempotent. Repeated cancellation does not rewrite timestamps or emit duplicate semantic events.
+
+## Concurrency, leases, and crash recovery
+
+- At most one execution is active globally.
+- At most four executions wait in the FIFO queue.
+- Starting a queued record and acquiring its lease is one transaction.
+- A lease lasts 30 seconds and the owner heartbeats every 10 seconds.
+- The lease records acquisition, latest heartbeat, and an expiry exactly 30 seconds after that heartbeat.
+- `runner_instance_id` plus `generation` is a fencing identity. Every active identity bind, stage/event persistence transaction, heartbeat, and terminal commit must present the matching unexpired fence. A different owner, generation, or stale runner cannot renew or commit success.
+- On startup, an active record whose lease has expired becomes `interrupted` with a `runner_interrupted` failure. It is not silently resumed or rerun.
+- A user may submit a new idempotency key after reviewing an interrupted run. The new execution has a new identity and retains lineage to its own output only.
+
+The first store should use Python's standard-library SQLite with transactional rows for executions, idempotency keys, leases, and append-only events. Large Journey artifacts remain in revision directories. SQLite is a control-plane index, not an alternate source of fabrication evidence.
+
+## Frozen resource policy
+
+These are admission and runtime requirements for the future adapter, not claims about the present synchronous wrappers.
+
+| Limit | Frozen value | Current enforcement |
+|---|---:|---|
+| Request body | 16 KiB | Schema/request object is bounded; no mutation endpoint exists |
+| Total execution wall time | 900 s | Not yet enforced as one deadline |
+| CAD process time | 120 s | Existing wrapper has a blocking timeout; cooperative cancellation is absent |
+| Each slicer command | 180 s | Existing wrapper has a blocking timeout; cooperative cancellation is absent |
+| Cancellation grace | 10 s | Contract only |
+| Lease / heartbeat | 30 s / 10 s | Contract only |
+| Persisted events | 10,000 per execution | Contract and event sequence only; no store yet |
+| Event data | 64 KiB, depth 16, 20,000 nodes, 32 top-level fields | Enforced by the event record |
+| Each stdout or stderr stream | 8 MiB | Not yet enforced; existing capture can grow without this bound |
+| Execution workspace | 512 MiB | Not yet enforced |
+| Active process-tree memory | 4 GiB | Not yet enforced by the operating system |
+| Concurrent child processes | 1 per execution | Not yet enforced as an OS process-tree limit |
+| Slicer threads | 4 | Existing default agrees; accepted runner must force it |
+| Network | Denied | Intent only today; no OS-level denial yet |
+| Hardware actions | Denied | No printer adapter is present in the approved path |
+| Automatic resume | Denied | Contract only; no persistent runner exists |
+
+The HTTP adapter must remain unavailable until it can enforce every limit needed for the selected target. A timeout passed to `subprocess.run` is not proof of bounded logs, process-tree termination, memory confinement, or network denial.
+
+## Event log and future SSE projection
+
+Execution events are persisted append-only and use a monotonic sequence from 1 through 10,000. Event type and execution status combinations are closed by schema. Events may report exact facts such as stage name, check count, layer count, artifact ID, or byte count; `progress_percent` is forbidden because the pipeline has no defensible continuous percentage model.
+
+A future Server-Sent Events endpoint is only a projection of the persisted log:
+
+- persist an event before broadcasting it;
+- use the persisted sequence as the SSE `id`;
+- reconnect with `Last-Event-ID` and return later persisted events in sequence order;
+- delivery is at least once, so clients deduplicate by execution ID and sequence;
+- keepalive comments are transport details and are not persisted events;
+- disconnecting a browser never cancels an execution;
+- queue position is an observation, not stable evidence, and must not be presented as a percentage;
+- a terminal record has one matching terminal event. If event persistence and terminal-state persistence cannot commit atomically, the terminal state must not be published.
+
+## Failure taxonomy
+
+Every failed or interrupted execution uses a closed structured failure:
+
+| Code | Meaning |
+|---|---|
+| `dependency_unavailable` | An accepted dependency disappeared or became unreadable after admission |
+| `input_integrity_failed` | A snapshotted input no longer matches its accepted identity |
+| `worker_timeout` | CAD or slicer exceeded its permitted deadline |
+| `resource_limit` | Log, workspace, memory, event, or process ceiling was reached |
+| `stage_failed` | The deterministic pipeline rejected a stage |
+| `persistence_failed` | Control state or immutable evidence could not be committed safely |
+| `cancellation_timeout` | The process tree did not stop within the cancellation grace period |
+| `runner_interrupted` | The runner disappeared and its lease expired |
+| `internal_error` | A bounded unexpected runner error |
+
+Failure stages may name only Brief through Fabrication Package. `manufacturing` is invalid because this runner has no physical stage. Messages are capped at 512 characters; detailed logs belong in bounded artifacts. `retryable` is advice for a human decision, never permission for automatic retry.
+
+## Persistence and artifact rules
+
+- Execution records and events validate against the committed Draft 2020-12 schemas before persistence and after replay.
+- The request hash, plan, policy, status transition, lease, failure, and event append are transactionally consistent. Every active write checks the current owner, generation, and expiry in the same transaction.
+- The Journey remains the source of stage, finding, decision, artifact, and evidence claims.
+- The control store may bind `job_id` and `revision_id` once the pipeline materializes them. Rebinding to another identity is forbidden.
+- Stage snapshots are published atomically through the existing Journey persistence path before a corresponding execution event is appended.
+- Partial revision directories are retained and remain subject to the read API's existing fail-closed integrity checks.
+- G-code remains an R4 artifact produced by the approved slicer. This contract cannot dispatch it.
+
+## What must exist before browser execution
+
+The GET-only API and read-only browser remain unchanged until all of these are implemented and tested:
+
+1. a transactional SQLite control store with idempotency, FIFO admission, event sequences, leases, and startup reconciliation;
+2. a target registry that snapshots and re-verifies all R2/R4 identities before acceptance and launch;
+3. cancellable process-group adapters with bounded streaming stdout/stderr, one total deadline, and deterministic process-tree cleanup;
+4. enforceable workspace, memory, child-process, network-denial, and slicer-thread controls for the host platform;
+5. atomic Journey snapshot and execution-event coordination with retained partial evidence;
+6. recovery, cancellation-race, resource-exhaustion, and crash-injection tests;
+7. JSON-only same-origin mutation authentication plus an anti-CSRF capability;
+8. versioned POST/cancel/SSE OpenAPI contracts and generated browser types;
+9. a browser control that exposes queue, cancellation, failure, and claim boundaries without invented progress;
+10. the existing read, CAD, slicer, packaging, frontend, wheel, and live HTTP gates continuing to pass.
+
+Until then, `schemas/v1/execution-*.schema.json` and `ariad_fabrication.execution` are a tested design contract, not a working background job service.

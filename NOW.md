@@ -6,9 +6,9 @@
 
 ## Immediate objective
 
-Finish hardening the read-only Fabrication Journey before adding mutation or model-driven generation. Contract drift, evidence replay, revision comparison, artifact delivery, persisted JSON snapshots, revision discovery/listing, lifecycle/state vocabularies, scalar record types, temporal ordering, committed root/report/profile schemas, lineage, fabrication-package parity, cross-artifact content identity, and the static/component accessibility foundation now fail closed or carry regression evidence. The next audit slice is explicit job-runner and safe execution semantics; browser-triggered execution remains unavailable until those contracts are frozen.
+Implement the policy-enforcing no-hardware execution adapter and transactional control store without weakening the read-only evidence boundary. M4-N now freezes request, record, event, idempotency, queue, cancellation, lease, crash, resource, and failure semantics. Browser-triggered execution remains unavailable until the existing blocking CAD/slicer wrappers are made cancellable and enforce bounded logs, process-tree cleanup, one wall deadline, workspace/memory/process limits, and network denial under the frozen contract.
 
-## M4-A through M4-M implemented
+## M4-A through M4-N implemented
 
 - Added a FastAPI 0.139.1 / Uvicorn 0.51.0 application boundary that binds to loopback and exposes only health, revision-list, revision-detail, revision-comparison, and checksum-verified artifact reads.
 - Added a fail-closed repository reader with ID/path confinement, optional-manifest handling for incomplete journeys, ownership checks, manifest/journey consistency checks, compact package summaries, and no hardware endpoint.
@@ -31,10 +31,11 @@ Finish hardening the read-only Fabrication Journey before adding mutation or mod
 - Added runtime Draft 2020-12 validation for persisted PartSpec, relevant StageEvent, ArtifactManifest, production FabricationPackage, and a separate interface-fixture package contract. The allowlisted schemas are shipped in wheels, loaded under a 1 MiB ceiling, meta-validated, and use strict timezone-aware date-time checks.
 - Added exact stage-owned record coverage, unique artifact paths, parent existence/acyclic chronology, later-stage lineage rejection, successful Package-stage ownership, exact 19-role package completeness, required-artifact descriptor and stage-input parity, unresolved-warning parity, package-report snapshot checksum verification, and G-code summary parity. No CAD, validator, slicer, simulation, or hardware stage is rerun.
 - Added 14 role-specific Draft 2020-12 contracts for production and interface-fixture geometry, printability, G-code preflight, printer, material, process, and orientation content. The production PrintabilityReport contract now closes measurements, policy, tool-version, geometry-descriptor, warning, and nested-object shapes; all 19 runtime schema assets remain separately allowlisted and wheel-packaged.
+- Added three closed Draft 2020-12 no-hardware execution contracts plus immutable Python records and pure lifecycle operations. Only the frozen Golden Part R2/R4 targets are admitted; requests cannot select paths, providers, profiles, tools, commands, or hardware. Canonical request hashes, exact source/lock/Python/CAD/runtime/validator/slicer plan identities, one-active/four-queued FIFO limits, idempotent replay/conflict semantics, terminal/cancellation races, exact 30-second owner/generation-fenced leases, stale-terminal rejection and interruption without automatic resume, structured non-manufacturing failures, bounded event data, and literal-false hardware/physical claims now have regression coverage. This is not yet a persistent runner or API.
 - Production profile ingestion rejects duplicate keys, non-finite constants, scalar coercion, undeclared fields, incomplete nested objects, and unsupported status/process/orientation values before typed construction. Geometry, printability, and preflight producers validate their complete report values before immutable publication, and the API validates them again only after bounded size/SHA-256 verification.
 - Production package detail now matches the packaged PartSpec byte-content value to the embedded revision spec; package profile IDs to the four checksum-verified profile contents; printability profile IDs and exact/oriented geometry filename, size, and checksum descriptors to the package; geometry and printability benchmark IDs to each other; and the preflight artifact to the package preflight value. Semantic drift invalidates detail, while invalid role schemas become explicit unavailable records; direct report/profile/PartSpec downloads repeat schema and applicable identity checks so raw artifact reads cannot bypass the boundary. Summary listing intentionally does not parse detail artifacts.
 - Verified seven ignored real R2/R4 directories are discovered. Six remain available with ten reports and eight profiles; the seventh is correctly invalid because its R2 journey has an orphaned R4 package that references fourteen artifacts absent from its manifest.
-- Verified all 122 backend tests pass in the pinned CAD/slicer environment. The frontend lockfile passes its release-age and peer policies; OpenAPI-generated-type drift, test and production TypeScript checks, ESLint, twelve deterministic tests, and the Vite production build pass. Two environment-gated real-artifact tests retain separate recorded passes and are skipped in the ordinary run. The application bundle is 337.16 KiB / 103.68 KiB gzip, CSS is 26.07 KiB / 5.76 KiB gzip, and the lazy Three.js chunk remains 724.46 KiB / 184.72 KiB gzip with the existing size warning. A clean 168,400-byte wheel installation resolves and meta-validates all 19 packaged schemas outside the checkout. Live HTTP checks returned API 1.7.0, three reports/four profiles/zero unavailable fixture records, a byte-identical 178-byte artifact snapshot with its integrity headers, and a two-record list page that disclosed six observed candidates, next offset 2, `snapshot_consistent: false`, and `hardware_actions: false`.
+- Verified all 136 backend tests pass in the pinned CAD/slicer environment. The frontend lockfile passes its release-age and peer policies; OpenAPI-generated-type drift, test and production TypeScript checks, ESLint, twelve deterministic tests, and the Vite production build pass. Two environment-gated real-artifact tests retain separate recorded passes and are skipped in the ordinary run. The application bundle is 337.16 KiB / 103.68 KiB gzip, CSS is 26.07 KiB / 5.76 KiB gzip, and the lazy Three.js chunk remains 724.46 KiB / 184.72 KiB gzip with the existing size warning. A clean wheel installation resolves and meta-validates all 22 packaged schemas outside the checkout. Live HTTP checks returned API 1.7.0, three reports/four profiles/zero unavailable fixture records, a byte-identical 178-byte artifact snapshot with its integrity headers, and a two-record list page that disclosed six observed candidates, next offset 2, `snapshot_consistent: false`, and `hardware_actions: false`.
 - Recorded anime.js, Motion.dev, Kokonut UI, Bklit UI, and Manus.im as deferred visual references rather than installed dependencies.
 
 ## M3 completed
@@ -55,10 +56,11 @@ Finish hardening the read-only Fabrication Journey before adding mutation or mod
 
 ## Next actions
 
-1. Perform visual browser and assistive-technology QA across desktop/mobile widths and keyboard/reduced-motion paths once the local in-app browser runtime conflict is resolved; do not change the unrelated user-level Node configuration.
-2. Freeze job-runner, event-stream, cancellation, idempotency, concurrency, resource-ceiling, and failure semantics before adding browser-triggered Golden Part execution.
-3. Define a no-hardware execution adapter that can run only the registered Golden Part pipeline, preserves immutable revision identity, and cannot invoke printer behavior.
-4. Evaluate the deferred animation/component references against accessibility, maintenance, bundle size, overlap, license, and removal criteria before adopting any.
+1. Implement the transactional SQLite control store for idempotency, accepted sequence, FIFO admission, leases, and append-only execution events; keep it unreachable from HTTP initially.
+2. Replace blocking process capture with a cancellable no-hardware adapter that can run only the registered Golden Part, re-verifies accepted identities, bounds logs/workspace/process trees, and fails admission when required isolation cannot be enforced.
+3. Add crash, cancellation-race, resource-exhaustion, and recovery tests before versioning POST/cancel/SSE contracts or adding a browser Run control.
+4. Perform visual browser and assistive-technology QA once the local in-app browser runtime conflict is resolved; do not change the unrelated user-level Node configuration.
+5. Evaluate deferred visual libraries only after the control plane is reliable and against accessibility, maintenance, bundle size, overlap, license, and removal criteria.
 
 ## Exit gate for M4
 
@@ -86,7 +88,7 @@ Finish hardening the read-only Fabrication Journey before adding mutation or mod
 - Slicer verification does not establish adhesion, dimensional accuracy, real-stake fit, load capacity, weathering, food safety, or physical success.
 - The ignored PrusaSlicer binary must be installed separately; AGPL distribution implications still require review before public bundling.
 - Only one functional part family has R4 evidence.
-- There is no persistent database, job runner/event transport, physical calibration data, selected printer, or selected project license. The current API and interface remain read-only M4 foundations.
+- There is no persistent control database, policy-enforcing job runner, event transport, physical calibration data, selected printer, or selected project license. The execution schemas and lifecycle code are contracts only; the current API and interface remain read-only M4 foundations.
 - Revision listing is work-bounded but re-examines the live directory on every request; offset pages can shift when files change and are explicitly marked `snapshot_consistent: false`. A database or content-addressed index would be required for stable multi-request snapshots.
 - Revision listing deliberately validates only bounded root records, so a summary can be root-available while a later detail artifact is missing or schema-invalid; detail exposes that artifact as unavailable, and direct reads fail integrity checks. Stable indexed summaries that include sealed detail-integrity state require a database or content-addressed catalog.
 - The GLB surface is a bounded tessellated preview, not exact STEP inspection. The toolpath surface draws linear G0/G1 moves and discloses omitted arcs; it does not model collisions, extrusion, adhesion, heat, strength, or printer behavior.
@@ -99,6 +101,7 @@ Finish hardening the read-only Fabrication Journey before adding mutation or mod
 1. [README.md](README.md) - stable overview and current evidence.
 2. [docs/DECISIONS.md](docs/DECISIONS.md) - accepted direction.
 3. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - system contracts and boundaries.
-4. [docs/RELIABILITY.md](docs/RELIABILITY.md) - required evidence and allowed claims.
-5. [docs/ROADMAP.md](docs/ROADMAP.md) - milestone order and exit gates.
-6. This file - immediate work, blockers, and the current exit gate.
+4. [docs/EXECUTION.md](docs/EXECUTION.md) - no-hardware runner and event semantics.
+5. [docs/RELIABILITY.md](docs/RELIABILITY.md) - required evidence and allowed claims.
+6. [docs/ROADMAP.md](docs/ROADMAP.md) - milestone order and exit gates.
+7. This file - immediate work, blockers, and the current exit gate.

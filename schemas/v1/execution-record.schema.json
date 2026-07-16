@@ -1,0 +1,505 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ariad.local/schemas/v1/execution-record.schema.json",
+  "title": "Ariad no-hardware execution record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "execution_id",
+    "accepted_sequence",
+    "request",
+    "request_sha256",
+    "plan",
+    "policy",
+    "status",
+    "accepted_at",
+    "started_at",
+    "cancellation_requested_at",
+    "completed_at",
+    "job_id",
+    "revision_id",
+    "lease",
+    "failure",
+    "hardware_actions",
+    "physical_evidence",
+    "claim_boundary"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "execution_id": {"$ref": "#/$defs/executionId"},
+    "accepted_sequence": {"type": "integer", "minimum": 1},
+    "request": {"$ref": "#/$defs/request"},
+    "request_sha256": {"$ref": "#/$defs/sha256"},
+    "plan": {"$ref": "#/$defs/plan"},
+    "policy": {"$ref": "#/$defs/policy"},
+    "status": {"$ref": "#/$defs/status"},
+    "accepted_at": {"$ref": "#/$defs/dateTime"},
+    "started_at": {"$ref": "#/$defs/nullableDateTime"},
+    "cancellation_requested_at": {"$ref": "#/$defs/nullableDateTime"},
+    "completed_at": {"$ref": "#/$defs/nullableDateTime"},
+    "job_id": {"$ref": "#/$defs/nullableJobId"},
+    "revision_id": {"$ref": "#/$defs/nullableRevisionId"},
+    "lease": {
+      "anyOf": [
+        {"type": "null"},
+        {"$ref": "#/$defs/lease"}
+      ]
+    },
+    "failure": {
+      "anyOf": [
+        {"type": "null"},
+        {"$ref": "#/$defs/failure"}
+      ]
+    },
+    "hardware_actions": {"const": false},
+    "physical_evidence": {"const": false},
+    "claim_boundary": {
+      "const": "Digital execution only. No printer was selected or contacted, no G-code was uploaded, and no physical action occurred. Success records only the requested R2 or R4 software evidence gate."
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "queued"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "started_at": {"const": null},
+          "cancellation_requested_at": {"const": null},
+          "completed_at": {"const": null},
+          "job_id": {"const": null},
+          "revision_id": {"const": null},
+          "lease": {"const": null},
+          "failure": {"const": null}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "running"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "started_at": {"$ref": "#/$defs/dateTime"},
+          "cancellation_requested_at": {"const": null},
+          "completed_at": {"const": null},
+          "lease": {"$ref": "#/$defs/lease"},
+          "failure": {"const": null}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"status": {"const": "cancellation_requested"}},
+        "required": ["status"]
+      },
+      "then": {
+        "properties": {
+          "started_at": {"$ref": "#/$defs/dateTime"},
+          "cancellation_requested_at": {"$ref": "#/$defs/dateTime"},
+          "completed_at": {"const": null},
+          "lease": {"$ref": "#/$defs/lease"},
+          "failure": {"const": null}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "succeeded"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "started_at": {"$ref": "#/$defs/dateTime"},
+          "cancellation_requested_at": {"const": null},
+          "completed_at": {"$ref": "#/$defs/dateTime"},
+          "job_id": {"$ref": "#/$defs/jobId"},
+          "revision_id": {"$ref": "#/$defs/revisionId"},
+          "lease": {"const": null},
+          "failure": {"const": null}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "failed"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "started_at": {"$ref": "#/$defs/dateTime"},
+          "completed_at": {"$ref": "#/$defs/dateTime"},
+          "lease": {"const": null},
+          "failure": {"$ref": "#/$defs/failure"}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "cancelled"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "cancellation_requested_at": {"$ref": "#/$defs/dateTime"},
+          "completed_at": {"$ref": "#/$defs/dateTime"},
+          "lease": {"const": null},
+          "failure": {"const": null}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "interrupted"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "started_at": {"$ref": "#/$defs/dateTime"},
+          "completed_at": {"$ref": "#/$defs/dateTime"},
+          "lease": {"const": null},
+          "failure": {
+            "allOf": [
+              {"$ref": "#/$defs/failure"},
+              {"properties": {"code": {"const": "runner_interrupted"}}}
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"job_id": {"type": "string"}}, "required": ["job_id"]},
+      "then": {"properties": {"revision_id": {"$ref": "#/$defs/revisionId"}}}
+    },
+    {
+      "if": {
+        "properties": {"revision_id": {"type": "string"}},
+        "required": ["revision_id"]
+      },
+      "then": {"properties": {"job_id": {"$ref": "#/$defs/jobId"}}}
+    },
+    {
+      "if": {
+        "properties": {
+          "failure": {
+            "type": "object",
+            "properties": {"code": {"const": "runner_interrupted"}},
+            "required": ["code"]
+          }
+        },
+        "required": ["failure"]
+      },
+      "then": {"properties": {"status": {"const": "interrupted"}}}
+    },
+    {
+      "if": {
+        "properties": {
+          "failure": {
+            "type": "object",
+            "properties": {"code": {"const": "cancellation_timeout"}},
+            "required": ["code"]
+          }
+        },
+        "required": ["failure"]
+      },
+      "then": {
+        "properties": {
+          "status": {"const": "failed"},
+          "cancellation_requested_at": {"$ref": "#/$defs/dateTime"}
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "dateTime": {"type": "string", "format": "date-time"},
+    "nullableDateTime": {"type": ["string", "null"], "format": "date-time"},
+    "executionId": {
+      "type": "string",
+      "pattern": "^exec_[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$"
+    },
+    "jobId": {
+      "type": "string",
+      "pattern": "^job_[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$"
+    },
+    "nullableJobId": {
+      "type": ["string", "null"],
+      "pattern": "^job_[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$"
+    },
+    "revisionId": {
+      "type": "string",
+      "pattern": "^rev_[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$"
+    },
+    "nullableRevisionId": {
+      "type": ["string", "null"],
+      "pattern": "^rev_[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$"
+    },
+    "status": {
+      "enum": [
+        "queued",
+        "running",
+        "cancellation_requested",
+        "succeeded",
+        "failed",
+        "cancelled",
+        "interrupted"
+      ]
+    },
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "idempotency_key",
+        "target",
+        "benchmark_id",
+        "requested_by",
+        "hardware_actions"
+      ],
+      "properties": {
+        "schema_version": {"const": "1.0.0"},
+        "idempotency_key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+        },
+        "target": {"enum": ["golden_part_r2", "golden_part_r4"]},
+        "benchmark_id": {"const": "opengrow_stake_electronics_clamp_v1"},
+        "requested_by": {"const": "local_user"},
+        "hardware_actions": {"const": false}
+      }
+    },
+    "profiles": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "printer_profile_id",
+        "printer_profile_sha256",
+        "material_profile_id",
+        "material_profile_sha256",
+        "process_profile_id",
+        "process_profile_sha256",
+        "orientation_id",
+        "orientation_sha256",
+        "slicer_config_sha256"
+      ],
+      "properties": {
+        "printer_profile_id": {"const": "generic_open_fdm_220_v1"},
+        "printer_profile_sha256": {"$ref": "#/$defs/sha256"},
+        "material_profile_id": {"const": "generic_petg_175_v1"},
+        "material_profile_sha256": {"$ref": "#/$defs/sha256"},
+        "process_profile_id": {"const": "golden_part_020_no_support_v1"},
+        "process_profile_sha256": {"$ref": "#/$defs/sha256"},
+        "orientation_id": {"const": "upright_source_z_centered_v1"},
+        "orientation_sha256": {"$ref": "#/$defs/sha256"},
+        "slicer_config_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "slicer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["adapter_id", "adapter_version", "slicer_version", "executable_sha256"],
+      "properties": {
+        "adapter_id": {"const": "prusaslicer_cli"},
+        "adapter_version": {"const": "1.0.0"},
+        "slicer_version": {"const": "2.9.6"},
+        "executable_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "cadRuntime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "python_version",
+        "python_executable_sha256",
+        "cadquery_version",
+        "ocp_version"
+      ],
+      "properties": {
+        "python_version": {
+          "type": "string",
+          "pattern": "^3\\.11\\.[0-9]+$"
+        },
+        "python_executable_sha256": {"$ref": "#/$defs/sha256"},
+        "cadquery_version": {"const": "2.8.0"},
+        "ocp_version": {"const": "7.9.3.1.1"}
+      }
+    },
+    "plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target",
+        "benchmark_id",
+        "provider_id",
+        "cad_worker_version",
+        "cad_source_sha256",
+        "dependency_lock_sha256",
+        "cad_runtime",
+        "part_spec_sha256",
+        "geometry_expectations_sha256",
+        "printability_validator_version",
+        "fabrication_pipeline_version",
+        "printability_expectations_sha256",
+        "profiles",
+        "slicer",
+        "hardware_actions"
+      ],
+      "properties": {
+        "target": {"enum": ["golden_part_r2", "golden_part_r4"]},
+        "benchmark_id": {"const": "opengrow_stake_electronics_clamp_v1"},
+        "provider_id": {"const": "opengrow_stake_electronics_clamp_v1"},
+        "cad_worker_version": {"const": "1.0.0"},
+        "cad_source_sha256": {"$ref": "#/$defs/sha256"},
+        "dependency_lock_sha256": {"$ref": "#/$defs/sha256"},
+        "cad_runtime": {"$ref": "#/$defs/cadRuntime"},
+        "part_spec_sha256": {"$ref": "#/$defs/sha256"},
+        "geometry_expectations_sha256": {"$ref": "#/$defs/sha256"},
+        "printability_validator_version": {
+          "type": ["string", "null"],
+          "enum": [null, "1.0.0"]
+        },
+        "fabrication_pipeline_version": {
+          "type": ["string", "null"],
+          "enum": [null, "1.0.0"]
+        },
+        "printability_expectations_sha256": {
+          "type": ["string", "null"],
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "profiles": {
+          "anyOf": [{"type": "null"}, {"$ref": "#/$defs/profiles"}]
+        },
+        "slicer": {
+          "anyOf": [{"type": "null"}, {"$ref": "#/$defs/slicer"}]
+        },
+        "hardware_actions": {"const": false}
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"target": {"const": "golden_part_r2"}},
+            "required": ["target"]
+          },
+          "then": {
+            "properties": {
+              "printability_expectations_sha256": {"const": null},
+              "printability_validator_version": {"const": null},
+              "fabrication_pipeline_version": {"const": null},
+              "profiles": {"const": null},
+              "slicer": {"const": null}
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {"target": {"const": "golden_part_r4"}},
+            "required": ["target"]
+          },
+          "then": {
+            "properties": {
+              "printability_expectations_sha256": {"$ref": "#/$defs/sha256"},
+              "printability_validator_version": {"const": "1.0.0"},
+              "fabrication_pipeline_version": {"const": "1.0.0"},
+              "profiles": {"$ref": "#/$defs/profiles"},
+              "slicer": {"$ref": "#/$defs/slicer"}
+            }
+          }
+        }
+      ]
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy_version",
+        "max_request_bytes",
+        "max_wall_seconds",
+        "cad_timeout_seconds",
+        "slicer_command_timeout_seconds",
+        "cancellation_grace_seconds",
+        "lease_seconds",
+        "heartbeat_seconds",
+        "max_events",
+        "max_event_data_bytes",
+        "max_log_stream_bytes",
+        "max_workspace_bytes",
+        "max_memory_bytes",
+        "max_child_processes",
+        "slicer_threads",
+        "max_active_executions",
+        "max_queued_executions",
+        "network_access",
+        "hardware_actions",
+        "automatic_resume"
+      ],
+      "properties": {
+        "policy_version": {"const": "1.0.0"},
+        "max_request_bytes": {"const": 16384},
+        "max_wall_seconds": {"const": 900},
+        "cad_timeout_seconds": {"const": 120},
+        "slicer_command_timeout_seconds": {"const": 180},
+        "cancellation_grace_seconds": {"const": 10},
+        "lease_seconds": {"const": 30},
+        "heartbeat_seconds": {"const": 10},
+        "max_events": {"const": 10000},
+        "max_event_data_bytes": {"const": 65536},
+        "max_log_stream_bytes": {"const": 8388608},
+        "max_workspace_bytes": {"const": 536870912},
+        "max_memory_bytes": {"const": 4294967296},
+        "max_child_processes": {"const": 1},
+        "slicer_threads": {"const": 4},
+        "max_active_executions": {"const": 1},
+        "max_queued_executions": {"const": 4},
+        "network_access": {"const": false},
+        "hardware_actions": {"const": false},
+        "automatic_resume": {"const": false}
+      }
+    },
+    "lease": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "runner_instance_id",
+        "generation",
+        "acquired_at",
+        "heartbeat_at",
+        "expires_at"
+      ],
+      "properties": {
+        "runner_instance_id": {
+          "type": "string",
+          "pattern": "^runner_[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$"
+        },
+        "generation": {"type": "integer", "minimum": 1},
+        "acquired_at": {"$ref": "#/$defs/dateTime"},
+        "heartbeat_at": {"$ref": "#/$defs/dateTime"},
+        "expires_at": {"$ref": "#/$defs/dateTime"}
+      }
+    },
+    "failure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message", "retryable", "stage", "detail_artifact_id"],
+      "properties": {
+        "code": {
+          "enum": [
+            "dependency_unavailable",
+            "input_integrity_failed",
+            "worker_timeout",
+            "resource_limit",
+            "stage_failed",
+            "persistence_failed",
+            "cancellation_timeout",
+            "runner_interrupted",
+            "internal_error"
+          ]
+        },
+        "message": {"type": "string", "minLength": 1, "maxLength": 512},
+        "retryable": {"type": "boolean"},
+        "stage": {
+          "type": ["string", "null"],
+          "enum": [
+            null,
+            "brief",
+            "design",
+            "geometry_validation",
+            "printability_validation",
+            "slicing",
+            "fabrication_package"
+          ]
+        },
+        "detail_artifact_id": {
+          "type": ["string", "null"],
+          "pattern": "^art_[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$"
+        }
+      }
+    }
+  }
+}

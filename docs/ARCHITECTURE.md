@@ -171,14 +171,20 @@ Toolpath playback is not structural or thermal proof.
 |---|---|---|
 | Domain and workers | Python 3.11 | Matches the existing package and CadQuery ecosystem |
 | CAD | CadQuery backed by OCCT | Functional lane; source is a first-class artifact |
-| API | FastAPI on the existing Python domain | M4-A implements a loopback-only, read-only filesystem boundary; job execution and streaming remain later |
+| API | FastAPI on the existing Python domain | M4-A implements a loopback-only, read-only filesystem boundary; M4-N freezes execution semantics, but mutation and streaming remain unavailable |
 | Browser interface | Vite + React + TypeScript | M4-M implements journey evidence, bounded revision discovery/pages, bounded persisted-file snapshots, verified artifact delivery, strict persisted lifecycle/scalar/time/root/report/profile/schema/lineage/package/content-identity contracts, direct Three.js preview, worker-owned toolpath playback, generated API response types, bounded persisted-evidence selection, server-owned revision comparison, and tested keyboard/contrast/reduced-motion foundations |
 | Model integration | OpenAI Responses API with strict structured output and function tools | Model output cannot bypass deterministic gates |
 | Slicing | Adapter over PrusaSlicer and/or OrcaSlicer CLI | Profiles and tool versions are recorded |
-| Metadata | SQLite initially | Filesystem stores large artifacts; migration path remains open |
+| Metadata | SQLite initially | M4-N selects it for the future transactional execution control plane; filesystem artifacts remain the evidence source and no store exists yet |
 | Optional control plane | Go later if justified | Suitable for a printer-side agent or deployment service, not required for CAD |
 
 Dependencies are not considered installed merely because they appear in this target table.
+
+## No-hardware execution control plane
+
+M4-N defines a control-plane state machine separately from Journey stage state. It admits only the registered Golden Part to R2 or R4, snapshots every approved input identity before acceptance, allows one active and four queued executions, and freezes idempotency, FIFO, cancellation, lease, crash, resource, event, and failure behavior. The committed request, record, and event schemas plus `ariad_fabrication.execution` implement and test this contract.
+
+No persistent runner or mutation surface implements it yet. The current CAD and slicer wrappers are synchronous subprocess calls: they have per-command timeouts but not cooperative cancellation, bounded streaming logs, one total wall deadline, enforceable process-tree memory/network limits, transactional leases, or crash recovery. Therefore the GET-only API must not expose a Run endpoint. [The no-hardware execution contract](EXECUTION.md) is the gate for that future adapter, not evidence that the adapter already exists.
 
 ## Provider boundaries
 
@@ -198,19 +204,20 @@ Each provider must have a deterministic fixture for tests and must report whethe
 - Untrusted mesh/CAD inputs receive size and complexity limits.
 - Final G-code comes only from an approved slicer adapter.
 - Printer adapters default to disconnected and read-only.
+- A future local mutation route requires JSON-only same-origin/loopback checks plus an unpredictable anti-CSRF capability; loopback binding alone is insufficient.
 - Remote start is disabled until explicit safety requirements are implemented and approved.
 - A simulated adapter cannot claim that a person replaced filament, cleared an obstruction, or made any other physical intervention.
 
 ## Current implementation mapping
 
-M3 implements one complete printer-independent Golden Part path through R4, and M4-A through M4-M expose its persisted records through a read-only application slice:
+M3 implements one complete printer-independent Golden Part path through R4, M4-A through M4-M expose its persisted records through a read-only application slice, and M4-N freezes the next no-hardware execution boundary without exposing it through HTTP:
 
 - `domain/spec.py` implements immutable `PartSpec` 1.0.0 and design-readiness rules.
 - `domain/journey.py` implements jobs, immutable revisions and records, append-only events, artifact lineage, and manifests.
 - `domain/lifecycle.py` implements and tests the accepted seven-stage transition model.
 - `fabrication_contracts.py` owns the dependency-light ordered 19-role production-package contract shared by the R4 writer and read-boundary validator.
 - `orchestrator.py` executes the Brief gate and labels a complete confirmed result R0.
-- `schemas/v1/` contains 19 allowlisted persisted contracts: PartSpec, StageEvent, ArtifactManifest, printer-independent FabricationPackage, explicitly non-evidentiary interface-package fixture, and separate production/interface-fixture geometry, printability, preflight, printer, material, process, and orientation schemas. The canonical interface OpenAPI contract is stored beside them but is not a persisted-instance schema.
+- `schemas/v1/` contains 22 allowlisted persisted contracts: 19 evidence contracts for PartSpec, StageEvent, ArtifactManifest, printer-independent FabricationPackage, the explicitly non-evidentiary interface-package fixture, and production/interface-fixture report/profile roles; plus three no-hardware execution request, record, and event contracts. The canonical interface OpenAPI contract is stored beside them but is not a persisted-instance schema.
 - `benchmarks/golden_part/` freezes the first exact specification and R2 measurement targets.
 - `benchmarks/golden_part/printability_expected.json` freezes the R3 profile selection, deterministic rules, warning dispositions, and claim boundary.
 - `benchmarks/3dbenchy/` preserves the official checksum-pinned CC0 calibration fixture and provenance without treating it as functional-CAD qualification.
@@ -222,13 +229,14 @@ M3 implements one complete printer-independent Golden Part path through R4, and 
 - `cad/validation.py` queries the re-imported STEP through OCCT and evaluates 25 frozen feature, clearance, and dimensional checks.
 - `cad/stl.py`, `cad/glb.py`, and `cad/canonical.py` verify compatibility topology, write/inspect the browser preview, and remove volatile exporter metadata used in reproducibility hashes.
 - `cad/pipeline.py` advances the Golden Part journey through Design R1 and Geometry Validation R2, records 15 artifacts and lineage edges, and persists the journey and manifest.
+- `execution/contracts.py` defines immutable request, R2/R4 plan, policy, lease, failure, record, and event values plus pure admission, start, identity binding, cancellation, terminal transition, lease-renewal, and stale-run interruption operations. It launches nothing, persists nothing, streams nothing, and cannot contact hardware.
 - `slicing/profiles.py` strictly parses and schema-validates the four production profile contracts before typed construction, then validates them against the exact PrusaSlicer INI so metadata cannot drift silently from executable settings.
 - `slicing/printability.py` materializes a centered Z-up STEP, applies exact profile, volume, bed-contact, wall/feature, layer, overhang, bounded-bridge, support, orientation, and first-layer-clearance checks without importing CadQuery into the lightweight path, and schema-validates the complete report before publication.
 - `slicing/prusaslicer.py` invokes one approved local PrusaSlicer executable, records model repairs and warnings, schema-validates disconnected preflight before publication, and exports a real profile-bearing 3MF project plus G-code without hardware access.
 - `slicing/gcode.py` parses real G-code and applies disconnected profile-specific checks for units, modes, bounds, temperatures, tools, support features, layer height, and forbidden commands.
 - `slicing/pipeline.py` advances the same revision through R3, R4 slicing, and package completeness; snapshots all profiles; records every command/log/checksum/lineage edge; and fails closed under the frozen repair/warning policy.
 - `api/bounded_io.py` captures one local file snapshot with an explicit maximum and optional expected size, reading no more than the accepted ceiling plus one byte and distinguishing missing, unreadable, oversized, and size-mismatched inputs.
-- `schema_validation.py` resolves allowlisted source or wheel-installed Draft 2020-12 schema assets, caps each trusted schema at 1 MiB, rejects malformed/duplicate/non-finite schema JSON, meta-validates it, applies strict timezone-aware date-time checks, and bounds error text derived from untrusted records. `jsonschema` is therefore a core read-boundary dependency rather than test-only tooling.
+- `schema_validation.py` resolves 22 allowlisted source or wheel-installed Draft 2020-12 schema assets, caps each trusted schema at 1 MiB, rejects malformed/duplicate/non-finite schema JSON, meta-validates it, applies strict timezone-aware date-time checks, and bounds error text derived from untrusted records. `jsonschema` is therefore a core persisted-contract dependency rather than test-only tooling.
 - `api/repository.py` discovers revisions through non-symlink-following directory scans capped at 5,000 examined entries and 500 observed candidates, sorts by job/revision ID, and loads at most the selected 200-summary page. It exposes incomplete discovery, observed omissions, live-page non-snapshot semantics, and filesystem errors rather than claiming an exact total. Detail reads load revision-scoped journeys, optional manifests and packages through 32 MiB/200,000-node/depth-32 bounded snapshots; reject duplicate keys, non-finite constants, scalar coercion, unsupported lifecycle/evidence vocabularies, inconsistent stage terminal state, ownership drift, duplicate local/global event sequences, reversed job/revision/stage/event/approval/manifest chronology, fixture/runtime mixing, enabled hardware flags, and manifest decision/approval drift; enforce committed PartSpec/event/manifest/package schemas; require exhaustive stage-owned record coverage, unique artifact paths, acyclic chronological lineage, and package-stage/19-role/descriptor/warning/G-code/report-snapshot parity; confine artifact paths; capture artifact bytes once under a 64 MiB ceiling; verify that snapshot against recorded size/SHA-256; parse only known report/profile roles through 2 MiB/20,000-node/depth-16 snapshots and exact role schemas; cross-check production package profile IDs, geometry descriptors, benchmark, preflight, and packaged PartSpec content; and delegate normalized revision diffs without mutation. Unsupported inspection schemas become explicit unavailable records, direct inspection-artifact downloads repeat applicable semantic validation, and revision listings intentionally skip detail-artifact parsing.
 - `api/models.py` publishes API 1.7.0 with enum-backed job/stage/event/finding/decision/approval/package/report/profile/evidence fields, literal-false hardware capabilities, and explicit date-time formats for exposed timestamps, so generated browser types cannot widen lifecycle values or enabled hardware state and contract tooling can identify temporal fields.
 - `api/comparison.py` computes deterministic semantic diffs over normalized persisted stages, requirements, features, reports, checks, findings, profiles, artifacts, and package state. It omits generated IDs/timestamps, enforces record/change/value ceilings, and never reruns an evidence-producing stage.

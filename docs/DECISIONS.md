@@ -363,12 +363,34 @@ This file records accepted project-level decisions. Change an accepted decision 
 
 **Consequence:** The interface now has a testable keyboard, focus, motion, contrast, and renderer-ownership foundation without pretending static tests equal human browser or assistive-technology review. Screenshot-level and assistive-technology QA remain blocked by the recorded local browser-runner conflict. Frozen no-hardware job-runner, event, cancellation, idempotency, concurrency, resource, and failure semantics are the next M4 work.
 
+### D-033 — Freeze no-hardware execution semantics before mutation
+
+**Status:** Accepted for M4-N on 2026-07-16.
+
+**Decision:** Define execution control as a separate versioned state machine rather than overloading Journey `StageStatus`. Admit only the registered `opengrow_stake_electronics_clamp_v1` path to `golden_part_r2` or `golden_part_r4`; reject caller-selected paths, providers, profiles, tools, commands, environments, and all hardware actions. Snapshot the canonical request hash and exact benchmark, provider, CAD source, dependency lock, Python executable/runtime, worker, expectation, validator/pipeline, profile, slicer-config, adapter, slicer-version, and slicer-executable identities required by the target before acceptance.
+
+**Scheduling and race boundary:** Use one active execution, a four-record FIFO queue ordered by a transactional accepted sequence, and canonical idempotency semantics: same key/same request replays the original while same key/different request conflicts. Freeze statuses as `queued`, `running`, `cancellation_requested`, `succeeded`, `failed`, `cancelled`, and `interrupted`. Queued cancellation prevents launch; active cancellation prevents any later success or next-stage start; a terminal commit that wins first remains unchanged. Retain partial Journey evidence and never roll it back. Use 30-second fenced leases with ten-second heartbeats; acquisition, latest heartbeat, and exact expiry are persisted. Every active identity/evidence/terminal write checks owner, generation, and unexpired lease in the same transaction. An expired active lease becomes `interrupted`, cannot commit late success, and never resumes automatically.
+
+**Resource and event boundary:** Freeze a 16 KiB request, 900-second total wall deadline, 120-second CAD deadline, 180-second slicer-command deadline, ten-second cancellation grace, 10,000 events, 64 KiB event data, 8 MiB per log stream, 512 MiB workspace, 4 GiB process-tree memory, one concurrent child process, four slicer threads, network denial, and literal-false hardware behavior. Persist events before projecting them; use monotonic sequence IDs and at-least-once SSE replay; forbid invented `progress_percent`. Structured failure stages stop at Fabrication Package and cannot name Manufacturing.
+
+**Persistence and security direction:** Use Python's standard-library SQLite as the first transactional control store while Journey artifacts remain on the filesystem. A future browser mutation boundary must be JSON-only and enforce exact loopback/same-origin checks plus an unpredictable anti-CSRF capability. Missing approved dependencies or inability to enforce the selected target's policy rejects admission before an execution record is accepted.
+
+**Current implementation boundary:** Three Draft 2020-12 schemas plus immutable Python records and pure operations implement and test the contract. The existing CAD and slicer wrappers remain blocking subprocess calls; they do not yet provide bounded streaming logs, cooperative process-tree cancellation, one total deadline, enforceable memory/process/network confinement, a persistent store, event transport, or crash recovery. Therefore API 1.7.0 remains GET-only and the browser has no Run control.
+
+**Evidence:** Fourteen execution-contract tests cover closed requests, canonical hashes, R2/R4 identity and CAD-runtime separation, fixed resource policy, lifecycle and chronology, paired Journey identity, terminal immutability, queued/active cancellation, both cancellation/completion race outcomes, cancellation grace, structured failures, identity rebinding, idempotent replay/conflict, queue bounds, exact lease duration, fencing/renewal/expiry, stale-terminal rejection, no automatic resume, event/status/identity compatibility, event immutability/complexity/byte limits, invented-percentage rejection, and schema packaging/meta-validation. The full pinned environment passes 136 backend tests; the unchanged frontend drift/type/lint/twelve-test/build gates pass. The schema allowlist and installed wheel contain 22 assets: 19 evidence schemas plus three execution-control schemas.
+
+**Resource and dependency impact:** No dependency was added. The contract uses dataclasses, enums, SHA-256, and the existing JSON Schema runtime. SQLite remains in the Python standard library. The schemas and pure records do not start a process, open a database, expose a socket, or alter browser bundles.
+
+**Removal path:** A different control store, queue, or event transport may replace the proposed implementation only if it preserves canonical idempotency, transactional FIFO/lease/cancellation linearization, immutable identity, bounded resources/events, retained partial evidence, no automatic resume, literal-false hardware state, closed failure semantics, and replay tests. A background task launched directly from an HTTP handler is not an equivalent replacement.
+
+**Consequence:** The next implementation slice can build a store and adapter against a fixed safety contract instead of inventing behavior in the UI. The contract itself does not make synchronous wrappers safe or authorize a mutation endpoint.
+
 ## Deferred decisions
 
 These require later evidence and should not be decided through preference alone:
 
 - Physical stake fit and printer/material compensation — M7 measurements.
-- Job runner, event transport, and production frontend serving — later M4 work.
+- Policy-enforcing runner adapter, SSE transport, mutation endpoint, and production frontend serving — later M4 work.
 - Exact OpenAI model routing and cost policy — M5 evaluation.
 - First printer purchase and strict definition of open hardware — M7 procurement audit.
 - Whether a Go control plane is operationally justified — M7 or later.

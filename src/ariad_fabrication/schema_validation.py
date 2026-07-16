@@ -47,6 +47,9 @@ INTERFACE_PRINTER_PROFILE_SCHEMA = "interface-printer-profile.schema.json"
 INTERFACE_MATERIAL_PROFILE_SCHEMA = "interface-material-profile.schema.json"
 INTERFACE_PROCESS_PROFILE_SCHEMA = "interface-process-profile.schema.json"
 INTERFACE_ORIENTATION_PROFILE_SCHEMA = "interface-orientation-profile.schema.json"
+EXECUTION_REQUEST_SCHEMA = "execution-request.schema.json"
+EXECUTION_RECORD_SCHEMA = "execution-record.schema.json"
+EXECUTION_EVENT_SCHEMA = "execution-event.schema.json"
 
 PERSISTED_SCHEMA_FILENAMES = frozenset(
     {
@@ -69,6 +72,9 @@ PERSISTED_SCHEMA_FILENAMES = frozenset(
         INTERFACE_MATERIAL_PROFILE_SCHEMA,
         INTERFACE_PROCESS_PROFILE_SCHEMA,
         INTERFACE_ORIENTATION_PROFILE_SCHEMA,
+        EXECUTION_REQUEST_SCHEMA,
+        EXECUTION_RECORD_SCHEMA,
+        EXECUTION_EVENT_SCHEMA,
     }
 )
 
