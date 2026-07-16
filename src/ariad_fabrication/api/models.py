@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from ..domain import (
     ApprovalStatus,
@@ -19,8 +19,9 @@ from ..domain import (
 )
 
 
-InterfaceApiVersion = Literal["1.4.0"]
-INTERFACE_API_VERSION: InterfaceApiVersion = "1.4.0"
+InterfaceApiVersion = Literal["1.5.0"]
+INTERFACE_API_VERSION: InterfaceApiVersion = "1.5.0"
+Timestamp = Annotated[str, Field(json_schema_extra={"format": "date-time"})]
 
 
 class PackageStatus(str, Enum):
@@ -86,7 +87,7 @@ class EventView(ApiModel):
     status: StageStatus
     message: str
     sequence: int
-    timestamp: str
+    timestamp: Timestamp
     data: dict[str, Any]
 
 
@@ -129,7 +130,7 @@ class DecisionView(ApiModel):
     rationale: str
     actor: DecisionActor
     alternatives: list[str]
-    created_at: str
+    created_at: Timestamp
     data: dict[str, Any]
 
 
@@ -142,8 +143,8 @@ class ApprovalView(ApiModel):
     status: ApprovalStatus
     requested_by: DecisionActor
     rationale: str
-    requested_at: str
-    decided_at: str | None
+    requested_at: Timestamp
+    decided_at: Timestamp | None
     decided_by: DecisionActor | None
 
 
@@ -155,8 +156,8 @@ class StageView(ApiModel):
     evidence_mode: EvidenceMode
     evidence_level: EvidenceLevel | None
     tool: ToolView
-    started_at: str | None
-    completed_at: str | None
+    started_at: Timestamp | None
+    completed_at: Timestamp | None
     summary: str
     error_message: str | None
     events: list[EventView]
@@ -378,7 +379,7 @@ class RevisionSummary(ApiModel):
     latest_status: StageStatus | None
     achieved_evidence_level: EvidenceLevel | None
     warning_count: int
-    updated_at: str | None
+    updated_at: Timestamp | None
     source: SourceView | None
     error: str | None
 
@@ -421,8 +422,8 @@ class JobView(ApiModel):
     title: str
     request: str
     status: JobStatus
-    created_at: str
-    updated_at: str
+    created_at: Timestamp
+    updated_at: Timestamp
     metadata: dict[str, Any]
 
 
@@ -431,7 +432,7 @@ class RevisionView(ApiModel):
     number: int
     parent_revision_id: str | None
     reason: str
-    created_at: str
+    created_at: Timestamp
     spec: dict[str, Any]
 
 

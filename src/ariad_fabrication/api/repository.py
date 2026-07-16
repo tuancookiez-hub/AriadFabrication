@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from enum import Enum
 import hashlib
 import json
@@ -441,16 +442,25 @@ class JourneyRepository:
                 title=_text(job.get("title"), "journey.job.title"),
                 request=_text(job.get("request"), "journey.job.request"),
                 status=_enum_value(job.get("status"), JobStatus, "journey.job.status"),
-                created_at=_text(job.get("created_at"), "journey.job.created_at"),
-                updated_at=_text(job.get("updated_at"), "journey.job.updated_at"),
+                created_at=_timestamp_text(
+                    job.get("created_at"), "journey.job.created_at"
+                ),
+                updated_at=_timestamp_text(
+                    job.get("updated_at"), "journey.job.updated_at"
+                ),
                 metadata=_mapping(job.get("metadata", {}), "journey.job.metadata"),
             ),
             revision=RevisionView(
                 revision_id=_text(loaded.revision.get("revision_id"), "revision_id"),
                 number=_integer(loaded.revision.get("number"), "revision.number", minimum=1),
-                parent_revision_id=_optional_text(loaded.revision.get("parent_revision_id")),
+                parent_revision_id=_optional_text(
+                    loaded.revision.get("parent_revision_id"),
+                    "revision.parent_revision_id",
+                ),
                 reason=_text(loaded.revision.get("reason"), "revision.reason"),
-                created_at=_text(loaded.revision.get("created_at"), "revision.created_at"),
+                created_at=_timestamp_text(
+                    loaded.revision.get("created_at"), "revision.created_at"
+                ),
                 spec=_mapping(loaded.revision.get("spec"), "revision.spec"),
             ),
             stages=stage_views,
@@ -543,6 +553,13 @@ class JourneyRepository:
             raise InvalidRevisionError("journey job id does not match its directory")
         _enum_value(job.get("status"), JobStatus, "journey.job.status")
         revisions = _indexed(journey.get("revisions"), "revision_id", "journey.revisions")
+        current_revision_id = _optional_text(
+            job.get("current_revision_id"), "journey.job.current_revision_id"
+        )
+        if current_revision_id is not None and current_revision_id not in revisions:
+            raise InvalidRevisionError(
+                "journey current revision id does not reference a persisted revision"
+            )
         revision = revisions.get(revision_id)
         if revision is None:
             raise InvalidRevisionError("journey does not contain the requested revision")
@@ -629,6 +646,9 @@ class JourneyRepository:
         self._validate_revision_state(
             job_id=job_id,
             revision_id=revision_id,
+            job=job,
+            revision=revision,
+            manifest=manifest,
             stage_ids=stage_ids,
             stage_runs=stage_runs,
             events=events,
@@ -659,6 +679,9 @@ class JourneyRepository:
         *,
         job_id: str,
         revision_id: str,
+        job: dict[str, Any],
+        revision: dict[str, Any],
+        manifest: dict[str, Any] | None,
         stage_ids: list[str],
         stage_runs: dict[str, dict[str, Any]],
         events: dict[str, dict[str, Any]],
@@ -669,8 +692,79 @@ class JourneyRepository:
         package: dict[str, Any] | None,
         fixture: bool,
     ) -> None:
+        _text(job.get("job_id"), "journey.job.job_id")
+        _text(job.get("title"), "journey.job.title")
+        _text(job.get("request"), "journey.job.request")
+        _mapping(job.get("metadata", {}), "journey.job.metadata")
+        job_created_at = _datetime_value(
+            job.get("created_at"), "journey.job.created_at"
+        )
+        job_updated_at = _datetime_value(
+            job.get("updated_at"), "journey.job.updated_at"
+        )
+        if job_updated_at < job_created_at:
+            raise InvalidRevisionError(
+                "journey.job.updated_at cannot precede journey.job.created_at"
+            )
+
+        _text(revision.get("revision_id"), "revision.revision_id")
+        _text(revision.get("job_id"), "revision.job_id")
+        _integer(revision.get("number"), "revision.number", minimum=1)
+        _optional_text(
+            revision.get("parent_revision_id"), "revision.parent_revision_id"
+        )
+        _text(revision.get("reason"), "revision.reason")
+        _mapping(revision.get("spec"), "revision.spec")
+        revision_created_at = _datetime_value(
+            revision.get("created_at"), "revision.created_at"
+        )
+        if revision_created_at < job_created_at:
+            raise InvalidRevisionError(
+                "revision.created_at cannot precede journey.job.created_at"
+            )
+        if revision_created_at > job_updated_at:
+            raise InvalidRevisionError(
+                "revision.created_at cannot follow journey.job.updated_at"
+            )
+
+        record_times: list[datetime] = []
+
+        def record_time(value: Any, name: str) -> datetime:
+            parsed = _datetime_value(value, name)
+            if parsed < revision_created_at:
+                raise InvalidRevisionError(
+                    f"{name} cannot precede revision.created_at"
+                )
+            if parsed > job_updated_at:
+                raise InvalidRevisionError(
+                    f"{name} cannot follow journey.job.updated_at"
+                )
+            record_times.append(parsed)
+            return parsed
+
         for artifact in artifacts.values():
             _validate_record_ownership(artifact, job_id, revision_id, "artifact")
+            _text(artifact.get("artifact_id"), "artifact.artifact_id")
+            artifact_stage_id = _text(
+                artifact.get("stage_run_id"), "artifact.stage_run_id"
+            )
+            if artifact_stage_id not in stage_ids:
+                raise InvalidRevisionError(
+                    "artifact references a stage outside the revision"
+                )
+            _text(artifact.get("role"), "artifact.role")
+            _text(artifact.get("path"), "artifact.path")
+            _media_type(artifact.get("media_type"), "artifact.media_type")
+            _checksum(artifact.get("checksum_sha256"), "artifact.checksum_sha256")
+            _text(artifact.get("producer"), "artifact.producer")
+            _text(artifact.get("producer_version"), "artifact.producer_version")
+            _optional_integer(artifact.get("size_bytes"), "artifact.size_bytes")
+            _string_list(
+                artifact.get("parent_artifact_ids", []),
+                "artifact.parent_artifact_ids",
+            )
+            _mapping(artifact.get("metadata", {}), "artifact.metadata")
+            record_time(artifact.get("created_at"), "artifact.created_at")
             mode = _evidence_mode(
                 artifact.get("evidence_mode"), "artifact.evidence_mode"
             )
@@ -681,6 +775,23 @@ class JourneyRepository:
 
         for finding in findings.values():
             _validate_record_ownership(finding, job_id, revision_id, "finding")
+            _text(finding.get("finding_id"), "finding.finding_id")
+            finding_stage_id = _text(
+                finding.get("stage_run_id"), "finding.stage_run_id"
+            )
+            if finding_stage_id not in stage_ids:
+                raise InvalidRevisionError(
+                    "finding references a stage outside the revision"
+                )
+            _text(finding.get("code"), "finding.code")
+            _text(finding.get("title"), "finding.title")
+            _text(finding.get("evidence"), "finding.evidence")
+            _optional_text(
+                finding.get("affected_geometry"), "finding.affected_geometry"
+            )
+            _optional_text(finding.get("remediation"), "finding.remediation")
+            _mapping(finding.get("data", {}), "finding.data")
+            record_time(finding.get("created_at"), "finding.created_at")
             _enum_value(
                 finding.get("severity"), FindingSeverity, "finding.severity"
             )
@@ -692,9 +803,85 @@ class JourneyRepository:
                     "interface fixture findings must remain fixture evidence"
                 )
             resolved = _boolean(finding.get("resolved"), "finding.resolved")
-            if resolved and _optional_text(finding.get("resolution")) is None:
+            resolution = _optional_text(
+                finding.get("resolution"), "finding.resolution"
+            )
+            if resolved and resolution is None:
                 raise InvalidRevisionError(
                     "resolved findings require a recorded resolution"
+                )
+
+        for decision in decisions.values():
+            _validate_record_ownership(decision, job_id, revision_id, "decision")
+            _text(decision.get("decision_id"), "decision.decision_id")
+            decision_stage_id = _optional_text(
+                decision.get("stage_run_id"), "decision.stage_run_id"
+            )
+            if decision_stage_id is not None and decision_stage_id not in stage_ids:
+                raise InvalidRevisionError(
+                    "decision references a stage outside the revision"
+                )
+            _text(decision.get("question"), "decision.question")
+            _text(decision.get("choice"), "decision.choice")
+            _text(decision.get("rationale"), "decision.rationale")
+            _enum_value(decision.get("actor"), DecisionActor, "decision.actor")
+            _text_list(decision.get("alternatives"), "decision.alternatives")
+            _mapping(decision.get("data", {}), "decision.data")
+            record_time(decision.get("created_at"), "decision.created_at")
+
+        for approval in approvals.values():
+            _validate_record_ownership(approval, job_id, revision_id, "approval")
+            _text(approval.get("approval_id"), "approval.approval_id")
+            approval_stage_id = _optional_text(
+                approval.get("stage_run_id"), "approval.stage_run_id"
+            )
+            if approval_stage_id is not None and approval_stage_id not in stage_ids:
+                raise InvalidRevisionError(
+                    "approval references a stage outside the revision"
+                )
+            _text(approval.get("boundary"), "approval.boundary")
+            approval_status = _enum_value(
+                approval.get("status"), ApprovalStatus, "approval.status"
+            )
+            _enum_value(
+                approval.get("requested_by"),
+                DecisionActor,
+                "approval.requested_by",
+            )
+            _plain_text(approval.get("rationale", ""), "approval.rationale")
+            requested_at = record_time(
+                approval.get("requested_at"), "approval.requested_at"
+            )
+            decided_at = _optional_datetime_value(
+                approval.get("decided_at"), "approval.decided_at"
+            )
+            if decided_at is not None:
+                if decided_at < revision_created_at:
+                    raise InvalidRevisionError(
+                        "approval.decided_at cannot precede revision.created_at"
+                    )
+                if decided_at > job_updated_at:
+                    raise InvalidRevisionError(
+                        "approval.decided_at cannot follow journey.job.updated_at"
+                    )
+                if decided_at < requested_at:
+                    raise InvalidRevisionError(
+                        "approval.decided_at cannot precede approval.requested_at"
+                    )
+                record_times.append(decided_at)
+            decided_by = _optional_enum_value(
+                approval.get("decided_by"),
+                DecisionActor,
+                "approval.decided_by",
+            )
+            if approval_status is ApprovalStatus.REQUESTED:
+                if decided_at is not None or decided_by is not None:
+                    raise InvalidRevisionError(
+                        "requested approvals cannot contain a decision"
+                    )
+            elif decided_at is None or decided_by is None:
+                raise InvalidRevisionError(
+                    "decided approvals require decision time and actor"
                 )
 
         if package is not None:
@@ -712,6 +899,8 @@ class JourneyRepository:
                 )
             self._package_view(package, fixture=fixture)
 
+        previous_stage_time: datetime | None = None
+        observed_events: list[tuple[int, datetime, StageStatus]] = []
         for stage_id in stage_ids:
             stage = stage_runs[stage_id]
             stage_kind = _enum_value(
@@ -723,9 +912,19 @@ class JourneyRepository:
                 stage.get("evidence_level"), EvidenceLevel, "stage.evidence_level"
             )
             _integer(stage.get("attempt"), "stage.attempt", minimum=1)
-            started_at = _optional_text(stage.get("started_at"))
-            completed_at = _optional_text(stage.get("completed_at"))
-            error_message = _optional_text(stage.get("error_message"))
+            tool = _mapping(stage.get("tool"), "stage.tool")
+            _text(tool.get("name"), "stage.tool.name")
+            _text(tool.get("version"), "stage.tool.version")
+            _plain_text(stage.get("summary", ""), "stage.summary")
+            started_at = _optional_datetime_value(
+                stage.get("started_at"), "stage.started_at"
+            )
+            completed_at = _optional_datetime_value(
+                stage.get("completed_at"), "stage.completed_at"
+            )
+            error_message = _optional_text(
+                stage.get("error_message"), "stage.error_message"
+            )
             if status is StageStatus.WAITING and (
                 started_at is not None or completed_at is not None
             ):
@@ -746,6 +945,45 @@ class JourneyRepository:
                 raise InvalidRevisionError(
                     f"{status.value} stage runs require start and completion timestamps"
                 )
+            if status in {StageStatus.CANCELLED, StageStatus.SUPERSEDED} and (
+                completed_at is None
+            ):
+                raise InvalidRevisionError(
+                    f"{status.value} stage runs require a completion timestamp"
+                )
+            if (
+                started_at is not None
+                and completed_at is not None
+                and completed_at < started_at
+            ):
+                raise InvalidRevisionError(
+                    "stage.completed_at cannot precede stage.started_at"
+                )
+            for name, value in (
+                ("stage.started_at", started_at),
+                ("stage.completed_at", completed_at),
+            ):
+                if value is not None and value < job_created_at:
+                    raise InvalidRevisionError(
+                        f"{name} cannot precede journey.job.created_at"
+                    )
+                if value is not None and value > job_updated_at:
+                    raise InvalidRevisionError(
+                        f"{name} cannot follow journey.job.updated_at"
+                    )
+            stage_time = started_at or completed_at
+            if (
+                previous_stage_time is not None
+                and stage_time is not None
+                and stage_time < previous_stage_time
+            ):
+                raise InvalidRevisionError(
+                    "revision stage timestamps must follow persisted stage order"
+                )
+            if completed_at is not None:
+                previous_stage_time = completed_at
+            elif started_at is not None:
+                previous_stage_time = started_at
             if status is StageStatus.FAILED and error_message is None:
                 raise InvalidRevisionError("failed stage runs require an error message")
             if status in {StageStatus.PASSED, StageStatus.PASSED_WITH_WARNINGS}:
@@ -773,6 +1011,7 @@ class JourneyRepository:
             )
             sequences: list[int] = []
             for event in event_records:
+                _text(event.get("event_id"), "event.event_id")
                 event_stage = _enum_value(
                     event.get("stage"), FabricationStage, "event.stage"
                 )
@@ -780,14 +1019,59 @@ class JourneyRepository:
                     raise InvalidRevisionError(
                         "event stage does not match its owning stage run"
                     )
-                _enum_value(event.get("status"), StageStatus, "event.status")
-                sequences.append(
-                    _integer(event.get("sequence"), "event.sequence", minimum=1)
+                event_status = _enum_value(
+                    event.get("status"), StageStatus, "event.status"
                 )
+                _text(event.get("event_type"), "event.event_type")
+                _text(event.get("message"), "event.message")
+                _mapping(event.get("data", {}), "event.data")
+                sequence = _integer(
+                    event.get("sequence"), "event.sequence", minimum=1
+                )
+                event_time = _datetime_value(
+                    event.get("timestamp"), "event.timestamp"
+                )
+                if event_time < job_created_at:
+                    raise InvalidRevisionError(
+                        "event.timestamp cannot precede journey.job.created_at"
+                    )
+                if event_time > job_updated_at:
+                    raise InvalidRevisionError(
+                        "event.timestamp cannot follow journey.job.updated_at"
+                    )
+                if started_at is not None:
+                    if event_status is StageStatus.WAITING and event_time > started_at:
+                        raise InvalidRevisionError(
+                            "waiting event timestamp cannot follow stage.started_at"
+                        )
+                    if event_status is not StageStatus.WAITING and event_time < started_at:
+                        raise InvalidRevisionError(
+                            "executing event timestamp cannot precede stage.started_at"
+                        )
+                if completed_at is not None and event_time > completed_at:
+                    raise InvalidRevisionError(
+                        "event.timestamp cannot follow stage.completed_at"
+                    )
+                sequences.append(sequence)
+                observed_events.append((sequence, event_time, event_status))
             if len(sequences) != len(set(sequences)):
                 raise InvalidRevisionError(
                     "stage events cannot contain duplicate sequence numbers"
                 )
+            if event_records:
+                final_event = max(
+                    event_records,
+                    key=lambda item: _integer(
+                        item.get("sequence"), "event.sequence", minimum=1
+                    ),
+                )
+                final_status = _enum_value(
+                    final_event.get("status"), StageStatus, "event.status"
+                )
+                if final_status is not status:
+                    raise InvalidRevisionError(
+                        "final stage event status does not match the stage run"
+                    )
 
             self._records(
                 artifacts,
@@ -821,9 +1105,7 @@ class JourneyRepository:
                 expected_revision_id=revision_id,
             )
             for decision in decision_records:
-                _enum_value(
-                    decision.get("actor"), DecisionActor, "decision.actor"
-                )
+                _enum_value(decision.get("actor"), DecisionActor, "decision.actor")
                 _text_list(decision.get("alternatives"), "decision.alternatives")
 
             approval_records = self._records(
@@ -843,7 +1125,9 @@ class JourneyRepository:
                     DecisionActor,
                     "approval.requested_by",
                 )
-                decided_at = _optional_text(approval.get("decided_at"))
+                decided_at = _optional_datetime_value(
+                    approval.get("decided_at"), "approval.decided_at"
+                )
                 decided_by = _optional_enum_value(
                     approval.get("decided_by"),
                     DecisionActor,
@@ -859,6 +1143,31 @@ class JourneyRepository:
                         "decided approvals require decision time and actor"
                     )
 
+        observed_events.sort(key=lambda item: item[0])
+        event_sequences = [item[0] for item in observed_events]
+        if len(event_sequences) != len(set(event_sequences)):
+            raise InvalidRevisionError(
+                "revision events cannot contain duplicate sequence numbers"
+            )
+        for previous, current in zip(observed_events, observed_events[1:]):
+            if current[1] < previous[1]:
+                raise InvalidRevisionError(
+                    "event timestamps cannot reverse sequence order"
+                )
+
+        if manifest is not None:
+            generated_at = _datetime_value(
+                manifest.get("generated_at"), "manifest.generated_at"
+            )
+            if generated_at < job_updated_at:
+                raise InvalidRevisionError(
+                    "manifest.generated_at cannot precede journey.job.updated_at"
+                )
+            if record_times and generated_at < max(record_times):
+                raise InvalidRevisionError(
+                    "manifest.generated_at cannot precede persisted records"
+                )
+
     def _stage_view(self, loaded: _LoadedRevision, stage_id: str) -> StageView:
         stage = loaded.stage_runs[stage_id]
         stage_kind = _enum_value(stage.get("stage"), FabricationStage, "stage.stage")
@@ -870,7 +1179,7 @@ class JourneyRepository:
                 status=_enum_value(item.get("status"), StageStatus, "event.status"),
                 message=_text(item.get("message"), "event.message"),
                 sequence=_integer(item.get("sequence"), "event.sequence", minimum=1),
-                timestamp=_text(item.get("timestamp"), "event.timestamp"),
+                timestamp=_timestamp_text(item.get("timestamp"), "event.timestamp"),
                 data=_mapping(item.get("data", {}), "event.data"),
             )
             for item in self._records(
@@ -893,10 +1202,14 @@ class JourneyRepository:
                 evidence_mode=_evidence_mode(
                     item.get("evidence_mode"), "finding.evidence_mode"
                 ),
-                remediation=_optional_text(item.get("remediation")),
-                affected_geometry=_optional_text(item.get("affected_geometry")),
+                remediation=_optional_text(
+                    item.get("remediation"), "finding.remediation"
+                ),
+                affected_geometry=_optional_text(
+                    item.get("affected_geometry"), "finding.affected_geometry"
+                ),
                 resolved=_boolean(item.get("resolved", False), "finding.resolved"),
-                resolution=_optional_text(item.get("resolution")),
+                resolution=_optional_text(item.get("resolution"), "finding.resolution"),
                 data=_mapping(item.get("data", {}), "finding.data"),
             )
             for item in self._records(
@@ -920,7 +1233,9 @@ class JourneyRepository:
                 decision_id=_text(item.get("decision_id"), "decision.decision_id"),
                 job_id=_text(item.get("job_id"), "decision.job_id"),
                 revision_id=_text(item.get("revision_id"), "decision.revision_id"),
-                stage_run_id=_optional_text(item.get("stage_run_id")),
+                stage_run_id=_optional_text(
+                    item.get("stage_run_id"), "decision.stage_run_id"
+                ),
                 question=_text(item.get("question"), "decision.question"),
                 choice=_text(item.get("choice"), "decision.choice"),
                 rationale=_text(item.get("rationale"), "decision.rationale"),
@@ -928,7 +1243,9 @@ class JourneyRepository:
                 alternatives=_text_list(
                     item.get("alternatives"), "decision.alternatives"
                 ),
-                created_at=_text(item.get("created_at"), "decision.created_at"),
+                created_at=_timestamp_text(
+                    item.get("created_at"), "decision.created_at"
+                ),
                 data=_mapping(item.get("data", {}), "decision.data"),
             )
             for item in self._records(
@@ -943,7 +1260,9 @@ class JourneyRepository:
                 approval_id=_text(item.get("approval_id"), "approval.approval_id"),
                 job_id=_text(item.get("job_id"), "approval.job_id"),
                 revision_id=_text(item.get("revision_id"), "approval.revision_id"),
-                stage_run_id=_optional_text(item.get("stage_run_id")),
+                stage_run_id=_optional_text(
+                    item.get("stage_run_id"), "approval.stage_run_id"
+                ),
                 boundary=_text(item.get("boundary"), "approval.boundary"),
                 status=_enum_value(
                     item.get("status"), ApprovalStatus, "approval.status"
@@ -951,9 +1270,15 @@ class JourneyRepository:
                 requested_by=_enum_value(
                     item.get("requested_by"), DecisionActor, "approval.requested_by"
                 ),
-                rationale=str(item.get("rationale", "")).strip(),
-                requested_at=_text(item.get("requested_at"), "approval.requested_at"),
-                decided_at=_optional_text(item.get("decided_at")),
+                rationale=_plain_text(
+                    item.get("rationale", ""), "approval.rationale"
+                ),
+                requested_at=_timestamp_text(
+                    item.get("requested_at"), "approval.requested_at"
+                ),
+                decided_at=_optional_timestamp_text(
+                    item.get("decided_at"), "approval.decided_at"
+                ),
                 decided_by=_optional_enum_value(
                     item.get("decided_by"), DecisionActor, "approval.decided_by"
                 ),
@@ -981,10 +1306,16 @@ class JourneyRepository:
                 name=_text(tool.get("name"), "stage.tool.name"),
                 version=_text(tool.get("version"), "stage.tool.version"),
             ),
-            started_at=_optional_text(stage.get("started_at")),
-            completed_at=_optional_text(stage.get("completed_at")),
-            summary=str(stage.get("summary", "")).strip(),
-            error_message=_optional_text(stage.get("error_message")),
+            started_at=_optional_timestamp_text(
+                stage.get("started_at"), "stage.started_at"
+            ),
+            completed_at=_optional_timestamp_text(
+                stage.get("completed_at"), "stage.completed_at"
+            ),
+            summary=_plain_text(stage.get("summary", ""), "stage.summary"),
+            error_message=_optional_text(
+                stage.get("error_message"), "stage.error_message"
+            ),
             events=events,
             findings=findings,
             artifacts=artifacts,
@@ -1634,7 +1965,9 @@ def _inspection_unavailable_for_record(
 
 
 def _inspection_text(value: Any) -> str:
-    normalized = str(value).strip() if value is not None else ""
+    if not isinstance(value, str):
+        raise _InspectionShapeError("inspection text must be a string")
+    normalized = value.strip()
     if not normalized:
         raise _InspectionShapeError("inspection text is required")
     return normalized
@@ -1643,7 +1976,9 @@ def _inspection_text(value: Any) -> str:
 def _inspection_optional_text(value: Any) -> str | None:
     if value is None:
         return None
-    normalized = str(value).strip()
+    if not isinstance(value, str):
+        raise _InspectionShapeError("inspection text must be a string")
+    normalized = value.strip()
     return normalized or None
 
 
@@ -1672,12 +2007,9 @@ def _inspection_optional_enum_value(
 def _inspection_optional_float(value: Any) -> float | None:
     if value is None:
         return None
-    if isinstance(value, bool):
-        raise _InspectionShapeError("inspection number cannot be a boolean")
-    try:
-        result = float(value)
-    except (TypeError, ValueError, OverflowError) as exc:
-        raise _InspectionShapeError("inspection number is invalid") from exc
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise _InspectionShapeError("inspection number must be numeric")
+    result = float(value)
     if not math.isfinite(result):
         raise _InspectionShapeError("inspection number must be finite")
     return result
@@ -1793,10 +2125,18 @@ def _validate_record_ownership(
 
 
 def _text(value: Any, name: str) -> str:
-    normalized = str(value).strip() if value is not None else ""
+    if not isinstance(value, str):
+        raise InvalidRevisionError(f"{name} must be a string")
+    normalized = value.strip()
     if not normalized:
         raise InvalidRevisionError(f"{name} is required")
     return normalized
+
+
+def _plain_text(value: Any, name: str) -> str:
+    if not isinstance(value, str):
+        raise InvalidRevisionError(f"{name} must be a string")
+    return value.strip()
 
 
 EnumValue = TypeVar("EnumValue", bound=Enum)
@@ -1831,11 +2171,39 @@ def _media_type(value: Any, name: str) -> str:
     return normalized
 
 
-def _optional_text(value: Any) -> str | None:
+def _optional_text(value: Any, name: str = "optional text") -> str | None:
     if value is None:
         return None
-    normalized = str(value).strip()
+    if not isinstance(value, str):
+        raise InvalidRevisionError(f"{name} must be a string or null")
+    normalized = value.strip()
     return normalized or None
+
+
+def _datetime_value(value: Any, name: str) -> datetime:
+    normalized = _text(value, name)
+    try:
+        parsed = datetime.fromisoformat(normalized.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise InvalidRevisionError(
+            f"{name} must be an ISO-8601 timestamp"
+        ) from exc
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise InvalidRevisionError(f"{name} must include a timezone")
+    return parsed.astimezone(timezone.utc)
+
+
+def _optional_datetime_value(value: Any, name: str) -> datetime | None:
+    return None if value is None else _datetime_value(value, name)
+
+
+def _timestamp_text(value: Any, name: str) -> str:
+    return _datetime_value(value, name).isoformat()
+
+
+def _optional_timestamp_text(value: Any, name: str) -> str | None:
+    parsed = _optional_datetime_value(value, name)
+    return None if parsed is None else parsed.isoformat()
 
 
 def _integer(value: Any, name: str, *, minimum: int = 0) -> int:

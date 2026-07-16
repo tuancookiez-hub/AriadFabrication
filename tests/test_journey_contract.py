@@ -7,6 +7,7 @@ from jsonschema import Draft202012Validator, FormatChecker
 
 from ariad_fabrication.domain import (
     Approval,
+    ApprovalStatus,
     Artifact,
     BoundingBox,
     Decision,
@@ -16,9 +17,11 @@ from ariad_fabrication.domain import (
     FabricationStage,
     Finding,
     FindingSeverity,
+    Job,
     PartSpec,
     SpecStatus,
     StageStatus,
+    StageRun,
     SupportPolicy,
     transition_stage_run,
 )
@@ -163,6 +166,59 @@ class JourneyContractTests(unittest.TestCase):
     def test_record_metadata_must_be_json_safe(self):
         with self.assertRaisesRegex(ValueError, "unsupported value"):
             FabricationJourney.create("test", metadata={"bad": object()})
+
+        with self.assertRaisesRegex(ValueError, "keys must be strings"):
+            FabricationJourney.create("test", metadata={1: "not a JSON key"})
+
+    def test_trace_record_text_does_not_coerce_non_strings(self):
+        with self.assertRaisesRegex(ValueError, "request must be a string"):
+            FabricationJourney.create(42)  # type: ignore[arg-type]
+
+        with self.assertRaisesRegex(ValueError, "stage summary must be a string"):
+            StageRun(
+                job_id="job_test",
+                stage=FabricationStage.BRIEF,
+                summary=False,  # type: ignore[arg-type]
+            )
+
+    def test_trace_record_chronology_is_timezone_aware_and_ordered(self):
+        with self.assertRaisesRegex(ValueError, "include a timezone"):
+            Job(request="test", created_at="2026-07-16T08:00:00")
+
+        with self.assertRaisesRegex(ValueError, "updated_at cannot precede"):
+            Job(
+                request="test",
+                created_at="2026-07-16T08:00:00+00:00",
+                updated_at="2026-07-16T07:59:59+00:00",
+            )
+
+        with self.assertRaisesRegex(ValueError, "completed_at cannot precede"):
+            StageRun(
+                job_id="job_test",
+                stage=FabricationStage.BRIEF,
+                status=StageStatus.PASSED,
+                evidence_level=EvidenceLevel.R0,
+                started_at="2026-07-16T08:00:01+00:00",
+                completed_at="2026-07-16T08:00:00+00:00",
+            )
+
+        with self.assertRaisesRegex(ValueError, "require a completion time"):
+            StageRun(
+                job_id="job_test",
+                stage=FabricationStage.BRIEF,
+                status=StageStatus.CANCELLED,
+            )
+
+        with self.assertRaisesRegex(ValueError, "decided_at cannot precede"):
+            Approval(
+                job_id="job_test",
+                revision_id="rev_test",
+                boundary="review",
+                status=ApprovalStatus.GRANTED,
+                requested_at="2026-07-16T08:00:01+00:00",
+                decided_at="2026-07-16T08:00:00+00:00",
+                decided_by=DecisionActor.USER,
+            )
 
 
 if __name__ == "__main__":

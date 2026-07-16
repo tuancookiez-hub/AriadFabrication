@@ -25,6 +25,7 @@
           "decided_at": {
             "anyOf": [
               {
+                "format": "date-time",
                 "type": "string"
               },
               {
@@ -52,6 +53,7 @@
             "type": "string"
           },
           "requested_at": {
+            "format": "date-time",
             "title": "Requested At",
             "type": "string"
           },
@@ -476,6 +478,7 @@
             "type": "string"
           },
           "created_at": {
+            "format": "date-time",
             "title": "Created At",
             "type": "string"
           },
@@ -577,6 +580,7 @@
             "$ref": "#/components/schemas/StageStatus"
           },
           "timestamp": {
+            "format": "date-time",
             "title": "Timestamp",
             "type": "string"
           }
@@ -907,7 +911,7 @@
             "$ref": "#/components/schemas/CapabilitiesView"
           },
           "schema_version": {
-            "const": "1.4.0",
+            "const": "1.5.0",
             "title": "Schema Version",
             "type": "string"
           },
@@ -1489,6 +1493,7 @@
         "additionalProperties": false,
         "properties": {
           "created_at": {
+            "format": "date-time",
             "title": "Created At",
             "type": "string"
           },
@@ -1513,6 +1518,7 @@
             "type": "string"
           },
           "updated_at": {
+            "format": "date-time",
             "title": "Updated At",
             "type": "string"
           }
@@ -1663,7 +1669,7 @@
             "type": "integer"
           },
           "schema_version": {
-            "const": "1.4.0",
+            "const": "1.5.0",
             "title": "Schema Version",
             "type": "string"
           },
@@ -1730,7 +1736,7 @@
             "$ref": "#/components/schemas/RevisionView"
           },
           "schema_version": {
-            "const": "1.4.0",
+            "const": "1.5.0",
             "title": "Schema Version",
             "type": "string"
           },
@@ -1773,7 +1779,7 @@
             "type": "array"
           },
           "schema_version": {
-            "const": "1.4.0",
+            "const": "1.5.0",
             "title": "Schema Version",
             "type": "string"
           },
@@ -2019,6 +2025,7 @@
           "updated_at": {
             "anyOf": [
               {
+                "format": "date-time",
                 "type": "string"
               },
               {
@@ -2056,6 +2063,7 @@
         "additionalProperties": false,
         "properties": {
           "created_at": {
+            "format": "date-time",
             "title": "Created At",
             "type": "string"
           },
@@ -2182,6 +2190,7 @@
           "completed_at": {
             "anyOf": [
               {
+                "format": "date-time",
                 "type": "string"
               },
               {
@@ -2245,6 +2254,7 @@
           "started_at": {
             "anyOf": [
               {
+                "format": "date-time",
                 "type": "string"
               },
               {
@@ -2350,7 +2360,7 @@
     "description": "This API replays persisted records. It cannot upload G-code, select a printer, heat hardware, move hardware, or start manufacturing.",
     "summary": "Read-only access to persisted fabrication evidence.",
     "title": "Ariad Fabrication Journey API",
-    "version": "1.4.0"
+    "version": "1.5.0"
   },
   "openapi": "3.1.0",
   "paths": {

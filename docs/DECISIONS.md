@@ -291,6 +291,24 @@ This file records accepted project-level decisions. Change an accepted decision 
 
 **Consequence:** Unsupported lifecycle language can no longer become a credible UI status, and fixture/package state cannot silently imply real or physical progress. Generic scalar-text coercion, timezone-aware timestamp parsing, and temporal ordering remain the next persisted-integrity gap.
 
+### D-029 — Preserve scalar types and validate persisted chronology
+
+**Status:** Accepted for M4-J on 2026-07-16.
+
+**Decision:** Advance the read API to 1.5.0. Journey-domain and read-repository text fields accept only actual strings; optional text accepts only strings or null. Typed inspection numerics accept only finite JSON numbers. Parse persisted lifecycle timestamps as timezone-aware ISO 8601 values, emit canonical UTC strings, and mark every exposed timestamp as OpenAPI `date-time`.
+
+**Temporal boundary:** Require job update at or after job creation; revision creation within the job window; stage timestamps within the job window and nondecreasing persisted stage order; completion at or after start; completion for cancelled/superseded stages; event timestamps within job/stage bounds, globally unique sequence numbers, nondecreasing sequence time, and a final event matching current stage state; approval decisions at or after requests; revision-owned record creation within revision/job bounds; and manifest generation at or after job update and all manifest records. Brief stages and their events may begin after job creation but before revision materialization, because the first revision is an output of Brief.
+
+**Evidence:** Adversarial tests reject numbers, booleans, arrays, and objects in required/optional journey text; numeric and naive/invalid timestamps; reversed job, revision, stage, event, approval, and manifest times; duplicate global event sequences; final-event drift; missing cancelled-stage completion; non-string metadata keys; and numeric strings in typed inspection fields. Unsupported checksum-verified inspection scalar shapes become unavailable. A replay of all seven ignored real revisions initially exposed one legitimate Brief-before-revision trace, which refined the lower temporal bound from revision creation to job creation for stages/events; all seven then pass with 11 reports and eight profiles. The full pinned suite passes 108 backend tests; generated-contract drift, eight deterministic frontend tests, lint, and production build pass. A live loopback check returned API 1.5.0, canonical timezone-aware job/event values, a bounded two-of-six revision page, and the checksum-matched 178-byte artifact with hardware actions false.
+
+**Contract evidence:** The canonical OpenAPI snapshot is 68,894 bytes with SHA-256 `cfa1bbc5561905501a206d298498b4a2a4e58786ddd760c45460e1c0ce88faf6`, five GET paths, 45 schemas, and ten date-time format occurrences. Generated TypeScript is 36,287 bytes with SHA-256 `54f2e34d3adf39075e77bf09c55691e63d244d1d526de96fa35fce4fdd36f6ca`.
+
+**Resource and dependency impact:** No dependency was added. Timestamp parsing and chronology checks are linear in the revision records already admitted by existing byte/node/record ceilings. Production frontend bundle sizes are unchanged.
+
+**Removal path:** A future typed persistence layer may replace these helpers only if it preserves strict scalar types, timezone-aware parsing, all causal ordering checks, date-time contract formats, fixture/real behavior, and adversarial tests. Returning to `str(value)` or numeric-string conversion at the evidence boundary is not acceptable.
+
+**Consequence:** A malformed scalar can no longer become plausible text or numeric evidence, and impossible lifecycle timing cannot be presented or downloaded as a coherent trace. Complete schema conformance and cross-file parity for raw PartSpec, manifest, fabrication-package, report, and profile dictionaries remain the next read-integrity gap.
+
 ## Deferred decisions
 
 These require later evidence and should not be decided through preference alone:

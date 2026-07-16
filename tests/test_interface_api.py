@@ -77,7 +77,7 @@ class JourneyRepositoryTests(unittest.TestCase):
         self.assertEqual(len(detail.stages[3].findings), 2)
         self.assertTrue(all(stage.evidence_mode == "fixture" for stage in detail.stages))
         self.assertFalse(detail.capabilities.hardware_actions)
-        self.assertEqual(detail.schema_version, "1.4.0")
+        self.assertEqual(detail.schema_version, "1.5.0")
         self.assertEqual(
             [report.report_kind for report in detail.inspection.reports],
             ["geometry", "printability", "gcode_preflight"],
@@ -393,6 +393,12 @@ class JourneyRepositoryTests(unittest.TestCase):
                 "event.status has unsupported value",
             ),
             (
+                "final event state",
+                ("events", 0, "status"),
+                "running",
+                "final stage event status does not match",
+            ),
+            (
                 "finding severity",
                 ("findings", 0, "severity"),
                 "success",
@@ -443,6 +449,153 @@ class JourneyRepositoryTests(unittest.TestCase):
                             JOB_ID, REVISION_ID, "art_fixture_note"
                         )
 
+    def test_persisted_text_and_timestamp_types_fail_closed(self):
+        cases = (
+            (
+                "job title",
+                ("job", "title"),
+                42,
+                "journey.job.title must be a string",
+            ),
+            (
+                "stage summary",
+                ("stage_runs", 0, "summary"),
+                False,
+                "stage.summary must be a string",
+            ),
+            (
+                "event message",
+                ("events", 0, "message"),
+                ["looks", "valid"],
+                "event.message must be a string",
+            ),
+            (
+                "optional finding text",
+                ("findings", 0, "remediation"),
+                7,
+                "finding.remediation must be a string or null",
+            ),
+            (
+                "artifact producer",
+                ("artifacts", 0, "producer"),
+                True,
+                "artifact.producer must be a string",
+            ),
+            (
+                "numeric timestamp",
+                ("job", "created_at"),
+                1_721_113_200,
+                "journey.job.created_at must be a string",
+            ),
+            (
+                "naive timestamp",
+                ("job", "created_at"),
+                "2026-07-16T08:00:00",
+                "journey.job.created_at must include a timezone",
+            ),
+            (
+                "invalid timestamp",
+                ("events", 0, "timestamp"),
+                "sometime later",
+                "event.timestamp must be an ISO-8601 timestamp",
+            ),
+        )
+        for label, parts, value, expected in cases:
+            with self.subTest(label=label), tempfile.TemporaryDirectory() as temporary:
+                copied_root = Path(temporary) / "interface"
+                shutil.copytree(FIXTURE_ROOT, copied_root)
+                revision_root = copied_root / JOB_ID / "revisions" / REVISION_ID
+                (revision_root / "manifest.json").unlink()
+                journey_path = revision_root / "journey.json"
+                journey = json.loads(journey_path.read_text(encoding="utf-8"))
+                target = journey
+                for part in parts[:-1]:
+                    target = target[part]
+                target[parts[-1]] = value
+                journey_path.write_text(
+                    json.dumps(journey, indent=2, sort_keys=True) + "\n",
+                    encoding="utf-8",
+                )
+
+                repository = JourneyRepository(copied_root)
+                with self.assertRaisesRegex(InvalidRevisionError, expected):
+                    repository.get_revision(JOB_ID, REVISION_ID)
+                if label == "job title":
+                    with self.assertRaisesRegex(InvalidRevisionError, expected):
+                        repository.get_artifact(
+                            JOB_ID, REVISION_ID, "art_fixture_note"
+                        )
+
+    def test_persisted_temporal_ordering_fails_closed(self):
+        cases = (
+            (
+                "job chronology",
+                ("job", "updated_at"),
+                "2026-07-16T07:59:59+00:00",
+                "journey.job.updated_at cannot precede",
+            ),
+            (
+                "revision chronology",
+                ("revisions", 0, "created_at"),
+                "2026-07-16T07:59:59+00:00",
+                "revision.created_at cannot precede",
+            ),
+            (
+                "stage chronology",
+                ("stage_runs", 0, "completed_at"),
+                "2026-07-16T07:59:59+00:00",
+                "stage.completed_at cannot precede stage.started_at",
+            ),
+            (
+                "event upper bound",
+                ("events", 0, "timestamp"),
+                "2026-07-16T08:00:01+00:00",
+                "event.timestamp cannot follow journey.job.updated_at",
+            ),
+        )
+        for label, parts, value, expected in cases:
+            with self.subTest(label=label), tempfile.TemporaryDirectory() as temporary:
+                copied_root = Path(temporary) / "interface"
+                shutil.copytree(FIXTURE_ROOT, copied_root)
+                revision_root = copied_root / JOB_ID / "revisions" / REVISION_ID
+                (revision_root / "manifest.json").unlink()
+                journey_path = revision_root / "journey.json"
+                journey = json.loads(journey_path.read_text(encoding="utf-8"))
+                target = journey
+                for part in parts[:-1]:
+                    target = target[part]
+                target[parts[-1]] = value
+                journey_path.write_text(
+                    json.dumps(journey, indent=2, sort_keys=True) + "\n",
+                    encoding="utf-8",
+                )
+
+                with self.assertRaisesRegex(InvalidRevisionError, expected):
+                    JourneyRepository(copied_root).get_revision(JOB_ID, REVISION_ID)
+
+        with tempfile.TemporaryDirectory() as temporary:
+            copied_root = Path(temporary) / "interface"
+            shutil.copytree(FIXTURE_ROOT, copied_root)
+            manifest_path = (
+                copied_root
+                / JOB_ID
+                / "revisions"
+                / REVISION_ID
+                / "manifest.json"
+            )
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["generated_at"] = "2026-07-16T07:59:59+00:00"
+            manifest_path.write_text(
+                json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(
+                InvalidRevisionError,
+                "manifest.generated_at cannot precede journey.job.updated_at",
+            ):
+                JourneyRepository(copied_root).get_revision(JOB_ID, REVISION_ID)
+
     def test_package_classification_and_hardware_states_fail_closed(self):
         cases = (
             (("status",), "physically_printable", "package.status has unsupported value"),
@@ -460,6 +613,11 @@ class JourneyRepositoryTests(unittest.TestCase):
                 ("classification",),
                 "printer_independent_fabrication_package",
                 "package classification does not match",
+            ),
+            (
+                ("allowed_claim",),
+                42,
+                "package.allowed_claim must be a string",
             ),
         )
         for parts, value, expected in cases:
@@ -538,6 +696,50 @@ class JourneyRepositoryTests(unittest.TestCase):
                 )
                 self.assertEqual(unavailable.reason, "unsupported_shape")
 
+    def test_inspection_text_and_numbers_do_not_coerce(self):
+        cases = (
+            (("checks", 0, "description"), 42),
+            (("checks", 1, "tolerance_mm"), "0.2"),
+        )
+        for parts, value in cases:
+            with self.subTest(parts=parts), tempfile.TemporaryDirectory() as temporary:
+                copied_root = Path(temporary) / "interface"
+                shutil.copytree(FIXTURE_ROOT, copied_root)
+                revision_root = copied_root / JOB_ID / "revisions" / REVISION_ID
+                source_path = revision_root / "design" / "geometry_validation.json"
+                source = json.loads(source_path.read_text(encoding="utf-8"))
+                target = source
+                for part in parts[:-1]:
+                    target = target[part]
+                target[parts[-1]] = value
+                payload = (
+                    json.dumps(source, indent=2, sort_keys=True) + "\n"
+                ).encode("utf-8")
+                source_path.write_bytes(payload)
+                checksum = hashlib.sha256(payload).hexdigest()
+                for record_name in ("journey.json", "manifest.json"):
+                    record_path = revision_root / record_name
+                    record = json.loads(record_path.read_text(encoding="utf-8"))
+                    artifact = next(
+                        item
+                        for item in record["artifacts"]
+                        if item["artifact_id"] == "art_fixture_geometry_report"
+                    )
+                    artifact["checksum_sha256"] = checksum
+                    artifact["size_bytes"] = len(payload)
+                    record_path.write_text(
+                        json.dumps(record, indent=2, sort_keys=True) + "\n",
+                        encoding="utf-8",
+                    )
+
+                detail = JourneyRepository(copied_root).get_revision(JOB_ID, REVISION_ID)
+                unavailable = next(
+                    item
+                    for item in detail.inspection.unavailable
+                    if item.role == "geometry_validation_report"
+                )
+                self.assertEqual(unavailable.reason, "unsupported_shape")
+
     def test_decisions_and_approvals_are_typed_and_manifest_matched(self):
         with tempfile.TemporaryDirectory() as temporary:
             copied_root = Path(temporary) / "interface"
@@ -598,6 +800,49 @@ class JourneyRepositoryTests(unittest.TestCase):
                     encoding="utf-8",
                 )
             with self.assertRaisesRegex(InvalidRevisionError, "decision.actor"):
+                JourneyRepository(copied_root).get_revision(JOB_ID, REVISION_ID)
+
+    def test_approval_decision_cannot_precede_its_request(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            copied_root = Path(temporary) / "interface"
+            shutil.copytree(FIXTURE_ROOT, copied_root)
+            revision_root = copied_root / JOB_ID / "revisions" / REVISION_ID
+            journey_path = revision_root / "journey.json"
+            manifest_path = revision_root / "manifest.json"
+            journey = json.loads(journey_path.read_text(encoding="utf-8"))
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            journey["job"]["created_at"] = "2026-07-16T07:00:00+00:00"
+            journey["job"]["updated_at"] = "2026-07-16T09:00:00+00:00"
+            manifest["generated_at"] = "2026-07-16T09:00:00+00:00"
+            stage_id = journey["stage_runs"][0]["stage_run_id"]
+            approval = {
+                "approval_id": "approval_fixture_reversed_time",
+                "job_id": JOB_ID,
+                "revision_id": REVISION_ID,
+                "stage_run_id": stage_id,
+                "boundary": "Review the persisted chronology",
+                "status": "granted",
+                "requested_by": "system",
+                "rationale": "The decision cannot happen first.",
+                "requested_at": "2026-07-16T08:30:00+00:00",
+                "decided_at": "2026-07-16T08:15:00+00:00",
+                "decided_by": "user",
+            }
+            journey["approvals"].append(approval)
+            journey["stage_runs"][0]["approval_ids"].append(
+                approval["approval_id"]
+            )
+            manifest["approvals"].append(approval)
+            for path, value in ((journey_path, journey), (manifest_path, manifest)):
+                path.write_text(
+                    json.dumps(value, indent=2, sort_keys=True) + "\n",
+                    encoding="utf-8",
+                )
+
+            with self.assertRaisesRegex(
+                InvalidRevisionError,
+                "approval.decided_at cannot precede approval.requested_at",
+            ):
                 JourneyRepository(copied_root).get_revision(JOB_ID, REVISION_ID)
 
     def test_inspection_report_checksum_drift_is_visible_and_not_parsed(self):
@@ -766,6 +1011,24 @@ class JourneyRepositoryTests(unittest.TestCase):
             with self.assertRaisesRegex(InvalidRevisionError, "duplicate sequence"):
                 JourneyRepository(copied_root).get_revision(JOB_ID, REVISION_ID)
 
+        with tempfile.TemporaryDirectory() as temporary:
+            copied_root = Path(temporary) / "interface"
+            shutil.copytree(FIXTURE_ROOT, copied_root)
+            journey_path = (
+                copied_root / JOB_ID / "revisions" / REVISION_ID / "journey.json"
+            )
+            journey = json.loads(journey_path.read_text(encoding="utf-8"))
+            journey["events"][1]["sequence"] = journey["events"][0]["sequence"]
+            journey_path.write_text(
+                json.dumps(journey, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(
+                InvalidRevisionError, "revision events cannot contain duplicate sequence"
+            ):
+                JourneyRepository(copied_root).get_revision(JOB_ID, REVISION_ID)
+
 
 class InterfaceHttpTests(unittest.TestCase):
     def setUp(self):
@@ -803,7 +1066,7 @@ class InterfaceHttpTests(unittest.TestCase):
         detail = self.client.get(f"/api/v1/revisions/{JOB_ID}/{REVISION_ID}")
         self.assertEqual(detail.status_code, 200)
         payload = detail.json()
-        self.assertEqual(payload["schema_version"], "1.4.0")
+        self.assertEqual(payload["schema_version"], "1.5.0")
         self.assertEqual(
             [stage["stage"] for stage in payload["stages"]],
             [item[0] for item in STAGES],

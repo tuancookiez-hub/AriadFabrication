@@ -111,7 +111,10 @@ export interface components {
             job_id: string;
             /** Rationale */
             rationale: string;
-            /** Requested At */
+            /**
+             * Requested At
+             * Format: date-time
+             */
             requested_at: string;
             requested_by: components["schemas"]["DecisionActor"];
             /** Revision Id */
@@ -253,7 +256,10 @@ export interface components {
             alternatives: string[];
             /** Choice */
             choice: string;
-            /** Created At */
+            /**
+             * Created At
+             * Format: date-time
+             */
             created_at: string;
             /** Data */
             data: {
@@ -293,7 +299,10 @@ export interface components {
             sequence: number;
             stage: components["schemas"]["FabricationStage"];
             status: components["schemas"]["StageStatus"];
-            /** Timestamp */
+            /**
+             * Timestamp
+             * Format: date-time
+             */
             timestamp: string;
         };
         /**
@@ -398,7 +407,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.4.0";
+            schema_version: "1.5.0";
             /**
              * Service
              * @constant
@@ -593,7 +602,10 @@ export interface components {
         JobStatus: "active" | "needs_input" | "ready_for_design" | "design_generated" | "geometry_verified" | "printability_assessed" | "slicer_verified" | "failed" | "completed" | "cancelled";
         /** JobView */
         JobView: {
-            /** Created At */
+            /**
+             * Created At
+             * Format: date-time
+             */
             created_at: string;
             /** Job Id */
             job_id: string;
@@ -606,7 +618,10 @@ export interface components {
             status: components["schemas"]["JobStatus"];
             /** Title */
             title: string;
-            /** Updated At */
+            /**
+             * Updated At
+             * Format: date-time
+             */
             updated_at: string;
         };
         /**
@@ -664,7 +679,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.4.0";
+            schema_version: "1.5.0";
             /** Summaries */
             summaries: components["schemas"]["ComparisonAreaSummaryView"][];
             /** Total Change Count */
@@ -683,7 +698,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.4.0";
+            schema_version: "1.5.0";
             source: components["schemas"]["SourceView"];
             /** Stages */
             stages: components["schemas"]["StageView"][];
@@ -697,7 +712,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.4.0";
+            schema_version: "1.5.0";
             window: components["schemas"]["RevisionListWindowView"];
         };
         /** RevisionListWindowView */
@@ -772,7 +787,10 @@ export interface components {
         };
         /** RevisionView */
         RevisionView: {
-            /** Created At */
+            /**
+             * Created At
+             * Format: date-time
+             */
             created_at: string;
             /** Number */
             number: number;

@@ -40,7 +40,7 @@ class OpenApiContractTests(unittest.TestCase):
         self.assertEqual(capabilities["properties"]["hardware_actions"]["const"], False)
 
         health = document["components"]["schemas"]["HealthResponse"]["properties"]
-        self.assertEqual(health["schema_version"]["const"], "1.4.0")
+        self.assertEqual(health["schema_version"]["const"], "1.5.0")
         self.assertEqual(health["service"]["const"], "ariad-interface-api")
         self.assertEqual(health["status"]["const"], "ok")
 
@@ -154,6 +154,27 @@ class OpenApiContractTests(unittest.TestCase):
             stage["approvals"]["items"]["$ref"],
             "#/components/schemas/ApprovalView",
         )
+
+    def test_persisted_timestamps_are_explicit_date_time_contracts(self):
+        schemas = generate_openapi_document()["components"]["schemas"]
+        timestamp_fields = {
+            "ApprovalView": {"requested_at", "decided_at"},
+            "DecisionView": {"created_at"},
+            "EventView": {"timestamp"},
+            "JobView": {"created_at", "updated_at"},
+            "RevisionSummary": {"updated_at"},
+            "RevisionView": {"created_at"},
+            "StageView": {"started_at", "completed_at"},
+        }
+        for model_name, field_names in timestamp_fields.items():
+            for field_name in field_names:
+                with self.subTest(model=model_name, field=field_name):
+                    field = schemas[model_name]["properties"][field_name]
+                    choices = field.get("anyOf", [field])
+                    string_choice = next(
+                        item for item in choices if item.get("type") == "string"
+                    )
+                    self.assertEqual(string_choice["format"], "date-time")
 
     def test_revision_listing_contract_discloses_and_bounds_its_window(self):
         document = generate_openapi_document()

@@ -105,7 +105,9 @@ def _new_id(prefix: str) -> str:
 
 
 def _required_text(value: Any, name: str) -> str:
-    normalized = str(value).strip()
+    if not isinstance(value, str):
+        raise ValueError(f"{name} must be a string")
+    normalized = value.strip()
     if not normalized:
         raise ValueError(f"{name} is required")
     return normalized
@@ -114,8 +116,16 @@ def _required_text(value: Any, name: str) -> str:
 def _optional_text(value: Any) -> str | None:
     if value is None:
         return None
-    normalized = str(value).strip()
+    if not isinstance(value, str):
+        raise ValueError("optional text values must be strings")
+    normalized = value.strip()
     return normalized or None
+
+
+def _plain_text(value: Any, name: str) -> str:
+    if not isinstance(value, str):
+        raise ValueError(f"{name} must be a string")
+    return value.strip()
 
 
 def _integer(value: Any, name: str, *, minimum: int = 0) -> int:
@@ -133,7 +143,7 @@ def _integer(value: Any, name: str, *, minimum: int = 0) -> int:
     return number
 
 
-def _timestamp(value: str | datetime, name: str) -> str:
+def _timestamp_value(value: str | datetime, name: str) -> datetime:
     if isinstance(value, datetime):
         parsed = value
     else:
@@ -144,7 +154,11 @@ def _timestamp(value: str | datetime, name: str) -> str:
             raise ValueError(f"{name} must be an ISO-8601 timestamp") from exc
     if parsed.tzinfo is None:
         raise ValueError(f"{name} must include a timezone")
-    return parsed.astimezone(timezone.utc).isoformat()
+    return parsed.astimezone(timezone.utc)
+
+
+def _timestamp(value: str | datetime, name: str) -> str:
+    return _timestamp_value(value, name).isoformat()
 
 
 def utc_now() -> str:
@@ -163,7 +177,9 @@ def _freeze(value: Any) -> Any:
     if isinstance(value, Mapping):
         normalized: dict[str, Any] = {}
         for key, item in value.items():
-            normalized_key = str(key)
+            if not isinstance(key, str):
+                raise ValueError("record metadata keys must be strings")
+            normalized_key = key
             if normalized_key in normalized:
                 raise ValueError(f"record metadata contains duplicate key {normalized_key!r}")
             normalized[normalized_key] = _freeze(item)
@@ -177,7 +193,7 @@ def _freeze(value: Any) -> Any:
 
 def _thaw(value: Any) -> Any:
     if isinstance(value, Mapping):
-        return {str(key): _thaw(item) for key, item in value.items()}
+        return {key: _thaw(item) for key, item in value.items()}
     if isinstance(value, tuple):
         return [_thaw(item) for item in value]
     if isinstance(value, Enum):
@@ -231,8 +247,14 @@ class Job:
             raise ValueError(f"unsupported job status {status!r}")
         object.__setattr__(self, "status", status)
         object.__setattr__(self, "current_revision_id", _optional_text(self.current_revision_id))
-        object.__setattr__(self, "created_at", _timestamp(self.created_at, "created_at"))
-        object.__setattr__(self, "updated_at", _timestamp(self.updated_at, "updated_at"))
+        created_at = _timestamp(self.created_at, "created_at")
+        updated_at = _timestamp(self.updated_at, "updated_at")
+        if _timestamp_value(updated_at, "updated_at") < _timestamp_value(
+            created_at, "created_at"
+        ):
+            raise ValueError("updated_at cannot precede created_at")
+        object.__setattr__(self, "created_at", created_at)
+        object.__setattr__(self, "updated_at", updated_at)
         object.__setattr__(self, "metadata", _freeze(self.metadata or {}))
 
     def to_dict(self) -> dict[str, Any]:
@@ -322,7 +344,7 @@ class StageRun:
             object.__setattr__(self, "started_at", _timestamp(self.started_at, "started_at"))
         if self.completed_at is not None:
             object.__setattr__(self, "completed_at", _timestamp(self.completed_at, "completed_at"))
-        object.__setattr__(self, "summary", str(self.summary).strip())
+        object.__setattr__(self, "summary", _plain_text(self.summary, "stage summary"))
         object.__setattr__(self, "error_message", _optional_text(self.error_message))
         if self.status is StageStatus.WAITING and (
             self.started_at is not None or self.completed_at is not None
@@ -337,6 +359,17 @@ class StageRun:
             StageStatus.FAILED,
         } and (self.started_at is None or self.completed_at is None):
             raise ValueError(f"{self.status.value} stage runs require start and completion times")
+        if self.status in {StageStatus.CANCELLED, StageStatus.SUPERSEDED} and (
+            self.completed_at is None
+        ):
+            raise ValueError(f"{self.status.value} stage runs require a completion time")
+        if (
+            self.started_at is not None
+            and self.completed_at is not None
+            and _timestamp_value(self.completed_at, "completed_at")
+            < _timestamp_value(self.started_at, "started_at")
+        ):
+            raise ValueError("completed_at cannot precede started_at")
         if self.status is StageStatus.FAILED and not self.error_message:
             raise ValueError("failed stage runs require an error_message")
         if self.status in {StageStatus.PASSED, StageStatus.PASSED_WITH_WARNINGS}:
@@ -510,6 +543,8 @@ class Finding:
         object.__setattr__(self, "affected_geometry", _optional_text(self.affected_geometry))
         object.__setattr__(self, "remediation", _optional_text(self.remediation))
         object.__setattr__(self, "resolution", _optional_text(self.resolution))
+        if not isinstance(self.resolved, bool):
+            raise ValueError("resolved must be a boolean")
         if self.resolved and self.resolution is None:
             raise ValueError("resolved findings require a resolution")
         object.__setattr__(self, "created_at", _timestamp(self.created_at, "created_at"))
@@ -602,7 +637,7 @@ class Approval:
         object.__setattr__(self, "boundary", _required_text(self.boundary, "approval boundary"))
         object.__setattr__(self, "status", ApprovalStatus(self.status))
         object.__setattr__(self, "requested_by", DecisionActor(self.requested_by))
-        object.__setattr__(self, "rationale", str(self.rationale).strip())
+        object.__setattr__(self, "rationale", _plain_text(self.rationale, "approval rationale"))
         object.__setattr__(self, "requested_at", _timestamp(self.requested_at, "requested_at"))
         if self.decided_at is not None:
             object.__setattr__(self, "decided_at", _timestamp(self.decided_at, "decided_at"))
@@ -613,6 +648,12 @@ class Approval:
                 raise ValueError("requested approvals cannot contain a decision")
         elif self.decided_at is None or self.decided_by is None:
             raise ValueError("decided approvals require decided_at and decided_by")
+        if (
+            self.decided_at is not None
+            and _timestamp_value(self.decided_at, "decided_at")
+            < _timestamp_value(self.requested_at, "requested_at")
+        ):
+            raise ValueError("decided_at cannot precede requested_at")
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -670,6 +711,32 @@ class ArtifactManifest:
                 raise ValueError("manifest records must belong to its job and revision")
             if record.stage_run_id is not None and record.stage_run_id not in self.stage_run_ids:
                 raise ValueError("manifest records must reference an included stage run")
+        record_times = [
+            *(
+                _timestamp_value(record.created_at, "artifact.created_at")
+                for record in self.artifacts
+            ),
+            *(
+                _timestamp_value(record.created_at, "finding.created_at")
+                for record in self.findings
+            ),
+            *(
+                _timestamp_value(record.created_at, "decision.created_at")
+                for record in self.decisions
+            ),
+            *(
+                _timestamp_value(record.requested_at, "approval.requested_at")
+                for record in self.approvals
+            ),
+            *(
+                _timestamp_value(record.decided_at, "approval.decided_at")
+                for record in self.approvals
+                if record.decided_at is not None
+            ),
+        ]
+        generated_at = _timestamp_value(self.generated_at, "generated_at")
+        if record_times and generated_at < max(record_times):
+            raise ValueError("manifest generated_at cannot precede its records")
 
     def to_dict(self) -> dict[str, Any]:
         return {

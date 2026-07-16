@@ -105,6 +105,14 @@ API 1.4.0 has five GET paths and 45 schemas. Its canonical OpenAPI snapshot is 6
 
 Research conclusion: a schema-valid enum is necessary but not sufficient for trustworthy lifecycle presentation. Ownership and cross-field relationships must be checked at the read boundary, and unsupported inspection content must not be normalized into success. Timestamps and remaining generic text fields still need strict type, timezone, and chronology validation in a subsequent slice.
 
+## Persisted scalar and temporal integrity
+
+M4-J local evidence on 2026-07-16: journey-domain records and the read repository no longer stringify non-string scalar values into identifiers, labels, messages, summaries, or optional text. Typed inspection numeric fields reject strings rather than converting them. Persisted timestamps are parsed as timezone-aware ISO 8601 values and checked across job creation/update, revision creation, ordered stage start/completion, bounded event time and global sequence order, final-event state, approval request/decision, revision-owned record creation, and manifest generation. Cancelled and superseded stages require completion timestamps. Brief is intentionally bounded by job creation rather than revision creation because one real trace proved that the Brief stage starts and then materializes its first revision one millisecond later.
+
+API 1.5.0 has five GET paths and 45 schemas with ten date-time format occurrences. Its canonical OpenAPI snapshot is 68,894 bytes with SHA-256 `cfa1bbc5561905501a206d298498b4a2a4e58786ddd760c45460e1c0ce88faf6`; generated TypeScript is 36,287 bytes with SHA-256 `54f2e34d3adf39075e77bf09c55691e63d244d1d526de96fa35fce4fdd36f6ca`. The full pinned backend suite passes 108 tests. Frontend contract/type checks, eight deterministic tests, lint, and production build pass. All seven ignored real revisions remain available and expose 11 reports plus eight profiles. A live loopback request returned canonical timezone-aware job/event strings, two of six observed fixture revisions with next offset 4 and `snapshot_consistent: false`, and the exact checksum-matched 178-byte artifact snapshot while every hardware-action indicator remained false.
+
+Research conclusion: temporal validation must reflect actual lifecycle causality rather than assume every stage begins after revision materialization. The remaining read-integrity gap is complete conformance and cross-file parity for raw PartSpec, manifest, fabrication-package, report, and profile dictionaries; bounded parsing and selected-field checks do not yet prove those complete shapes.
+
 ## Organic meshes and Blender
 
 - [Blender MCP](https://github.com/ahujasid/blender-mcp) — Blender scene, mesh, material, and Python control through MCP.
