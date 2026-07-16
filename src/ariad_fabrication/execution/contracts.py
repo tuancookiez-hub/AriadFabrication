@@ -1383,7 +1383,7 @@ def start_execution(
     )
 
 
-def _fenced_active_time(
+def validate_execution_fence(
     record: ExecutionRecord,
     *,
     runner_instance_id: str,
@@ -1420,7 +1420,7 @@ def bind_execution_identity(
     generation: int,
     at: str | datetime,
 ) -> ExecutionRecord:
-    _fenced_active_time(
+    validate_execution_fence(
         record,
         runner_instance_id=runner_instance_id,
         generation=generation,
@@ -1492,7 +1492,7 @@ def transition_execution(
         raise ExecutionTransitionError(
             f"cannot transition execution from {record.status.value} to {target_status.value}"
         )
-    completed_at = _fenced_active_time(
+    completed_at = validate_execution_fence(
         record,
         runner_instance_id=runner_instance_id,
         generation=generation,
@@ -1542,14 +1542,14 @@ def renew_execution_lease(
     generation: int,
     at: str | datetime,
 ) -> ExecutionRecord:
-    heartbeat = _fenced_active_time(
+    heartbeat = validate_execution_fence(
         record,
         runner_instance_id=runner_instance_id,
         generation=generation,
         at=at,
         name="lease heartbeat_at",
     )
-    if record.lease is None:  # pragma: no cover - narrowed by _fenced_active_time
+    if record.lease is None:  # pragma: no cover - narrowed by validate_execution_fence
         raise ExecutionTransitionError("active execution is missing its lease")
     if heartbeat == record.lease.heartbeat_at:
         return record
@@ -1627,4 +1627,5 @@ __all__ = [
     "request_cancellation",
     "start_execution",
     "transition_execution",
+    "validate_execution_fence",
 ]

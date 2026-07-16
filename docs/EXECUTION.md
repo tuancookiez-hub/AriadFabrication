@@ -4,7 +4,7 @@
 
 **Policy version:** 1.0.0
 
-**Status:** Implemented as schemas, immutable Python records, pure lifecycle operations, and tests. No persistent runner, event transport, mutation endpoint, or browser Run control exists yet.
+**Status:** Implemented as schemas, immutable Python records, pure lifecycle operations, and an internal transactional SQLite control store. No process runner, event transport, mutation endpoint, or browser Run control exists yet.
 
 ## Purpose
 
@@ -109,7 +109,13 @@ The cancellation endpoint is idempotent. Repeated cancellation does not rewrite 
 - On startup, an active record whose lease has expired becomes `interrupted` with a `runner_interrupted` failure. It is not silently resumed or rerun.
 - A user may submit a new idempotency key after reviewing an interrupted run. The new execution has a new identity and retains lineage to its own output only.
 
-The first store should use Python's standard-library SQLite with transactional rows for executions, idempotency keys, leases, and append-only events. Large Journey artifacts remain in revision directories. SQLite is a control-plane index, not an alternate source of fabrication evidence.
+The first store uses Python's standard-library SQLite with transactional rows for executions, idempotency keys, leases, and append-only events. Large Journey artifacts remain in revision directories. SQLite is a control-plane index, not an alternate source of fabrication evidence.
+
+M4-O implements store schema 1 behind `ExecutionControlStore` with no HTTP route or process launcher. It uses an Ariad application ID, WAL mode with `synchronous=FULL`, strict tables, immutable metadata, exact DDL fingerprints, startup integrity/foreign-key checks, canonical JSON and SHA-256 replay, a separate immutable accepted-plan hash, and database triggers for queue, active-run, transition, append, ownership, timestamp, counter, and terminal-state invariants. Every operation revalidates the schema before reading or mutating control state.
+
+Record JSON is capped at 256 KiB. Individual stored event JSON is capped at 128 KiB and total event JSON at 8 MiB per execution. The store preserves the frozen 10,000-event ceiling while reserving one slot and one maximum-sized event for a terminal failure, cancellation, success, or interruption. List reads return no more than 100 record values without allocating every history; full snapshots and event replay remain bounded. Concurrent initialization is serialized with a bounded WAL retry, and stale leases are reconciled transactionally before the next FIFO start.
+
+This is integrity and crash-consistency evidence for an application-owned local database, not a cryptographic audit log. A privileged local actor that can rewrite the database and its schema is outside the checksum threat model. Terminal records are deliberately retained for idempotency, so global archival, total-database disk policy, and emergency terminal-write capacity still need an operational design before browser mutation is enabled.
 
 ## Frozen resource policy
 
@@ -121,9 +127,9 @@ These are admission and runtime requirements for the future adapter, not claims 
 | Total execution wall time | 900 s | Not yet enforced as one deadline |
 | CAD process time | 120 s | Existing wrapper has a blocking timeout; cooperative cancellation is absent |
 | Each slicer command | 180 s | Existing wrapper has a blocking timeout; cooperative cancellation is absent |
-| Cancellation grace | 10 s | Contract only |
-| Lease / heartbeat | 30 s / 10 s | Contract only |
-| Persisted events | 10,000 per execution | Contract and event sequence only; no store yet |
+| Cancellation grace | 10 s | Store rejects premature `cancellation_timeout`; no process cancellation exists |
+| Lease / heartbeat | 30 s / 10 s | Store enforces acquisition, fencing, renewal, expiry, and interruption; no heartbeat loop exists |
+| Persisted events | 10,000 per execution | Store enforces append order, 8 MiB aggregate JSON, and terminal slot/byte reserves |
 | Event data | 64 KiB, depth 16, 20,000 nodes, 32 top-level fields | Enforced by the event record |
 | Each stdout or stderr stream | 8 MiB | Not yet enforced; existing capture can grow without this bound |
 | Execution workspace | 512 MiB | Not yet enforced |
@@ -132,7 +138,7 @@ These are admission and runtime requirements for the future adapter, not claims 
 | Slicer threads | 4 | Existing default agrees; accepted runner must force it |
 | Network | Denied | Intent only today; no OS-level denial yet |
 | Hardware actions | Denied | No printer adapter is present in the approved path |
-| Automatic resume | Denied | Contract only; no persistent runner exists |
+| Automatic resume | Denied | Store interrupts expired active records and has no resume transition; no runner exists |
 
 The HTTP adapter must remain unavailable until it can enforce every limit needed for the selected target. A timeout passed to `subprocess.run` is not proof of bounded logs, process-tree termination, memory confinement, or network denial.
 
@@ -183,15 +189,15 @@ Failure stages may name only Brief through Fabrication Package. `manufacturing` 
 
 The GET-only API and read-only browser remain unchanged until all of these are implemented and tested:
 
-1. a transactional SQLite control store with idempotency, FIFO admission, event sequences, leases, and startup reconciliation;
-2. a target registry that snapshots and re-verifies all R2/R4 identities before acceptance and launch;
-3. cancellable process-group adapters with bounded streaming stdout/stderr, one total deadline, and deterministic process-tree cleanup;
-4. enforceable workspace, memory, child-process, network-denial, and slicer-thread controls for the host platform;
-5. atomic Journey snapshot and execution-event coordination with retained partial evidence;
-6. recovery, cancellation-race, resource-exhaustion, and crash-injection tests;
-7. JSON-only same-origin mutation authentication plus an anti-CSRF capability;
-8. versioned POST/cancel/SSE OpenAPI contracts and generated browser types;
-9. a browser control that exposes queue, cancellation, failure, and claim boundaries without invented progress;
-10. the existing read, CAD, slicer, packaging, frontend, wheel, and live HTTP gates continuing to pass.
+1. [x] A transactional SQLite control store with idempotency, FIFO admission, event sequences, leases, and startup reconciliation. M4-O implements it internally and keeps it unreachable from HTTP.
+2. [ ] A target registry that snapshots and re-verifies all R2/R4 identities before acceptance and launch.
+3. [ ] Cancellable process-group adapters with bounded streaming stdout/stderr, one total deadline, and deterministic process-tree cleanup.
+4. [ ] Enforceable workspace, memory, child-process, network-denial, and slicer-thread controls for the host platform.
+5. [ ] Atomic Journey snapshot and execution-event coordination with retained partial evidence.
+6. [ ] Adapter-level recovery, cancellation-race, resource-exhaustion, and crash-injection tests. Store-level admission, race, rollback, stale-lease, corruption, and concurrent-open tests already pass.
+7. [ ] JSON-only same-origin mutation authentication plus an anti-CSRF capability.
+8. [ ] Versioned POST/cancel/SSE OpenAPI contracts and generated browser types.
+9. [ ] A browser control that exposes queue, cancellation, failure, and claim boundaries without invented progress.
+10. [ ] The existing read, CAD, slicer, packaging, frontend, wheel, and live HTTP gates continuing to pass after the adapter is connected.
 
-Until then, `schemas/v1/execution-*.schema.json` and `ariad_fabrication.execution` are a tested design contract, not a working background job service.
+Until then, `schemas/v1/execution-*.schema.json` and `ariad_fabrication.execution` are a tested contract and internal control store, not a working background job service.
