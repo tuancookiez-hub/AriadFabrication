@@ -172,7 +172,7 @@ Toolpath playback is not structural or thermal proof.
 | Domain and workers | Python 3.11 | Matches the existing package and CadQuery ecosystem |
 | CAD | CadQuery backed by OCCT | Functional lane; source is a first-class artifact |
 | API | FastAPI on the existing Python domain | M4-A implements a loopback-only, read-only filesystem boundary; job execution and streaming remain later |
-| Browser interface | Vite + React + TypeScript | M4-F implements journey evidence, verified artifact snapshots, direct Three.js preview, worker-owned toolpath playback, generated API response types, bounded persisted-evidence selection, and server-owned revision comparison |
+| Browser interface | Vite + React + TypeScript | M4-G implements journey evidence, bounded persisted-file snapshots, verified artifact delivery, direct Three.js preview, worker-owned toolpath playback, generated API response types, bounded persisted-evidence selection, and server-owned revision comparison |
 | Model integration | OpenAI Responses API with strict structured output and function tools | Model output cannot bypass deterministic gates |
 | Slicing | Adapter over PrusaSlicer and/or OrcaSlicer CLI | Profiles and tool versions are recorded |
 | Metadata | SQLite initially | Filesystem stores large artifacts; migration path remains open |
@@ -203,7 +203,7 @@ Each provider must have a deterministic fixture for tests and must report whethe
 
 ## Current implementation mapping
 
-M3 implements one complete printer-independent Golden Part path through R4, and M4-A through M4-F expose its persisted records through a read-only application slice:
+M3 implements one complete printer-independent Golden Part path through R4, and M4-A through M4-G expose its persisted records through a read-only application slice:
 
 - `domain/spec.py` implements immutable `PartSpec` 1.0.0 and design-readiness rules.
 - `domain/journey.py` implements jobs, immutable revisions and records, append-only events, artifact lineage, and manifests.
@@ -226,7 +226,8 @@ M3 implements one complete printer-independent Golden Part path through R4, and 
 - `slicing/prusaslicer.py` invokes one approved local PrusaSlicer executable, records model repairs and warnings, and exports a real profile-bearing 3MF project plus G-code without hardware access.
 - `slicing/gcode.py` parses real G-code and applies disconnected profile-specific checks for units, modes, bounds, temperatures, tools, support features, layer height, and forbidden commands.
 - `slicing/pipeline.py` advances the same revision through R3, R4 slicing, and package completeness; snapshots all profiles; records every command/log/checksum/lineage edge; and fails closed under the frozen repair/warning policy.
-- `api/repository.py` loads revision-scoped journeys, optional manifests and packages, groups records only through persisted IDs, confines artifact paths, captures artifact bytes once under a 64 MiB ceiling, verifies that snapshot against recorded size/SHA-256, validates response media/evidence values, parses only known report/profile roles after a separate bounded checksum gate, and delegates normalized revision diffs without mutation. Revision listings skip detail-report parsing.
+- `api/bounded_io.py` captures one local file snapshot with an explicit maximum and optional expected size, reading no more than the accepted ceiling plus one byte and distinguishing missing, unreadable, oversized, and size-mismatched inputs.
+- `api/repository.py` loads revision-scoped journeys, optional manifests and packages through 32 MiB/200,000-node/depth-32 bounded snapshots; rejects duplicate keys, non-finite constants, and type coercion; groups records only through persisted IDs; confines artifact paths; captures artifact bytes once under a 64 MiB ceiling; verifies that snapshot against recorded size/SHA-256; parses only known report/profile roles through 2 MiB/20,000-node/depth-16 snapshots; and delegates normalized revision diffs without mutation. Revision listings skip detail-report parsing.
 - `api/comparison.py` computes deterministic semantic diffs over normalized persisted stages, requirements, features, reports, checks, findings, profiles, artifacts, and package state. It omits generated IDs/timestamps, enforces record/change/value ceilings, and never reruns an evidence-producing stage.
 - `api/app.py` exposes loopback-only health, revision-list, revision-detail, revision-comparison, and verified-snapshot artifact routes while advertising `hardware_actions: false` in every application contract. Binary, 404, integrity-conflict, and size-limit responses are explicit in OpenAPI.
 - `api/openapi.py` deterministically generates and checks the committed OpenAPI snapshot without reading journey data; runtime documentation/schema routes remain disabled.

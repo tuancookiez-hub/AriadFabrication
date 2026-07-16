@@ -7,8 +7,8 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict
 
 
-InterfaceApiVersion = Literal["1.2.1"]
-INTERFACE_API_VERSION: InterfaceApiVersion = "1.2.1"
+InterfaceApiVersion = Literal["1.2.2"]
+INTERFACE_API_VERSION: InterfaceApiVersion = "1.2.2"
 
 
 class ApiModel(BaseModel):

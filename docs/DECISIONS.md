@@ -237,6 +237,24 @@ This file records accepted project-level decisions. Change an accepted decision 
 
 **Consequence:** Every claim that an artifact download is checksum-verified now applies to the bytes actually returned. Other persisted file readers must adopt bounded snapshot reads before their size ceilings can be described as allocation bounds.
 
+### D-026 — Use one bounded snapshot reader for persisted files
+
+**Status:** Accepted for M4-G on 2026-07-16.
+
+**Decision:** Advance the read API to 1.2.2 and route root persisted records, inspection report/profile JSON, and artifact downloads through `api/bounded_io.py`. With no recorded size, request at most the ceiling plus one byte. With a recorded size at or below the ceiling, request at most that size plus one byte. Distinguish missing, unreadable, oversized, and size-mismatched files so each caller can preserve its public failure semantics.
+
+**JSON boundary:** Root `journey.json`, optional manifest/package/fixture records are capped at 32 MiB plus one detection byte, then at depth 32 and 200,000 nodes. Inspection JSON retains 2 MiB plus one detection byte, depth 16, and 20,000 nodes before role-specific field/list limits. Both parsers reject duplicate object keys, non-finite JSON constants, invalid UTF-8, recursion failures, and non-object roots. Finding resolution must be an actual JSON boolean; package measurements and numeric mappings must be actual finite JSON numbers rather than coercible strings.
+
+**Evidence:** Tests prove the primitive requests only ceiling-plus-one or expected-size-plus-one, rejects an expected size above the ceiling before reading content, distinguishes missing from unreadable paths, and identifies size mismatch. Repository tests prohibit `Path.read_text` and `Path.read_bytes`, force root byte/node limits, reject duplicate keys and NaN, reject duplicate inspection keys after checksum verification, and reject string values that previously could become `True` or non-finite floats. Existing artifact snapshot, inspection integrity, comparison, real CAD, and real slicer tests remain green. The full pinned suite passes 91 backend tests; all frontend contract, test, lint, and build gates pass.
+
+**Contract evidence:** The canonical OpenAPI snapshot remains 58,589 bytes with five GET paths and 31 schemas; API-version drift changes its SHA-256 to `fbda3cf6e28f68bbe5a0fae9865d976c571d44b5beea5b2924ea070bf32da06d`. Generated TypeScript remains 30,693 bytes with SHA-256 `541d2e55c4a021aec44e3e62d32887060e26c316a6fda3432cbc49c300ee8b4c`.
+
+**Resource and limitation boundary:** No dependency was added. Byte allocation during file capture is explicitly capped, but Python's standard JSON decoder still materializes a parsed value before the post-parse node/depth walk. The 32 MiB/2 MiB byte ceilings are therefore also the primary parser-amplification controls; this is not an operating-system memory sandbox.
+
+**Removal path:** Remove `api/bounded_io.py` and restore per-call reads only if every replacement preserves a positive read size, oversize detection byte, missing/unreadable/size-drift distinctions, duplicate/non-finite rejection, complexity checks, and the regression tests. Unbounded convenience reads are not an acceptable removal path.
+
+**Consequence:** Persisted-file size limits now constrain the bytes requested from the filesystem rather than checking only before or after an unbounded allocation. Revision discovery/listing still needs its own work-count and truncation contract.
+
 ## Deferred decisions
 
 These require later evidence and should not be decided through preference alone:

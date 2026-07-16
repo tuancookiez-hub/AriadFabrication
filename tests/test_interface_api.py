@@ -77,7 +77,7 @@ class JourneyRepositoryTests(unittest.TestCase):
         self.assertEqual(len(detail.stages[3].findings), 2)
         self.assertTrue(all(stage.evidence_mode == "fixture" for stage in detail.stages))
         self.assertFalse(detail.capabilities.hardware_actions)
-        self.assertEqual(detail.schema_version, "1.2.1")
+        self.assertEqual(detail.schema_version, "1.2.2")
         self.assertEqual(
             [report.report_kind for report in detail.inspection.reports],
             ["geometry", "printability", "gcode_preflight"],
@@ -173,6 +173,105 @@ class JourneyRepositoryTests(unittest.TestCase):
                     JOB_ID, REVISION_ID, "art_fixture_note"
                 )
 
+    def test_repository_file_reads_use_bounded_snapshots(self):
+        repository = JourneyRepository(FIXTURE_ROOT)
+        with (
+            patch.object(
+                Path,
+                "read_text",
+                side_effect=AssertionError("repository must not use unbounded read_text"),
+            ),
+            patch.object(
+                Path,
+                "read_bytes",
+                side_effect=AssertionError("repository must not use unbounded read_bytes"),
+            ),
+        ):
+            detail = repository.get_revision(JOB_ID, REVISION_ID)
+            artifact = repository.get_artifact(JOB_ID, REVISION_ID, "art_fixture_note")
+
+        self.assertEqual(detail.revision.revision_id, REVISION_ID)
+        self.assertGreater(len(artifact.content), 0)
+
+    def test_root_json_size_and_nonfinite_values_fail_closed(self):
+        with patch("ariad_fabrication.api.repository._MAX_JSON_BYTES", 64):
+            with self.assertRaisesRegex(InvalidRevisionError, "size limit"):
+                JourneyRepository(FIXTURE_ROOT).get_revision(JOB_ID, REVISION_ID)
+
+        with patch("ariad_fabrication.api.repository._MAX_JSON_NODES", 10):
+            with self.assertRaisesRegex(InvalidRevisionError, "complexity limit"):
+                JourneyRepository(FIXTURE_ROOT).get_revision(JOB_ID, REVISION_ID)
+
+        with tempfile.TemporaryDirectory() as temporary:
+            copied_root = Path(temporary) / "interface"
+            shutil.copytree(FIXTURE_ROOT, copied_root)
+            journey_path = (
+                copied_root / JOB_ID / "revisions" / REVISION_ID / "journey.json"
+            )
+            journey = json.loads(journey_path.read_text(encoding="utf-8"))
+            journey["job"]["metadata"]["nonfinite"] = float("nan")
+            journey_path.write_text(
+                json.dumps(journey, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(InvalidRevisionError, "bounded UTF-8 JSON"):
+                JourneyRepository(copied_root).get_revision(JOB_ID, REVISION_ID)
+
+        with tempfile.TemporaryDirectory() as temporary:
+            copied_root = Path(temporary) / "interface"
+            shutil.copytree(FIXTURE_ROOT, copied_root)
+            journey_path = (
+                copied_root / JOB_ID / "revisions" / REVISION_ID / "journey.json"
+            )
+            duplicate = journey_path.read_text(encoding="utf-8").replace(
+                '{\n  "approvals":',
+                '{\n  "schema_version": "1.0.0",\n  "approvals":',
+                1,
+            )
+            journey_path.write_text(duplicate, encoding="utf-8")
+
+            with self.assertRaisesRegex(InvalidRevisionError, "bounded UTF-8 JSON"):
+                JourneyRepository(copied_root).get_revision(JOB_ID, REVISION_ID)
+
+    def test_boolean_and_numeric_strings_are_not_coerced_into_evidence(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            copied_root = Path(temporary) / "interface"
+            shutil.copytree(FIXTURE_ROOT, copied_root)
+            package_path = (
+                copied_root
+                / JOB_ID
+                / "revisions"
+                / REVISION_ID
+                / "fabrication"
+                / "package.json"
+            )
+            package = json.loads(package_path.read_text(encoding="utf-8"))
+            package["gcode_summary"] = {"filament_mass_g": "NaN"}
+            package_path.write_text(
+                json.dumps(package, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(InvalidRevisionError, "must be a number"):
+                JourneyRepository(copied_root).get_revision(JOB_ID, REVISION_ID)
+
+        with tempfile.TemporaryDirectory() as temporary:
+            copied_root = Path(temporary) / "interface"
+            shutil.copytree(FIXTURE_ROOT, copied_root)
+            revision_root = copied_root / JOB_ID / "revisions" / REVISION_ID
+            for record_name in ("journey.json", "manifest.json"):
+                record_path = revision_root / record_name
+                record = json.loads(record_path.read_text(encoding="utf-8"))
+                record["findings"][0]["resolved"] = "false"
+                record_path.write_text(
+                    json.dumps(record, indent=2, sort_keys=True) + "\n",
+                    encoding="utf-8",
+                )
+
+            with self.assertRaisesRegex(InvalidRevisionError, "finding.resolved"):
+                JourneyRepository(copied_root).get_revision(JOB_ID, REVISION_ID)
+
     def test_inspection_report_checksum_drift_is_visible_and_not_parsed(self):
         with tempfile.TemporaryDirectory() as temporary:
             copied_root = Path(temporary) / "interface"
@@ -209,6 +308,7 @@ class JourneyRepositoryTests(unittest.TestCase):
     def test_inspection_json_shape_and_size_fail_closed(self):
         cases = (
             (b"{", "invalid_json"),
+            (b'{"checks":[],"checks":[]}', "invalid_json"),
             (b"x" * (2 * 1024 * 1024 + 1), "size_limit"),
         )
         for payload, expected_reason in cases:
@@ -342,7 +442,7 @@ class InterfaceHttpTests(unittest.TestCase):
         detail = self.client.get(f"/api/v1/revisions/{JOB_ID}/{REVISION_ID}")
         self.assertEqual(detail.status_code, 200)
         payload = detail.json()
-        self.assertEqual(payload["schema_version"], "1.2.1")
+        self.assertEqual(payload["schema_version"], "1.2.2")
         self.assertEqual(
             [stage["stage"] for stage in payload["stages"]],
             [item[0] for item in STAGES],

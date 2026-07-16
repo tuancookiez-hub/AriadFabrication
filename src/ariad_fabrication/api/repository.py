@@ -11,6 +11,13 @@ import re
 from typing import Any, Mapping
 from urllib.parse import quote
 
+from .bounded_io import (
+    BoundedFileMissingError,
+    BoundedFileSizeMismatchError,
+    BoundedFileTooLargeError,
+    BoundedFileUnreadableError,
+    read_bounded_bytes,
+)
 from .comparison import compare_revision_details
 from .models import (
     INTERFACE_API_VERSION,
@@ -48,6 +55,8 @@ _MEDIA_TYPE_PATTERN = re.compile(
 )
 _EVIDENCE_MODES = {"real", "simulated", "fixture", "unavailable"}
 _MAX_JSON_BYTES = 32 * 1024 * 1024
+_MAX_JSON_DEPTH = 32
+_MAX_JSON_NODES = 200_000
 MAX_ARTIFACT_DOWNLOAD_BYTES = 64 * 1024 * 1024
 _MAX_INSPECTION_JSON_BYTES = 2 * 1024 * 1024
 _MAX_INSPECTION_CHECKS = 500
@@ -296,8 +305,6 @@ class JourneyRepository:
         if artifact is None:
             raise ArtifactNotFoundError("artifact is not recorded in this revision")
         path = self._artifact_path(loaded.root, artifact)
-        if not path.is_file():
-            raise ArtifactNotFoundError("recorded artifact file is unavailable")
         media_type = _media_type(artifact.get("media_type"), "artifact.media_type")
         evidence_mode = _evidence_mode(
             artifact.get("evidence_mode"), "artifact.evidence_mode"
@@ -308,30 +315,25 @@ class JourneyRepository:
             if expected_size is not None
             else None
         )
-        if recorded_size is not None and recorded_size > MAX_ARTIFACT_DOWNLOAD_BYTES:
-            raise ArtifactTooLargeError(
-                f"recorded artifact exceeds the {MAX_ARTIFACT_DOWNLOAD_BYTES}-byte "
-                "verified-download limit"
-            )
-        read_size = (
-            recorded_size + 1
-            if recorded_size is not None
-            else MAX_ARTIFACT_DOWNLOAD_BYTES + 1
-        )
         try:
-            with path.open("rb") as artifact_file:
-                content = artifact_file.read(read_size)
-        except FileNotFoundError as exc:
+            content = read_bounded_bytes(
+                path,
+                max_bytes=MAX_ARTIFACT_DOWNLOAD_BYTES,
+                expected_size=recorded_size,
+            )
+        except BoundedFileMissingError as exc:
             raise ArtifactNotFoundError("recorded artifact file is unavailable") from exc
-        except OSError as exc:
-            raise ArtifactIntegrityError("recorded artifact file could not be read") from exc
-        if len(content) > MAX_ARTIFACT_DOWNLOAD_BYTES:
+        except BoundedFileTooLargeError as exc:
             raise ArtifactTooLargeError(
                 f"artifact exceeds the {MAX_ARTIFACT_DOWNLOAD_BYTES}-byte "
                 "verified-download limit"
-            )
-        if recorded_size is not None and len(content) != recorded_size:
-            raise ArtifactIntegrityError("recorded artifact size does not match the file")
+            ) from exc
+        except BoundedFileSizeMismatchError as exc:
+            raise ArtifactIntegrityError(
+                "recorded artifact size does not match the file"
+            ) from exc
+        except BoundedFileUnreadableError as exc:
+            raise ArtifactIntegrityError("recorded artifact file could not be read") from exc
         expected_hash = _checksum(artifact.get("checksum_sha256"), "artifact.checksum_sha256")
         actual_hash = hashlib.sha256(content).hexdigest()
         if actual_hash != expected_hash:
@@ -471,7 +473,7 @@ class JourneyRepository:
                 ),
                 remediation=_optional_text(item.get("remediation")),
                 affected_geometry=_optional_text(item.get("affected_geometry")),
-                resolved=bool(item.get("resolved", False)),
+                resolved=_boolean(item.get("resolved", False), "finding.resolved"),
                 resolution=_optional_text(item.get("resolution")),
                 data=_mapping(item.get("data", {}), "finding.data"),
             )
@@ -741,12 +743,27 @@ class JourneyRepository:
         artifact_id = _text(record.get("artifact_id"), "artifact.artifact_id")
         checksum = _checksum(record.get("checksum_sha256"), "artifact.checksum_sha256")
         path = self._artifact_path(loaded.root, record)
-        if not path.is_file():
-            return None, None, _inspection_unavailable_for_record(
-                role, artifact_id, checksum, "file_missing", "The recorded report file is missing."
+        expected_size = record.get("size_bytes")
+        recorded_size = (
+            _integer(expected_size, "artifact.size_bytes")
+            if expected_size is not None
+            else None
+        )
+        try:
+            payload = read_bounded_bytes(
+                path,
+                max_bytes=_MAX_INSPECTION_JSON_BYTES,
+                expected_size=recorded_size,
             )
-        actual_size = path.stat().st_size
-        if actual_size > _MAX_INSPECTION_JSON_BYTES:
+        except BoundedFileMissingError:
+            return None, None, _inspection_unavailable_for_record(
+                role,
+                artifact_id,
+                checksum,
+                "file_missing",
+                "The recorded report file is missing.",
+            )
+        except BoundedFileTooLargeError:
             return None, None, _inspection_unavailable_for_record(
                 role,
                 artifact_id,
@@ -754,10 +771,7 @@ class JourneyRepository:
                 "size_limit",
                 "The recorded report exceeds the bounded inspection size limit.",
             )
-        expected_size = record.get("size_bytes")
-        if expected_size is not None and actual_size != _integer(
-            expected_size, "artifact.size_bytes"
-        ):
+        except BoundedFileSizeMismatchError:
             return None, None, _inspection_unavailable_for_record(
                 role,
                 artifact_id,
@@ -765,29 +779,13 @@ class JourneyRepository:
                 "size_mismatch",
                 "The recorded report size does not match the persisted artifact record.",
             )
-        try:
-            payload = path.read_bytes()
-        except OSError:
-            return None, None, _inspection_unavailable_for_record(
-                role, artifact_id, checksum, "file_missing", "The recorded report cannot be read."
-            )
-        if len(payload) > _MAX_INSPECTION_JSON_BYTES:
+        except BoundedFileUnreadableError:
             return None, None, _inspection_unavailable_for_record(
                 role,
                 artifact_id,
                 checksum,
-                "size_limit",
-                "The recorded report exceeds the bounded inspection size limit.",
-            )
-        if expected_size is not None and len(payload) != _integer(
-            expected_size, "artifact.size_bytes"
-        ):
-            return None, None, _inspection_unavailable_for_record(
-                role,
-                artifact_id,
-                checksum,
-                "size_mismatch",
-                "The recorded report size changed while it was being read.",
+                "file_missing",
+                "The recorded report cannot be read.",
             )
         if hashlib.sha256(payload).hexdigest() != checksum:
             return None, None, _inspection_unavailable_for_record(
@@ -800,7 +798,8 @@ class JourneyRepository:
         try:
             value = json.loads(
                 payload.decode("utf-8"),
-                parse_constant=_reject_inspection_json_constant,
+                parse_constant=_reject_json_constant,
+                object_pairs_hook=_reject_duplicate_json_object,
             )
         except (UnicodeError, json.JSONDecodeError, ValueError, RecursionError):
             return None, None, _inspection_unavailable_for_record(
@@ -810,7 +809,11 @@ class JourneyRepository:
                 "invalid_json",
                 "The checksum-verified report is not bounded UTF-8 JSON.",
             )
-        if not isinstance(value, dict) or not _inspection_json_is_bounded(value):
+        if not isinstance(value, dict) or not _json_is_bounded(
+            value,
+            max_nodes=_MAX_INSPECTION_NODES,
+            max_depth=_MAX_INSPECTION_DEPTH,
+        ):
             return None, None, _inspection_unavailable_for_record(
                 role,
                 artifact_id,
@@ -822,7 +825,7 @@ class JourneyRepository:
             artifact_id=artifact_id,
             role=role,
             checksum_sha256=checksum,
-            size_bytes=actual_size,
+            size_bytes=len(payload),
             producer=_text(record.get("producer"), "artifact.producer"),
             producer_version=_text(
                 record.get("producer_version"), "artifact.producer_version"
@@ -1121,17 +1124,26 @@ def _inspection_optional_float(value: Any) -> float | None:
     return result
 
 
-def _reject_inspection_json_constant(value: str) -> None:
+def _reject_json_constant(value: str) -> None:
     raise ValueError(f"non-finite JSON constant is not allowed: {value}")
 
 
-def _inspection_json_is_bounded(value: Any) -> bool:
+def _reject_duplicate_json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    value: dict[str, Any] = {}
+    for key, item in pairs:
+        if key in value:
+            raise ValueError(f"duplicate JSON object key is not allowed: {key!r}")
+        value[key] = item
+    return value
+
+
+def _json_is_bounded(value: Any, *, max_nodes: int, max_depth: int) -> bool:
     stack: list[tuple[Any, int]] = [(value, 0)]
     nodes = 0
     while stack:
         item, depth = stack.pop()
         nodes += 1
-        if nodes > _MAX_INSPECTION_NODES or depth > _MAX_INSPECTION_DEPTH:
+        if nodes > max_nodes or depth > max_depth:
             return False
         if isinstance(item, dict):
             if not all(isinstance(key, str) for key in item):
@@ -1155,18 +1167,40 @@ def _load_json(
     resolved = path.resolve()
     if not resolved.is_relative_to(confined_to):
         raise InvalidRevisionError(f"persisted record {path.name!r} escapes its revision")
-    if not resolved.is_file():
+    try:
+        payload = read_bounded_bytes(resolved, max_bytes=_MAX_JSON_BYTES)
+    except BoundedFileMissingError:
         if required:
             raise InvalidRevisionError(f"required persisted record {path.name!r} is missing")
         return None
-    if resolved.stat().st_size > _MAX_JSON_BYTES:
-        raise InvalidRevisionError(f"persisted record {path.name!r} exceeds the size limit")
+    except BoundedFileTooLargeError as exc:
+        raise InvalidRevisionError(
+            f"persisted record {path.name!r} exceeds the size limit"
+        ) from exc
+    except BoundedFileUnreadableError as exc:
+        raise InvalidRevisionError(f"persisted record {path.name!r} cannot be read") from exc
+    except BoundedFileSizeMismatchError as exc:  # No expected size is supplied here.
+        raise InvalidRevisionError(f"persisted record {path.name!r} changed size") from exc
     try:
-        value = json.loads(resolved.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
-        raise InvalidRevisionError(f"persisted record {path.name!r} is not valid UTF-8 JSON") from exc
+        value = json.loads(
+            payload.decode("utf-8"),
+            parse_constant=_reject_json_constant,
+            object_pairs_hook=_reject_duplicate_json_object,
+        )
+    except (UnicodeError, json.JSONDecodeError, ValueError, RecursionError) as exc:
+        raise InvalidRevisionError(
+            f"persisted record {path.name!r} is not bounded UTF-8 JSON"
+        ) from exc
     if not isinstance(value, dict):
         raise InvalidRevisionError(f"persisted record {path.name!r} must contain an object")
+    if not _json_is_bounded(
+        value,
+        max_nodes=_MAX_JSON_NODES,
+        max_depth=_MAX_JSON_DEPTH,
+    ):
+        raise InvalidRevisionError(
+            f"persisted record {path.name!r} exceeds the JSON complexity limit"
+        )
     return value
 
 
@@ -1234,14 +1268,16 @@ def _optional_integer(value: Any, name: str) -> int | None:
 
 
 def _optional_number(value: Any) -> float | None:
-    if value is None:
-        return None
-    if isinstance(value, bool):
-        raise InvalidRevisionError("numeric package fields cannot be booleans")
-    try:
-        return float(value)
-    except (TypeError, ValueError, OverflowError) as exc:
-        raise InvalidRevisionError("numeric package field is invalid") from exc
+    return None if value is None else _number(value, "numeric package field")
+
+
+def _number(value: Any, name: str) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise InvalidRevisionError(f"{name} must be a number")
+    result = float(value)
+    if not math.isfinite(result):
+        raise InvalidRevisionError(f"{name} must be finite")
+    return result
 
 
 def _boolean(value: Any, name: str) -> bool:
@@ -1270,7 +1306,10 @@ def _optional_number_mapping(value: Any) -> dict[str, float] | None:
     if value is None:
         return None
     mapping = _mapping(value, "numeric mapping")
-    return {str(key): float(item) for key, item in mapping.items()}
+    return {
+        str(key): _number(item, "numeric mapping value")
+        for key, item in mapping.items()
+    }
 
 
 def _optional_number_list_mapping(value: Any) -> dict[str, list[float]] | None:
@@ -1281,7 +1320,9 @@ def _optional_number_list_mapping(value: Any) -> dict[str, list[float]] | None:
     for key, items in mapping.items():
         if not isinstance(items, list):
             raise InvalidRevisionError("temperature mapping values must be lists")
-        result[str(key)] = [float(item) for item in items]
+        result[str(key)] = [
+            _number(item, "temperature mapping value") for item in items
+        ]
     return result
 
 
@@ -1290,11 +1331,3 @@ def _optional_integer_mapping(value: Any) -> dict[str, int] | None:
         return None
     mapping = _mapping(value, "integer mapping")
     return {str(key): _integer(item, "integer mapping value") for key, item in mapping.items()}
-
-
-def _file_sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()

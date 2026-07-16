@@ -6,9 +6,9 @@
 
 ## Immediate objective
 
-Finish hardening the read-only Fabrication Journey before adding mutation or model-driven generation. Contract drift, evidence replay, revision comparison, and artifact delivery now fail closed; the next slice should make root-record and inspection JSON reads bounded snapshots, then close browser-level visual and interaction verification without weakening the M4 evidence contract.
+Finish hardening the read-only Fabrication Journey before adding mutation or model-driven generation. Contract drift, evidence replay, revision comparison, artifact delivery, and persisted JSON snapshots now fail closed; the next slice should bound revision discovery/listing work and disclose truncation, then close browser-level visual and interaction verification without weakening the M4 evidence contract.
 
-## M4-A through M4-F implemented
+## M4-A through M4-G implemented
 
 - Added a FastAPI 0.139.1 / Uvicorn 0.51.0 application boundary that binds to loopback and exposes only health, revision-list, revision-detail, revision-comparison, and checksum-verified artifact reads.
 - Added a fail-closed repository reader with ID/path confinement, optional-manifest handling for incomplete journeys, ownership checks, manifest/journey consistency checks, compact package summaries, and no hardware endpoint.
@@ -18,13 +18,14 @@ Finish hardening the read-only Fabrication Journey before adding mutation or mod
 - Added a bounded Web Worker G-code parser and top-down layer player with manual/reduced-motion controls, travel/extrusion distinction, 64 MiB / one-million-segment ceilings, layer sampling, omitted-arc disclosure, and an explicit manufacturing-playback boundary.
 - Added separate production/test TypeScript configurations, frontend lint, deterministic component/parser tests, environment-gated real GLB/G-code integration tests, production build, backend API/fixture/integrity tests, and lightweight GitHub Actions jobs.
 - Added a canonical committed OpenAPI 3.1 snapshot, exact `openapi-typescript` 7.13.0 generation, generated response aliases in the browser, required-field and read-only contract tests, and backend/frontend CI drift checks. The runtime API does not expose documentation, schema, or mutation routes.
-- Added API 1.2.1 bounded evidence replay for persisted specification features, geometry/printability/preflight checks, four profile types, report messages, measurements, source checksums, and explicit unavailable reasons. Known JSON reports are capped at 2 MiB, 500 checks, 100 messages/features, 128 fields, depth 16, and 20,000 nodes; listing cards do not parse detail reports.
+- Added API 1.2.2 bounded evidence replay for persisted specification features, geometry/printability/preflight checks, four profile types, report messages, measurements, source checksums, and explicit unavailable reasons. Known JSON reports are capped at 2 MiB, 500 checks, 100 messages/features, 128 fields, depth 16, and 20,000 nodes; listing cards do not parse detail reports.
 - Added a browser evidence explorer with selectable feature, check, finding, profile, and artifact records. It exposes full recorded SHA-256 values and distinguishes checks verified before parsing from artifacts verified when opened; it explicitly does not spatially inspect STEP or rerun validation.
 - Added a read-only server-owned revision comparison over normalized stages, requirements, features, reports, checks, findings, profiles, artifacts, and package state. It omits volatile IDs/timestamps, caps each side at 10,000 normalized records, returns at most 1,000 changes and 64 KiB per value, marks every omission, and states that unchanged records do not prove geometric or physical equivalence.
 - Added a React comparison picker and parent-to-child evidence-diff view. The deterministic child fixture changes exactly 12 semantic records across seven areas while remaining fixture-only and performing no CAD, validation, slicing, simulation, or hardware action.
 - Replaced path-backed artifact streaming with a verified byte snapshot capped at 64 MiB. The response bytes are now the exact bytes whose recorded size and SHA-256 passed; later path mutation cannot change them. Binary/error/header semantics are explicit in OpenAPI, evidence/media header values are validated, filenames are RFC 5987 encoded, caching is disabled, and every response retains `hardware-action: false`.
+- Added one reusable bounded file reader for root records, inspection JSON, and artifact delivery. Root snapshots are capped at 32 MiB plus one byte and 200,000 nodes/depth 32; inspection retains its 2 MiB plus one byte and 20,000 nodes/depth 16 limits. Duplicate object keys, non-finite constants, excessive complexity, and string-to-boolean/number coercion fail closed.
 - Verified the API reads the existing ignored real R2/R4 revisions without changing their evidence and serves the compact fixture over HTTP with `hardware_actions: false`.
-- Verified all 84 backend tests pass in the pinned CAD/slicer environment. The frontend lockfile passes its release-age and peer policies; OpenAPI-generated-type drift, test and production TypeScript checks, ESLint, seven deterministic tests, two real-artifact integration tests, and the Vite production build pass. The evidence reader replayed 61 real checks plus four profiles from an existing ignored R4 revision. Live HTTP checks returned a byte-identical snapshot with `sha256-verified-snapshot`, `no-store`, `nosniff`, the 64 MiB ceiling, and `hardware-action: false`; comparison remained a complete 12-change parent-to-child response.
+- Verified all 91 backend tests pass in the pinned CAD/slicer environment. The frontend lockfile passes its release-age and peer policies; OpenAPI-generated-type drift, test and production TypeScript checks, ESLint, seven deterministic tests, two real-artifact integration tests, and the Vite production build pass. The evidence reader replayed 61 real checks plus four profiles from an existing ignored R4 revision. Live HTTP checks returned a byte-identical snapshot with `sha256-verified-snapshot`, `no-store`, `nosniff`, the 64 MiB ceiling, and `hardware-action: false`; comparison remained a complete 12-change parent-to-child response.
 - Recorded anime.js, Motion.dev, Kokonut UI, Bklit UI, and Manus.im as deferred visual references rather than installed dependencies.
 
 ## M3 completed
@@ -45,7 +46,7 @@ Finish hardening the read-only Fabrication Journey before adding mutation or mod
 
 ## Next actions
 
-1. Replace size-check-then-unbounded-read patterns for journey, manifest, package, fixture, and inspection JSON with one bounded snapshot reader and explicit failure semantics.
+1. Bound filesystem revision discovery and listing work, expose total/returned/omitted counts, and make truncation visible in the browser instead of silently dropping or indefinitely scanning records.
 2. Perform visual browser QA across desktop/mobile widths and keyboard/reduced-motion paths once the local in-app browser runtime conflict is resolved.
 3. Freeze job-runner, event-stream, cancellation, idempotency, concurrency, and failure semantics before adding browser-triggered Golden Part execution.
 4. Evaluate the deferred animation/component references against accessibility, maintenance, bundle size, overlap, license, and removal criteria before adopting any.
@@ -77,7 +78,7 @@ Finish hardening the read-only Fabrication Journey before adding mutation or mod
 - The ignored PrusaSlicer binary must be installed separately; AGPL distribution implications still require review before public bundling.
 - Only one functional part family has R4 evidence.
 - There is no persistent database, job runner/event transport, physical calibration data, selected printer, or selected project license. The current API and interface remain read-only M4 foundations.
-- Root persisted JSON and inspection JSON are size-checked before `read_text`/`read_bytes`, but those reads are not themselves capped; a concurrent local growth can exceed the intended allocation ceiling before the post-read check. This is the next read-boundary hardening task.
+- Revision listing enumerates and reads every candidate under the configured root before responding. A large or adversarial local tree can make one read-only request perform unbounded work; listing has no total/omitted metadata yet.
 - The GLB surface is a bounded tessellated preview, not exact STEP inspection. The toolpath surface draws linear G0/G1 moves and discloses omitted arcs; it does not model collisions, extrusion, adhesion, heat, strength, or printer behavior.
 - Automated in-app-browser visual QA is locally blocked by a user-level Node ESM configuration conflict outside this repository; compiler, lint, component, production-build, and HTTP checks pass without modifying that unrelated configuration.
 - The older fixture slicer and Klipper simulator remain in the repository but are outside the evidence-gated path.

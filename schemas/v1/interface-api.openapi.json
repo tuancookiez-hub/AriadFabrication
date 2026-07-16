@@ -695,7 +695,7 @@
             "$ref": "#/components/schemas/CapabilitiesView"
           },
           "schema_version": {
-            "const": "1.2.1",
+            "const": "1.2.2",
             "title": "Schema Version",
             "type": "string"
           },
@@ -1426,7 +1426,7 @@
             "type": "integer"
           },
           "schema_version": {
-            "const": "1.2.1",
+            "const": "1.2.2",
             "title": "Schema Version",
             "type": "string"
           },
@@ -1493,7 +1493,7 @@
             "$ref": "#/components/schemas/RevisionView"
           },
           "schema_version": {
-            "const": "1.2.1",
+            "const": "1.2.2",
             "title": "Schema Version",
             "type": "string"
           },
@@ -1536,7 +1536,7 @@
             "type": "array"
           },
           "schema_version": {
-            "const": "1.2.1",
+            "const": "1.2.2",
             "title": "Schema Version",
             "type": "string"
           }
@@ -2002,7 +2002,7 @@
     "description": "This API replays persisted records. It cannot upload G-code, select a printer, heat hardware, move hardware, or start manufacturing.",
     "summary": "Read-only access to persisted fabrication evidence.",
     "title": "Ariad Fabrication Journey API",
-    "version": "1.2.1"
+    "version": "1.2.2"
   },
   "openapi": "3.1.0",
   "paths": {

@@ -77,6 +77,16 @@ OpenAPI now describes the artifact success body as binary rather than JSON, decl
 
 Research conclusion: checksum verification and response streaming must share one immutable byte identity. The in-memory snapshot is appropriate for the loopback M4 ceiling; a larger or multi-user deployment should move to content-addressed immutable storage or sealed temporary snapshots rather than restoring a mutable path race.
 
+## Bounded persisted-file parsing
+
+M4-G local evidence on 2026-07-16: one standard-library reader now supplies journey, manifest, package, fixture, inspection, and downloadable artifact snapshots. Tests instrument the reader and show an unrecorded input receives a `ceiling + 1` byte request, while a recorded input receives `expected size + 1`; a recorded size already beyond the ceiling is rejected without reading content. Repository detail/artifact tests succeed while `Path.read_text` and `Path.read_bytes` are forced to raise.
+
+Root JSON is limited to 32 MiB, depth 32, and 200,000 nodes; inspection JSON remains limited to 2 MiB, depth 16, and 20,000 nodes before its role-specific list/field ceilings. Duplicate object keys, non-finite constants, and invalid UTF-8 are rejected. Strict boolean and finite-number helpers prevent JSON strings such as `"false"` and `"NaN"` from becoming positive or numeric evidence through Python coercion.
+
+The API 1.2.2 OpenAPI snapshot remains 58,589 bytes with five paths and 31 schemas; its SHA-256 is `fbda3cf6e28f68bbe5a0fae9865d976c571d44b5beea5b2924ea070bf32da06d`. Generated TypeScript remains 30,693 bytes. The full pinned backend suite passes 91 tests.
+
+Research conclusion: a pre-read `stat()` is not an allocation bound. Positive-size reads plus a detection byte make file capture bounded, while byte ceilings remain necessary because the standard JSON decoder materializes objects before post-parse depth/node checks. Stronger adversarial parsing would require a streaming parser or process-level memory isolation and should be justified by deployment risk rather than implied today.
+
 ## Organic meshes and Blender
 
 - [Blender MCP](https://github.com/ahujasid/blender-mcp) — Blender scene, mesh, material, and Python control through MCP.
