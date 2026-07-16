@@ -3,6 +3,10 @@ import type { components } from './generated/interface-api'
 type ApiSchemas = components['schemas']
 
 export type Capabilities = ApiSchemas['CapabilitiesView']
+export type ComparisonAreaSummary = ApiSchemas['ComparisonAreaSummaryView']
+export type ComparisonChange = ApiSchemas['ComparisonChangeView']
+export type ComparisonRevision = ApiSchemas['ComparisonRevisionView']
+export type RevisionComparison = ApiSchemas['RevisionComparisonResponse']
 export type Source = ApiSchemas['SourceView']
 export type RevisionSummary = ApiSchemas['RevisionSummary']
 export type RevisionListResponse = ApiSchemas['RevisionListResponse']

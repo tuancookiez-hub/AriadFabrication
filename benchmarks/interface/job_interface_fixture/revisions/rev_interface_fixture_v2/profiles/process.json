@@ -1,0 +1,12 @@
+{
+  "claim_boundary": "Interface fixture values demonstrate evidence presentation only. They are not CAD, slicer, manufacturing, or physical evidence.",
+  "infill_pattern": "gyroid",
+  "infill_percent": 35,
+  "layer_height_mm": 0.2,
+  "name": "Fixture 0.20 mm / 35% infill process",
+  "perimeters": 3,
+  "profile_id": "fixture_020_no_support_v1",
+  "schema_version": "1.0.0-interface-fixture",
+  "status": "interface_fixture",
+  "support_policy": "disabled"
+}

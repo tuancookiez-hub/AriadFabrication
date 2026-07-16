@@ -21,6 +21,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/revision-comparison": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Revision Comparison */
+        get: operations["revision_comparison_api_v1_revision_comparison_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/revisions": {
         parameters: {
             query?: never;
@@ -121,6 +138,89 @@ export interface components {
              */
             read_only: true;
         };
+        /** ComparisonAreaSummaryView */
+        ComparisonAreaSummaryView: {
+            /** Added */
+            added: number;
+            /**
+             * Area
+             * @enum {string}
+             */
+            area: "stage" | "requirement" | "feature" | "report" | "check" | "finding" | "profile" | "artifact" | "package";
+            /** Changed */
+            changed: number;
+            /** Removed */
+            removed: number;
+        };
+        /** ComparisonChangeView */
+        ComparisonChangeView: {
+            /**
+             * Area
+             * @enum {string}
+             */
+            area: "stage" | "requirement" | "feature" | "report" | "check" | "finding" | "profile" | "artifact" | "package";
+            /** Base Value */
+            base_value: {
+                [key: string]: unknown;
+            } | null;
+            /** Boundary */
+            boundary: string | null;
+            /** Candidate Value */
+            candidate_value: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Change
+             * @enum {string}
+             */
+            change: "added" | "removed" | "changed";
+            /** Detail Complete */
+            detail_complete: boolean;
+            /** Label */
+            label: string;
+            /** Record Key */
+            record_key: string;
+        };
+        /** ComparisonRevisionView */
+        ComparisonRevisionView: {
+            /** Achieved Evidence Level */
+            achieved_evidence_level: string | null;
+            /** Allowed Claim */
+            allowed_claim: string | null;
+            /** Compared Record Count */
+            compared_record_count: number;
+            /** Fixture */
+            fixture: boolean;
+            /** Job Id */
+            job_id: string;
+            /** Job Status */
+            job_status: string;
+            /** Normalized Record Count */
+            normalized_record_count: number;
+            /** Omitted Record Count */
+            omitted_record_count: number;
+            /** Package Evidence Level */
+            package_evidence_level: string | null;
+            /** Package Status */
+            package_status: string | null;
+            /** Parent Revision Id */
+            parent_revision_id: string | null;
+            /** Physical Evidence Present */
+            physical_evidence_present: boolean;
+            /** Revision Id */
+            revision_id: string;
+            /** Revision Number */
+            revision_number: number;
+            /**
+             * Source Kind
+             * @enum {string}
+             */
+            source_kind: "interface_fixture" | "runtime_revision";
+            /** Source Label */
+            source_label: string;
+            /** Title */
+            title: string;
+        };
         /** EventView */
         EventView: {
             /** Data */
@@ -215,7 +315,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.1.0";
+            schema_version: "1.2.0";
             /**
              * Service
              * @constant
@@ -437,6 +537,44 @@ export interface components {
             /** Unresolved Warning Count */
             unresolved_warning_count: number;
         };
+        /** RevisionComparisonResponse */
+        RevisionComparisonResponse: {
+            base: components["schemas"]["ComparisonRevisionView"];
+            candidate: components["schemas"]["ComparisonRevisionView"];
+            capabilities: components["schemas"]["CapabilitiesView"];
+            /** Changes */
+            changes: components["schemas"]["ComparisonChangeView"][];
+            /** Claim Boundary */
+            claim_boundary: string;
+            /** Complete */
+            complete: boolean;
+            /** Incomplete Value Count */
+            incomplete_value_count: number;
+            /** Max Changes */
+            max_changes: number;
+            /** Max Records Per Revision */
+            max_records_per_revision: number;
+            /** Max Value Bytes */
+            max_value_bytes: number;
+            /** Omitted Change Count */
+            omitted_change_count: number;
+            /**
+             * Relationship
+             * @enum {string}
+             */
+            relationship: "same_revision" | "parent_to_child" | "child_to_parent" | "same_job" | "unrelated";
+            /** Returned Change Count */
+            returned_change_count: number;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "1.2.0";
+            /** Summaries */
+            summaries: components["schemas"]["ComparisonAreaSummaryView"][];
+            /** Total Change Count */
+            total_change_count: number;
+        };
         /** RevisionDetailResponse */
         RevisionDetailResponse: {
             capabilities: components["schemas"]["CapabilitiesView"];
@@ -450,7 +588,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.1.0";
+            schema_version: "1.2.0";
             source: components["schemas"]["SourceView"];
             /** Stages */
             stages: components["schemas"]["StageView"][];
@@ -464,7 +602,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.1.0";
+            schema_version: "1.2.0";
         };
         /** RevisionSummary */
         RevisionSummary: {
@@ -485,6 +623,8 @@ export interface components {
             latest_stage: string | null;
             /** Latest Status */
             latest_status: string | null;
+            /** Parent Revision Id */
+            parent_revision_id: string | null;
             /** Revision Id */
             revision_id: string;
             /** Revision Number */
@@ -621,6 +761,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HealthResponse"];
+                };
+            };
+        };
+    };
+    revision_comparison_api_v1_revision_comparison_get: {
+        parameters: {
+            query: {
+                base_job_id: string;
+                base_revision_id: string;
+                candidate_job_id: string;
+                candidate_revision_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevisionComparisonResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

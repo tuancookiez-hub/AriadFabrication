@@ -59,6 +59,16 @@ The committed interface fixture now includes eight artifacts: one explanatory no
 
 Research conclusion: report inspection should remain a bounded replay layer over immutable evidence, not another validator. A selected row explains the persisted requirement/result pair; it cannot spatially identify exact STEP topology, rerun a kernel query, or improve the revision's evidence level.
 
+## Persisted revision comparison
+
+M4-E local evidence on 2026-07-16: API 1.2 normalizes 66 records on each side of the committed parent/child fixture. The deliberately revised bore and process request yields 12 semantic changes across stage, requirement, feature, report, check, profile, and artifact areas. Generated IDs, paths used only for downloads, and timestamps do not appear as changes. A same-revision comparison returns zero rows; unrelated jobs are identified rather than presented as lineage.
+
+The comparison is bounded at 10,000 normalized records per revision, 1,000 returned changes, and 64 KiB of value detail per side. Tests force each ceiling and require explicit omission or canonical hash metadata plus `complete: false`. The endpoint is GET-only and reads both inputs through the same fail-closed detail contract. The browser renders the server response and does not rerun CAD, validation, slicing, G-code preflight, simulation, or physical work.
+
+The current canonical API snapshot is 54,318 bytes with SHA-256 `1f177747402776e8bcb71715707c908eb14314f4a722310b5141368e2e200cb0`, five paths, and 30 schemas; generated TypeScript is 27,578 bytes. The pinned backend suite passes 80 tests, and the frontend passes seven deterministic tests plus two real-artifact integration tests.
+
+Research conclusion: revision comparison should remain a semantic lens over persisted evidence, not an equivalence checker. A zero-row result can support traceability and review, but it cannot establish identical B-rep topology, manufacturing behavior, or physical performance.
+
 ## Organic meshes and Blender
 
 - [Blender MCP](https://github.com/ahujasid/blender-mcp) — Blender scene, mesh, material, and Python control through MCP.

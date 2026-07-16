@@ -22,7 +22,7 @@ const reportArtifact: Artifact = {
 }
 
 const detail: RevisionDetail = {
-  schema_version: '1.1.0',
+  schema_version: '1.2.0',
   capabilities: { read_only: true, hardware_actions: false },
   source: {
     kind: 'interface_fixture',

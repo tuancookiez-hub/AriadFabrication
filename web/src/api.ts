@@ -1,4 +1,4 @@
-import type { RevisionDetail, RevisionListResponse } from './types'
+import type { RevisionComparison, RevisionDetail, RevisionListResponse } from './types'
 
 const apiRoot = (import.meta.env.VITE_ARIAD_API_ROOT ?? '').replace(/\/$/, '')
 
@@ -42,4 +42,20 @@ export function getRevision(
     `/api/v1/revisions/${encodeURIComponent(jobId)}/${encodeURIComponent(revisionId)}`,
     signal,
   )
+}
+
+export function getRevisionComparison(
+  baseJobId: string,
+  baseRevisionId: string,
+  candidateJobId: string,
+  candidateRevisionId: string,
+  signal?: AbortSignal,
+): Promise<RevisionComparison> {
+  const query = new URLSearchParams({
+    base_job_id: baseJobId,
+    base_revision_id: baseRevisionId,
+    candidate_job_id: candidateJobId,
+    candidate_revision_id: candidateRevisionId,
+  })
+  return requestJson(`/api/v1/revision-comparison?${query.toString()}`, signal)
 }

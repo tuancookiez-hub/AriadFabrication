@@ -7,12 +7,15 @@ from copy import deepcopy
 import hashlib
 import json
 from pathlib import Path
+import shutil
 from typing import Any
 
 
 JOB_ID = "job_interface_fixture"
 REVISION_ID = "rev_interface_fixture"
+COMPARISON_REVISION_ID = "rev_interface_fixture_v2"
 FIXTURE_TIMESTAMP = "2026-07-16T08:00:00+00:00"
+COMPARISON_TIMESTAMP = "2026-07-16T08:05:00+00:00"
 STAGES = (
     ("brief", "passed", "R0", "Confirmed fixture specification passed the Brief shape"),
     ("design", "passed", "R1", "Fixture design stage exposes editable-source metadata"),
@@ -539,11 +542,206 @@ def generate_interface_fixtures(output_root: Path, golden_spec_path: Path) -> tu
     """Generate the complete deterministic M4 interface fixture family."""
 
     primary = generate_interface_fixture(output_root, golden_spec_path)
+    comparison = _generate_comparison_fixture(primary)
     gates = tuple(
         _generate_gate_fixture(output_root, golden_spec_path, scenario)
         for scenario in GATE_SCENARIOS
     )
-    return (primary, *gates)
+    return (primary, comparison, *gates)
+
+
+def _generate_comparison_fixture(primary_root: Path) -> Path:
+    """Create a deterministic child revision with a small, coherent persisted delta."""
+
+    child_root = primary_root.parent / COMPARISON_REVISION_ID
+    shutil.copytree(primary_root, child_root, dirs_exist_ok=True)
+
+    journey = _read_json_object(primary_root / "journey.json")
+    original_revision = deepcopy(journey["revisions"][0])
+    original_stages = deepcopy(journey["stage_runs"])
+    original_events = deepcopy(journey["events"])
+    original_artifacts = deepcopy(journey["artifacts"])
+    original_findings = deepcopy(journey["findings"])
+    original_decisions = deepcopy(journey["decisions"])
+    original_approvals = deepcopy(journey["approvals"])
+
+    stage_ids = {
+        str(item["stage_run_id"]): f"{item['stage_run_id']}_v2"
+        for item in original_stages
+    }
+    event_ids = {
+        str(item["event_id"]): f"{item['event_id']}_v2"
+        for item in original_events
+    }
+    artifact_ids = {
+        str(item["artifact_id"]): f"{item['artifact_id']}_v2"
+        for item in original_artifacts
+    }
+    finding_ids = {
+        str(item["finding_id"]): f"{item['finding_id']}_v2"
+        for item in original_findings
+    }
+    decision_ids = {
+        str(item["decision_id"]): f"{item['decision_id']}_v2"
+        for item in original_decisions
+    }
+    approval_ids = {
+        str(item["approval_id"]): f"{item['approval_id']}_v2"
+        for item in original_approvals
+    }
+
+    child_events = deepcopy(original_events)
+    for item in child_events:
+        item["event_id"] = event_ids[str(item["event_id"])]
+        item["revision_id"] = COMPARISON_REVISION_ID
+        item["stage_run_id"] = stage_ids[str(item["stage_run_id"])]
+        item["timestamp"] = COMPARISON_TIMESTAMP
+        if item["stage"] == "design":
+            item["message"] = "Fixture child revision records the revised bore and process request"
+
+    child_findings = deepcopy(original_findings)
+    for item in child_findings:
+        item["finding_id"] = finding_ids[str(item["finding_id"])]
+        item["revision_id"] = COMPARISON_REVISION_ID
+        item["stage_run_id"] = stage_ids[str(item["stage_run_id"])]
+        item["created_at"] = COMPARISON_TIMESTAMP
+
+    child_decisions = deepcopy(original_decisions)
+    for item in child_decisions:
+        item["decision_id"] = decision_ids[str(item["decision_id"])]
+        item["revision_id"] = COMPARISON_REVISION_ID
+        if item.get("stage_run_id") is not None:
+            item["stage_run_id"] = stage_ids[str(item["stage_run_id"])]
+        item["created_at"] = COMPARISON_TIMESTAMP
+
+    child_approvals = deepcopy(original_approvals)
+    for item in child_approvals:
+        item["approval_id"] = approval_ids[str(item["approval_id"])]
+        item["revision_id"] = COMPARISON_REVISION_ID
+        if item.get("stage_run_id") is not None:
+            item["stage_run_id"] = stage_ids[str(item["stage_run_id"])]
+        item["requested_at"] = COMPARISON_TIMESTAMP
+        if item.get("decided_at") is not None:
+            item["decided_at"] = COMPARISON_TIMESTAMP
+
+    child_stages = deepcopy(original_stages)
+    for item in child_stages:
+        old_stage_id = str(item["stage_run_id"])
+        item["stage_run_id"] = stage_ids[old_stage_id]
+        item["revision_id"] = COMPARISON_REVISION_ID
+        item["event_ids"] = [event_ids[str(value)] for value in item["event_ids"]]
+        item["artifact_ids"] = [artifact_ids[str(value)] for value in item["artifact_ids"]]
+        item["input_artifact_ids"] = [
+            artifact_ids.get(str(value), str(value)) for value in item["input_artifact_ids"]
+        ]
+        item["finding_ids"] = [finding_ids[str(value)] for value in item["finding_ids"]]
+        item["decision_ids"] = [decision_ids[str(value)] for value in item["decision_ids"]]
+        item["approval_ids"] = [approval_ids[str(value)] for value in item["approval_ids"]]
+        item["started_at"] = COMPARISON_TIMESTAMP
+        if item.get("completed_at") is not None:
+            item["completed_at"] = COMPARISON_TIMESTAMP
+        if item["stage"] == "design":
+            item["summary"] = "Fixture design stage records the revised bore and process request"
+
+    note = (
+        "ARIAD INTERFACE COMPARISON FIXTURE\n"
+        "This child revision demonstrates persisted diffs only.\n"
+        "It is fixture evidence, not a fabrication package or physical result.\n"
+    ).encode("utf-8")
+    (child_root / "notes" / "interface-fixture.txt").write_bytes(note)
+
+    geometry_path = child_root / "design" / "geometry_validation.json"
+    geometry = _read_json_object(geometry_path)
+    geometry["measurements"]["stake_bore_diameter"] = 12.8
+    for check in geometry["checks"]:
+        if check["check_id"] == "stake_bore_diameter":
+            check["actual"] = 12.8
+            check["expected"] = 12.8
+    _write_json(geometry_path, geometry)
+
+    process_path = child_root / "profiles" / "process.json"
+    process = _read_json_object(process_path)
+    process["infill_percent"] = 35
+    process["name"] = "Fixture 0.20 mm / 35% infill process"
+    _write_json(process_path, process)
+
+    child_artifacts = deepcopy(original_artifacts)
+    for item in child_artifacts:
+        item["artifact_id"] = artifact_ids[str(item["artifact_id"])]
+        item["revision_id"] = COMPARISON_REVISION_ID
+        item["stage_run_id"] = stage_ids[str(item["stage_run_id"])]
+        item["parent_artifact_ids"] = [
+            artifact_ids.get(str(value), str(value))
+            for value in item["parent_artifact_ids"]
+        ]
+        item["created_at"] = COMPARISON_TIMESTAMP
+        payload = (child_root / str(item["path"])).read_bytes()
+        item["checksum_sha256"] = hashlib.sha256(payload).hexdigest()
+        item["size_bytes"] = len(payload)
+
+    child_spec = deepcopy(original_revision["spec"])
+    child_spec["name"] = "OpenGrow Stake Electronics Clamp — comparison fixture v2"
+    child_spec["infill_pct"] = 35
+    child_spec["notes"] = (
+        "Deterministic child fixture with a revised bore and process request. No stage in this "
+        "record establishes fabrication evidence."
+    )
+    for feature in child_spec["features"]:
+        if feature["feature_id"] == "stake_bore":
+            feature["dimensions_mm"]["diameter"] = 12.8
+            feature["notes"] = (
+                "Fixture child request uses 0.8 mm nominal diametral clearance over a 12 mm stake."
+            )
+    child_spec["mating_requirements"][0]["clearance_mm"] = 0.8
+
+    child_revision = deepcopy(original_revision)
+    child_revision["created_at"] = COMPARISON_TIMESTAMP
+    child_revision["number"] = 2
+    child_revision["parent_revision_id"] = REVISION_ID
+    child_revision["reason"] = "Deterministic M4 revision-comparison fixture"
+    child_revision["revision_id"] = COMPARISON_REVISION_ID
+    child_revision["spec"] = child_spec
+    child_revision["stage_run_ids"] = [
+        stage_ids[str(value)] for value in original_revision["stage_run_ids"]
+    ]
+
+    journey["approvals"] = [*original_approvals, *child_approvals]
+    journey["artifacts"] = [*original_artifacts, *child_artifacts]
+    journey["decisions"] = [*original_decisions, *child_decisions]
+    journey["events"] = [*original_events, *child_events]
+    journey["findings"] = [*original_findings, *child_findings]
+    journey["revisions"] = [original_revision, child_revision]
+    journey["stage_runs"] = [*original_stages, *child_stages]
+    journey["job"]["current_revision_id"] = COMPARISON_REVISION_ID
+    journey["job"]["title"] = "OpenGrow Stake Electronics Clamp — comparison fixture"
+    journey["job"]["updated_at"] = COMPARISON_TIMESTAMP
+
+    manifest = {
+        "approvals": child_approvals,
+        "artifacts": child_artifacts,
+        "decisions": child_decisions,
+        "findings": child_findings,
+        "generated_at": COMPARISON_TIMESTAMP,
+        "job_id": JOB_ID,
+        "revision_id": COMPARISON_REVISION_ID,
+        "schema_version": "1.0.0",
+        "stage_run_ids": child_revision["stage_run_ids"],
+    }
+    marker = _read_json_object(primary_root / "fixture.json")
+    marker["generated_at"] = COMPARISON_TIMESTAMP
+    marker["label"] = "INTERFACE COMPARISON FIXTURE — child revision; no fabrication evidence"
+    marker["comparison_fixture"] = True
+    package = _read_json_object(primary_root / "fabrication" / "package.json")
+    package["revision_id"] = COMPARISON_REVISION_ID
+    package["unresolved_warning_findings"] = [
+        finding_ids[str(value)] for value in package["unresolved_warning_findings"]
+    ]
+
+    _write_json(child_root / "journey.json", journey)
+    _write_json(child_root / "manifest.json", manifest)
+    _write_json(child_root / "fixture.json", marker)
+    _write_json(child_root / "fabrication" / "package.json", package)
+    return child_root
 
 
 def _generate_gate_fixture(
@@ -743,6 +941,13 @@ def _write_json(path: Path, value: dict[str, Any]) -> None:
         encoding="utf-8",
         newline="\n",
     )
+
+
+def _read_json_object(path: Path) -> dict[str, Any]:
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict):
+        raise ValueError(f"fixture source must contain a JSON object: {path}")
+    return value
 
 
 def main(argv: list[str] | None = None) -> None:

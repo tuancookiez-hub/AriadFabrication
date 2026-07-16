@@ -11,6 +11,7 @@ import re
 from typing import Any, Mapping
 from urllib.parse import quote
 
+from .comparison import compare_revision_details
 from .models import (
     INTERFACE_API_VERSION,
     ArtifactView,
@@ -29,6 +30,7 @@ from .models import (
     JobView,
     PackageView,
     RevisionDetailResponse,
+    RevisionComparisonResponse,
     RevisionListResponse,
     RevisionSummary,
     RevisionView,
@@ -162,6 +164,7 @@ class JourneyRepository:
                         title=None,
                         job_status=None,
                         revision_number=None,
+                        parent_revision_id=None,
                         stage_count=0,
                         latest_stage=None,
                         latest_status=None,
@@ -196,6 +199,7 @@ class JourneyRepository:
                     title=detail.job.title,
                     job_status=detail.job.status,
                     revision_number=detail.revision.number,
+                    parent_revision_id=detail.revision.parent_revision_id,
                     stage_count=len(detail.stages),
                     latest_stage=latest.stage if latest else None,
                     latest_status=latest.status if latest else None,
@@ -215,6 +219,19 @@ class JourneyRepository:
 
     def get_revision(self, job_id: str, revision_id: str) -> RevisionDetailResponse:
         return self._get_revision(job_id, revision_id, include_inspection=True)
+
+    def compare_revisions(
+        self,
+        base_job_id: str,
+        base_revision_id: str,
+        candidate_job_id: str,
+        candidate_revision_id: str,
+    ) -> RevisionComparisonResponse:
+        """Compare two persisted views without mutating or rerunning either revision."""
+
+        base = self.get_revision(base_job_id, base_revision_id)
+        candidate = self.get_revision(candidate_job_id, candidate_revision_id)
+        return compare_revision_details(base, candidate)
 
     def _get_revision(
         self,

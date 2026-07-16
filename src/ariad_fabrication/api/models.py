@@ -7,8 +7,8 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict
 
 
-InterfaceApiVersion = Literal["1.1.0"]
-INTERFACE_API_VERSION: InterfaceApiVersion = "1.1.0"
+InterfaceApiVersion = Literal["1.2.0"]
+INTERFACE_API_VERSION: InterfaceApiVersion = "1.2.0"
 
 
 class ApiModel(BaseModel):
@@ -219,6 +219,84 @@ class InspectionView(ApiModel):
     claim_boundary: str
 
 
+ComparisonArea = Literal[
+    "stage",
+    "requirement",
+    "feature",
+    "report",
+    "check",
+    "finding",
+    "profile",
+    "artifact",
+    "package",
+]
+ComparisonChangeKind = Literal["added", "removed", "changed"]
+ComparisonRelationship = Literal[
+    "same_revision",
+    "parent_to_child",
+    "child_to_parent",
+    "same_job",
+    "unrelated",
+]
+
+
+class ComparisonRevisionView(ApiModel):
+    job_id: str
+    revision_id: str
+    revision_number: int
+    parent_revision_id: str | None
+    title: str
+    job_status: str
+    source_kind: Literal["interface_fixture", "runtime_revision"]
+    source_label: str
+    fixture: bool
+    physical_evidence_present: bool
+    achieved_evidence_level: str | None
+    package_status: str | None
+    package_evidence_level: str | None
+    allowed_claim: str | None
+    normalized_record_count: int
+    compared_record_count: int
+    omitted_record_count: int
+
+
+class ComparisonChangeView(ApiModel):
+    area: ComparisonArea
+    record_key: str
+    label: str
+    change: ComparisonChangeKind
+    base_value: dict[str, Any] | None
+    candidate_value: dict[str, Any] | None
+    detail_complete: bool
+    boundary: str | None
+
+
+class ComparisonAreaSummaryView(ApiModel):
+    area: ComparisonArea
+    added: int
+    removed: int
+    changed: int
+
+
+class RevisionComparisonResponse(ApiModel):
+    schema_version: InterfaceApiVersion
+    capabilities: CapabilitiesView
+    base: ComparisonRevisionView
+    candidate: ComparisonRevisionView
+    relationship: ComparisonRelationship
+    complete: bool
+    total_change_count: int
+    returned_change_count: int
+    omitted_change_count: int
+    incomplete_value_count: int
+    summaries: list[ComparisonAreaSummaryView]
+    changes: list[ComparisonChangeView]
+    max_changes: int
+    max_value_bytes: int
+    max_records_per_revision: int
+    claim_boundary: str
+
+
 class RevisionSummary(ApiModel):
     job_id: str
     revision_id: str
@@ -226,6 +304,7 @@ class RevisionSummary(ApiModel):
     title: str | None
     job_status: str | None
     revision_number: int | None
+    parent_revision_id: str | None
     stage_count: int
     latest_stage: str | None
     latest_status: str | None

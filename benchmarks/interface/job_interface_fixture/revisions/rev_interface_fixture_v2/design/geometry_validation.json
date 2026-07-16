@@ -1,0 +1,44 @@
+{
+  "checks": [
+    {
+      "actual": true,
+      "check_id": "kernel_valid",
+      "description": "Fixture kernel-validity row",
+      "expected": true,
+      "passed": true,
+      "tolerance_mm": null
+    },
+    {
+      "actual": 12.8,
+      "check_id": "stake_bore_diameter",
+      "description": "Fixture stake bore matches the frozen target",
+      "expected": 12.8,
+      "passed": true,
+      "tolerance_mm": 0.2
+    },
+    {
+      "actual": 1,
+      "check_id": "solid_body_count",
+      "description": "Fixture shape contains one body",
+      "expected": 1,
+      "passed": true,
+      "tolerance_mm": null
+    }
+  ],
+  "claim_boundary": "Interface fixture values demonstrate evidence presentation only. They are not CAD, slicer, manufacturing, or physical evidence.",
+  "errors": [],
+  "evidence_level": "R2",
+  "measurements": {
+    "design_envelope": {
+      "x": 30.0,
+      "y": 24.49,
+      "z": 50.0
+    },
+    "solid_body_count": 1,
+    "stake_bore_diameter": 12.8
+  },
+  "passed": true,
+  "schema_version": "1.0.0-interface-fixture",
+  "status": "passed",
+  "warnings": []
+}

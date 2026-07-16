@@ -178,22 +178,23 @@ These labels must appear in both reports and the interface.
 
 ## Current M4 interface gate
 
-The read-only M4-A through M4-D application slices preserve evidence rather than creating it:
+The read-only M4-A through M4-E application slices preserve evidence rather than creating it:
 
 - The API groups stages, events, findings, and artifacts only through IDs already persisted in `journey.json` and `manifest.json`.
 - A missing manifest remains `manifest_available: false`; it does not erase an otherwise inspectable incomplete journey or promote it.
 - Malformed ownership, unsafe paths, mismatched manifest records, and artifact size/checksum drift fail closed.
-- The committed interface family uses `evidence_mode: fixture` at every stage. It includes complete, `needs_input`, failed Geometry, failed Printability, and incomplete Package paths, and the complete package permits only “Interface fixture only — no fabrication evidence.”
+- The committed interface family uses `evidence_mode: fixture` at every stage. It includes a complete parent/child comparison pair plus `needs_input`, failed Geometry, failed Printability, and incomplete Package paths, and both complete packages permit only “Interface fixture only — no fabrication evidence.”
 - API capabilities and artifact responses explicitly report that hardware actions are unavailable.
 - The canonical OpenAPI snapshot contains only GET contracts, marks the read-only capability constants and emitted response fields as required, generates the browser response types, and fails backend or frontend checks when either snapshot or generated code drifts.
-- API 1.1 parses only the recorded geometry, printability, preflight, printer, material, process, and orientation roles after verifying each file against its persisted size and SHA-256. JSON is capped at 2 MiB, 500 checks, 100 messages/features, 128 top-level inspection fields, depth 16, and 20,000 nodes; missing, oversized, changed, invalid, ambiguous, or unsupported sources become explicit unavailable records rather than pass states.
+- API 1.2 parses only the recorded geometry, printability, preflight, printer, material, process, and orientation roles after verifying each file against its persisted size and SHA-256. JSON is capped at 2 MiB, 500 checks, 100 messages/features, 128 top-level inspection fields, depth 16, and 20,000 nodes; missing, oversized, changed, invalid, ambiguous, or unsupported sources become explicit unavailable records rather than pass states.
 - The evidence explorer selects persisted requirements and records for explanation only. It does not spatially highlight STEP features, recompute measurements, rerun validators, or turn a selected pass into new evidence.
+- Revision comparison is computed from two normalized read views on the server. It omits volatile record IDs and timestamps; compares semantic stage, requirement, feature, report, check, finding, profile, artifact-checksum, and package values; caps each side at 10,000 records, output at 1,000 changes, and each returned value at 64 KiB; and marks the result incomplete when any bound is reached. An unchanged row is not proof of exact geometry or physical equivalence.
 - The React interface keeps fixture, warning, claim, physical-evidence, and disconnected-hardware boundaries visible and contains no “printable” badge.
 - The GLB inspector reads only checksum-verified preview artifacts, caps input at 64 MiB / two million triangles, and states that STEP remains exact geometry.
 - The G-code worker caps input at 64 MiB / one million linear segments, samples only oversized display layers, and states that playback is not collision, extrusion, thermal, structural, or physical simulation. Unsupported arc commands are counted and disclosed rather than silently drawn as lines; the current Golden Part contains none.
 - Real-artifact integration tests load the recorded GLB through Three.js and parse the recorded 250-layer G-code, while deterministic tests cover layer, mode, feature, travel, extrusion, unit, and omitted-arc behavior.
 
-This establishes interface-contract, parser, renderer-compatibility, and presentation-test evidence. Screenshot-level visual/accessibility QA and real end-to-end pipeline execution through the browser remain M4 work; passing these checks still provides no physical fabrication evidence.
+This establishes interface-contract, parser, renderer-compatibility, semantic-comparison, and presentation-test evidence. All 80 backend tests, seven deterministic frontend tests, and two real-artifact frontend integration tests pass. Screenshot-level visual/accessibility QA and real end-to-end pipeline execution through the browser remain M4 work; passing these checks still provides no physical fabrication evidence.
 
 ## Reliability gaps that remain after digital validation
 

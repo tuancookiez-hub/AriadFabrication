@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 
 from ariad_fabrication.api import JourneyRepository, create_app
 from ariad_fabrication.api.fixture import (
+    COMPARISON_REVISION_ID,
     GATE_SCENARIOS,
     JOB_ID,
     REVISION_ID,
@@ -76,7 +77,7 @@ class JourneyRepositoryTests(unittest.TestCase):
         self.assertEqual(len(detail.stages[3].findings), 2)
         self.assertTrue(all(stage.evidence_mode == "fixture" for stage in detail.stages))
         self.assertFalse(detail.capabilities.hardware_actions)
-        self.assertEqual(detail.schema_version, "1.1.0")
+        self.assertEqual(detail.schema_version, "1.2.0")
         self.assertEqual(
             [report.report_kind for report in detail.inspection.reports],
             ["geometry", "printability", "gcode_preflight"],
@@ -103,10 +104,15 @@ class JourneyRepositoryTests(unittest.TestCase):
             side_effect=AssertionError("listing must not parse inspection artifacts"),
         ):
             listing = repository.list_revisions()
-        self.assertEqual(len(listing.revisions), 5)
+        self.assertEqual(len(listing.revisions), 6)
         primary = next(item for item in listing.revisions if item.revision_id == REVISION_ID)
         self.assertEqual(primary.availability, "available")
+        self.assertIsNone(primary.parent_revision_id)
         self.assertEqual(primary.warning_count, 2)
+        child = next(
+            item for item in listing.revisions if item.revision_id == COMPARISON_REVISION_ID
+        )
+        self.assertEqual(child.parent_revision_id, REVISION_ID)
 
     def test_gate_fixtures_stop_at_their_persisted_boundary(self):
         repository = JourneyRepository(FIXTURE_ROOT)
@@ -329,13 +335,13 @@ class InterfaceHttpTests(unittest.TestCase):
     def test_list_detail_and_artifact_contracts(self):
         listing = self.client.get("/api/v1/revisions")
         self.assertEqual(listing.status_code, 200)
-        self.assertEqual(len(listing.json()["revisions"]), 5)
+        self.assertEqual(len(listing.json()["revisions"]), 6)
         self.assertEqual(listing.json()["revisions"][0]["source"]["kind"], "interface_fixture")
 
         detail = self.client.get(f"/api/v1/revisions/{JOB_ID}/{REVISION_ID}")
         self.assertEqual(detail.status_code, 200)
         payload = detail.json()
-        self.assertEqual(payload["schema_version"], "1.1.0")
+        self.assertEqual(payload["schema_version"], "1.2.0")
         self.assertEqual(
             [stage["stage"] for stage in payload["stages"]],
             [item[0] for item in STAGES],

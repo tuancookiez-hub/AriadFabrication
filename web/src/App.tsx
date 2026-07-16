@@ -1,16 +1,24 @@
-import { useEffect, useState } from 'react'
+import { type FormEvent, useEffect, useState } from 'react'
 import {
   Link,
   Navigate,
   RouterProvider,
   createBrowserRouter,
+  useNavigate,
   useParams,
 } from 'react-router-dom'
 
 import logoUrl from '../../assets/ariad-fabrication-official-logo.jpg'
-import { getRevision, listRevisions } from './api'
+import { getRevision, getRevisionComparison, listRevisions } from './api'
 import { ArtifactInspector } from './ArtifactInspector'
-import type { Finding, RevisionDetail, RevisionSummary, Stage } from './types'
+import { ComparisonView } from './ComparisonView'
+import type {
+  Finding,
+  RevisionComparison,
+  RevisionDetail,
+  RevisionSummary,
+  Stage,
+} from './types'
 
 const stageNames: Record<string, string> = {
   brief: 'Brief',
@@ -99,6 +107,88 @@ function RevisionCard({ revision }: { revision: RevisionSummary }) {
   )
 }
 
+function revisionKey(revision: RevisionSummary): string {
+  return `${revision.job_id}::${revision.revision_id}`
+}
+
+export function ComparisonLauncher({ revisions }: { revisions: RevisionSummary[] }) {
+  const navigate = useNavigate()
+  const child = revisions.find(
+    (revision) =>
+      revision.parent_revision_id !== null &&
+      revisions.some(
+        (candidate) =>
+          candidate.job_id === revision.job_id &&
+          candidate.revision_id === revision.parent_revision_id,
+      ),
+  )
+  const parent = child
+    ? revisions.find(
+        (revision) =>
+          revision.job_id === child.job_id && revision.revision_id === child.parent_revision_id,
+      )
+    : undefined
+  const [baseKey, setBaseKey] = useState(revisionKey(parent ?? revisions[0]!))
+  const [candidateKey, setCandidateKey] = useState(
+    revisionKey(child ?? revisions[1] ?? revisions[0]!),
+  )
+
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const base = revisions.find((revision) => revisionKey(revision) === baseKey)
+    const candidate = revisions.find((revision) => revisionKey(revision) === candidateKey)
+    if (!base || !candidate) return
+    navigate(
+      `/compare/${encodeURIComponent(base.job_id)}/${encodeURIComponent(base.revision_id)}` +
+        `/${encodeURIComponent(candidate.job_id)}/${encodeURIComponent(candidate.revision_id)}`,
+    )
+  }
+
+  function swap() {
+    setBaseKey(candidateKey)
+    setCandidateKey(baseKey)
+  }
+
+  return (
+    <form className="comparison-launcher" onSubmit={submit}>
+      <div>
+        <p className="eyebrow">Revision lens</p>
+        <h3>Compare persisted evidence</h3>
+        <p>
+          See normalized requirement and evidence changes without rerunning CAD, validators, or a
+          slicer.
+        </p>
+      </div>
+      <label>
+        <span>Base revision</span>
+        <select value={baseKey} onChange={(event) => setBaseKey(event.target.value)}>
+          {revisions.map((revision) => (
+            <option key={`base:${revisionKey(revision)}`} value={revisionKey(revision)}>
+              Revision {revision.revision_number ?? '?'} · {revision.title ?? revision.revision_id}
+            </option>
+          ))}
+        </select>
+      </label>
+      <button className="swap-button" type="button" onClick={swap}>
+        Swap
+      </button>
+      <label>
+        <span>Candidate revision</span>
+        <select value={candidateKey} onChange={(event) => setCandidateKey(event.target.value)}>
+          {revisions.map((revision) => (
+            <option key={`candidate:${revisionKey(revision)}`} value={revisionKey(revision)}>
+              Revision {revision.revision_number ?? '?'} · {revision.title ?? revision.revision_id}
+            </option>
+          ))}
+        </select>
+      </label>
+      <button className="compare-button" type="submit">
+        Compare records
+      </button>
+    </form>
+  )
+}
+
 function JourneyIndexPage() {
   const [revisions, setRevisions] = useState<RevisionSummary[] | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -114,6 +204,9 @@ function JourneyIndexPage() {
       })
     return () => controller.abort()
   }, [])
+
+  const availableRevisions =
+    revisions?.filter((revision) => revision.availability === 'available') ?? []
 
   return (
     <AppShell>
@@ -146,6 +239,9 @@ function JourneyIndexPage() {
             No journey records were found under the configured root. Generate the interface fixture
             or run the Golden Part pipeline.
           </div>
+        ) : null}
+        {availableRevisions.length >= 2 ? (
+          <ComparisonLauncher revisions={availableRevisions} />
         ) : null}
         <div className="revision-grid">
           {revisions?.map((revision) => (
@@ -371,9 +467,45 @@ function JourneyDetailPage() {
   return <JourneyView detail={detail} />
 }
 
+function RevisionComparisonPage() {
+  const { baseJobId, baseRevisionId, candidateJobId, candidateRevisionId } = useParams()
+  const [comparison, setComparison] = useState<RevisionComparison | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!baseJobId || !baseRevisionId || !candidateJobId || !candidateRevisionId) return
+    const controller = new AbortController()
+    getRevisionComparison(
+      baseJobId,
+      baseRevisionId,
+      candidateJobId,
+      candidateRevisionId,
+      controller.signal,
+    )
+      .then(setComparison)
+      .catch((reason: unknown) => {
+        if (!controller.signal.aborted) {
+          setError(reason instanceof Error ? reason.message : 'Unknown API error')
+        }
+      })
+    return () => controller.abort()
+  }, [baseJobId, baseRevisionId, candidateJobId, candidateRevisionId])
+
+  if (!baseJobId || !baseRevisionId || !candidateJobId || !candidateRevisionId) {
+    return <Navigate to="/" replace />
+  }
+  if (error) return <AppShell><ErrorPanel error={error} /></AppShell>
+  if (!comparison) return <AppShell><Loading message="Comparing persisted records…" /></AppShell>
+  return <AppShell><ComparisonView comparison={comparison} /></AppShell>
+}
+
 const router = createBrowserRouter([
   { path: '/', element: <JourneyIndexPage /> },
   { path: '/jobs/:jobId/revisions/:revisionId', element: <JourneyDetailPage /> },
+  {
+    path: '/compare/:baseJobId/:baseRevisionId/:candidateJobId/:candidateRevisionId',
+    element: <RevisionComparisonPage />,
+  },
   { path: '*', element: <Navigate to="/" replace /> },
 ])
 

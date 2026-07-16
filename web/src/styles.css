@@ -1146,12 +1146,399 @@ main {
   margin: 0.5rem 0 0;
 }
 
+.comparison-launcher {
+  display: grid;
+  grid-template-columns: minmax(230px, 1.2fr) minmax(190px, 1fr) auto minmax(190px, 1fr) auto;
+  gap: 0.8rem;
+  align-items: end;
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--red);
+  border-radius: 14px;
+  background: var(--panel);
+}
+
+.comparison-launcher h3 {
+  margin: 0.35rem 0 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.35rem;
+  font-weight: 500;
+}
+
+.comparison-launcher p:not(.eyebrow) {
+  margin: 0.45rem 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.comparison-launcher label {
+  display: grid;
+  gap: 0.4rem;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.comparison-launcher select,
+.comparison-launcher button {
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #0d0d0f;
+  color: var(--white);
+  font: inherit;
+}
+
+.comparison-launcher select {
+  width: 100%;
+  padding: 0 0.7rem;
+  color-scheme: dark;
+}
+
+.comparison-launcher button {
+  padding: 0.7rem 0.9rem;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.comparison-launcher .compare-button {
+  border-color: var(--red);
+  background: var(--red);
+}
+
+.comparison-launcher select:focus-visible,
+.comparison-launcher button:focus-visible,
+.comparison-change summary:focus-visible {
+  outline: 2px solid rgba(239, 41, 41, 0.55);
+  outline-offset: 2px;
+}
+
+.comparison-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(260px, 0.55fr);
+  gap: clamp(2rem, 7vw, 7rem);
+  align-items: end;
+  padding: clamp(3rem, 7vw, 6rem) clamp(1rem, 4vw, 4rem) 2.5rem;
+}
+
+.comparison-header h1 {
+  max-width: 900px;
+  margin: 0.35rem 0 1rem;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.6rem, 6vw, 5.8rem);
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  line-height: 0.98;
+}
+
+.comparison-header > div > p:not(.eyebrow) {
+  max-width: 760px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.comparison-status {
+  padding: 1.4rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--panel);
+}
+
+.comparison-status span,
+.comparison-status small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.comparison-status strong {
+  display: block;
+  margin: 0.45rem 0;
+  color: var(--red);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 2rem;
+  font-weight: 500;
+}
+
+.comparison-warning {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0 clamp(1rem, 4vw, 4rem) 1rem;
+  padding: 1rem 1.2rem;
+  border: 1px solid #6c4d15;
+  border-radius: 10px;
+  background: #2b210d;
+  color: #ffd987;
+  font-size: 0.8rem;
+}
+
+.comparison-revisions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  padding: 1rem clamp(1rem, 4vw, 4rem);
+}
+
+.comparison-revision {
+  min-width: 0;
+  padding: 1.5rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+}
+
+.comparison-revision-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: start;
+}
+
+.comparison-revision h2,
+.comparison-boundary h2 {
+  margin: 0.3rem 0 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.8rem;
+  font-weight: 500;
+}
+
+.comparison-revision > p {
+  color: var(--muted);
+}
+
+.comparison-revision > code {
+  display: block;
+  overflow-wrap: anywhere;
+  color: #d7d3ce;
+  font-size: 0.76rem;
+}
+
+.fixture-chip,
+.persisted-chip,
+.change-kind {
+  padding: 0.4rem 0.55rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.fixture-chip {
+  border-color: #6c4d15;
+  color: #ffd987;
+}
+
+.persisted-chip {
+  color: var(--green);
+}
+
+.comparison-revision dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  margin: 1.2rem 0 0;
+  border-top: 1px solid var(--line);
+}
+
+.comparison-revision dl > div {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.comparison-revision dt {
+  color: var(--muted);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+}
+
+.comparison-revision dd {
+  margin: 0.25rem 0 0;
+  font-size: 0.86rem;
+}
+
+.comparison-revision .comparison-claim {
+  margin-bottom: 0;
+  padding: 0.8rem;
+  border-left: 2px solid var(--amber);
+  background: rgba(242, 184, 75, 0.07);
+  color: #ddd2b9;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.comparison-boundary {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.65fr) minmax(0, 1.35fr);
+  gap: 2rem;
+  margin: 1rem clamp(1rem, 4vw, 4rem);
+  padding: 1.5rem;
+  border-top: 2px solid var(--red);
+  background: var(--panel);
+}
+
+.comparison-boundary > p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.comparison-results {
+  padding: 3rem clamp(1rem, 4vw, 4rem) 6rem;
+}
+
+.comparison-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.6rem;
+  margin-top: 1.4rem;
+}
+
+.comparison-summary-grid article {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--panel);
+}
+
+.comparison-summary-grid strong {
+  text-transform: capitalize;
+}
+
+.comparison-summary-grid span {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.comparison-change-list {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 1.5rem;
+}
+
+.comparison-change {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+}
+
+.comparison-change summary {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  padding: 1rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.comparison-change summary::-webkit-details-marker {
+  display: none;
+}
+
+.comparison-change summary > span:last-child {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.comparison-change summary small {
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+.change-kind-added {
+  border-color: #245f43;
+  color: var(--green);
+}
+
+.change-kind-removed {
+  border-color: #6c4d15;
+  color: var(--amber);
+}
+
+.change-kind-changed {
+  border-color: #6f2426;
+  color: #ff8b8b;
+}
+
+.comparison-values {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--line);
+}
+
+.comparison-value {
+  min-width: 0;
+  padding: 1rem;
+}
+
+.comparison-value + .comparison-value {
+  border-left: 1px solid var(--line);
+}
+
+.comparison-value > strong {
+  color: var(--muted);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.comparison-value pre {
+  max-height: 480px;
+  margin: 0.8rem 0 0;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: #ddd8d2;
+  font: 0.72rem/1.5 ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+.comparison-value p,
+.comparison-limit-note {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.comparison-limit-note {
+  padding: 0.8rem 1rem;
+  border-top: 1px solid #6c4d15;
+  background: #2b210d;
+  color: #ffd987;
+}
+
+.comparison-results .state-panel {
+  margin: 1.5rem 0 0;
+}
+
 @media (max-width: 900px) {
   .hero,
   .detail-header,
   .journey-layout,
-  .claim-grid {
+  .claim-grid,
+  .comparison-header,
+  .comparison-revisions,
+  .comparison-boundary {
     grid-template-columns: 1fr;
+  }
+
+  .comparison-launcher {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .comparison-launcher > div {
+    grid-column: 1 / -1;
   }
 
   .sticky-panel {
@@ -1197,8 +1584,25 @@ main {
   }
 
   .evidence-choice-list,
-  .check-browser {
+  .check-browser,
+  .comparison-launcher,
+  .comparison-values {
     grid-template-columns: 1fr;
+  }
+
+  .comparison-launcher > div {
+    grid-column: auto;
+  }
+
+  .comparison-value + .comparison-value {
+    border-top: 1px solid var(--line);
+    border-left: 0;
+  }
+
+  .comparison-warning,
+  .comparison-revision-heading {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
 

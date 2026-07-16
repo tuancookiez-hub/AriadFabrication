@@ -26,6 +26,7 @@ class OpenApiContractTests(unittest.TestCase):
             set(document["paths"]),
             {
                 "/api/v1/health",
+                "/api/v1/revision-comparison",
                 "/api/v1/revisions",
                 "/api/v1/revisions/{job_id}/{revision_id}",
                 "/api/v1/revisions/{job_id}/{revision_id}/artifacts/{artifact_id}",
@@ -39,7 +40,7 @@ class OpenApiContractTests(unittest.TestCase):
         self.assertEqual(capabilities["properties"]["hardware_actions"]["const"], False)
 
         health = document["components"]["schemas"]["HealthResponse"]["properties"]
-        self.assertEqual(health["schema_version"]["const"], "1.1.0")
+        self.assertEqual(health["schema_version"]["const"], "1.2.0")
         self.assertEqual(health["service"]["const"], "ariad-interface-api")
         self.assertEqual(health["status"]["const"], "ok")
 
@@ -48,6 +49,9 @@ class OpenApiContractTests(unittest.TestCase):
         response_models = {
             "ArtifactView",
             "CapabilitiesView",
+            "ComparisonAreaSummaryView",
+            "ComparisonChangeView",
+            "ComparisonRevisionView",
             "EventView",
             "FindingView",
             "GcodeSummaryView",
@@ -64,6 +68,7 @@ class OpenApiContractTests(unittest.TestCase):
             "JobView",
             "PackageView",
             "RevisionDetailResponse",
+            "RevisionComparisonResponse",
             "RevisionListResponse",
             "RevisionSummary",
             "RevisionView",

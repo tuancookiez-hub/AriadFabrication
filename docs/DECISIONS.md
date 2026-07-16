@@ -199,6 +199,26 @@ This file records accepted project-level decisions. Change an accepted decision 
 
 **Consequence:** Future report types must earn an explicit role adapter, bound, corruption tests, generated-contract update, and claim language. Do not pass arbitrary artifact JSON directly through to the browser as trusted evidence.
 
+### D-024 — Compare normalized persisted revisions on the server
+
+**Status:** Accepted for M4-E on 2026-07-16.
+
+**Decision:** Advance the read API to 1.2.0 and add one GET-only revision-comparison contract. The server loads both revisions through the existing fail-closed repository, normalizes semantic records, and returns only added, removed, or changed rows. The browser selects revisions and renders this response; it does not independently derive evidence differences.
+
+**Semantic boundary:** Compare stage state, selected top-level requirements, specification features, report summaries/measurements/messages, checks, findings, profiles, persisted artifact checksums/metadata, and package state. Match records by stable semantic keys and omit generated revision, stage, event, artifact, finding, decision, and approval IDs plus timestamps and download availability. A comparison does not rerun CAD, geometry validation, printability assessment, slicing, G-code preflight, simulation, or physical work. “Unchanged” means only that the normalized persisted values matched; it does not prove exact geometric or physical equivalence.
+
+**Resource and failure policy:** Normalize at most 10,000 records per revision, return at most 1,000 changed rows, and include at most 64 KiB of canonical JSON detail per side of a row. Oversized values are replaced by their canonical byte count and SHA-256. Record omissions, output omissions, and oversized values are counted explicitly, and `complete` is false whenever any bound prevents complete detail.
+
+**Evidence:** The new deterministic child fixture is revision 2 of the same fixture job and names revision 1 as its parent. Both sides expose 66 normalized records. A revised bore and infill request produces exactly 12 semantic changes: one stage, four requirements, one feature, one report, one check, one profile, and three artifact checksums. Tests prove same-revision emptiness, parent/child and unrelated relationships, volatile-field exclusion, large-value hashing, change and input-record limits, GET-only behavior, missing-revision failure, deterministic fixture bytes, and no journey mutation. The full pinned suite passes 80 backend tests; the frontend passes seven deterministic tests plus two real-artifact integration tests.
+
+**Contract evidence:** The canonical OpenAPI snapshot is 54,318 bytes with SHA-256 `1f177747402776e8bcb71715707c908eb14314f4a722310b5141368e2e200cb0`, five GET paths, and 30 schemas. Generated TypeScript is 27,578 bytes with SHA-256 `2fc169828fcd8f0ef34d1dcbd2df9375c97de668c9f473948852dcba65fd1d44`. Backend and frontend drift checks pass.
+
+**Dependency and runtime impact:** No dependency was added. Comparison uses the Python standard library and existing Pydantic/FastAPI boundary; the browser uses existing React and Router primitives. The production application entry is approximately 102.1 KB gzip and CSS is approximately 5.3 KB gzip. The existing lazy Three.js chunk remains approximately 184.7 KB gzip.
+
+**Removal path:** Remove `api/comparison.py`, the comparison models/repository/GET route, the child fixture, `ComparisonView.tsx`, the index picker and comparison route, and regenerate OpenAPI/TypeScript. Revision detail, evidence inspection, artifact reads, visualization, and the R0–R4 pipeline remain intact.
+
+**Consequence:** Future comparison areas must define a stable semantic key, exclude runtime noise, preserve claim boundaries, and earn explicit resource/failure tests. Do not move the authoritative diff into the browser or interpret a zero-row result as equivalence proof.
+
 ## Deferred decisions
 
 These require later evidence and should not be decided through preference alone:

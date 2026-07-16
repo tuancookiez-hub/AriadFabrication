@@ -1,0 +1,3 @@
+ARIAD INTERFACE COMPARISON FIXTURE
+This child revision demonstrates persisted diffs only.
+It is fixture evidence, not a fabrication package or physical result.

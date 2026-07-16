@@ -11,6 +11,7 @@ from fastapi.responses import FileResponse
 from .models import (
     INTERFACE_API_VERSION,
     HealthResponse,
+    RevisionComparisonResponse,
     RevisionDetailResponse,
     RevisionListResponse,
     read_only_capabilities,
@@ -52,6 +53,28 @@ def create_app(runs_root: Path | str = Path("runs")) -> FastAPI:
     @app.get("/api/v1/revisions", response_model=RevisionListResponse)
     def revisions() -> RevisionListResponse:
         return repository.list_revisions()
+
+    @app.get(
+        "/api/v1/revision-comparison",
+        response_model=RevisionComparisonResponse,
+    )
+    def revision_comparison(
+        base_job_id: str,
+        base_revision_id: str,
+        candidate_job_id: str,
+        candidate_revision_id: str,
+    ) -> RevisionComparisonResponse:
+        try:
+            return repository.compare_revisions(
+                base_job_id,
+                base_revision_id,
+                candidate_job_id,
+                candidate_revision_id,
+            )
+        except RevisionNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except InvalidRevisionError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
 
     @app.get(
         "/api/v1/revisions/{job_id}/{revision_id}",
