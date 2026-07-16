@@ -97,6 +97,14 @@ API 1.3.0 has five GET paths and 32 schemas. Its canonical OpenAPI snapshot is 6
 
 Research conclusion: bounded filesystem discovery prevents one listing request from scaling with an arbitrary local tree, but offset pagination over a changing directory is not snapshot isolation. Stable multi-request pages would require an immutable index, content-addressed catalog, or database snapshot; until such a component is justified, the interface must preserve the explicit live-window limitation.
 
+## Persisted lifecycle and evidence-state integrity
+
+M4-I local evidence on 2026-07-16: the read repository now validates job, stage, event, finding, decision, approval, package, inspection, evidence, and fixture/runtime vocabularies before presentation. It also checks revision/job/stage ownership, unique per-stage event sequences, lifecycle timestamp/evidence/error combinations, decision and approval semantics, manifest parity, fixture/runtime package classification, R4 package evidence, and literal-false hardware state. Unsupported checksum-verified report/profile states become explicit unavailable records rather than pass records. The same repository load precedes artifact delivery, so malformed parent lifecycle state also blocks downloads.
+
+API 1.4.0 has five GET paths and 45 schemas. Its canonical OpenAPI snapshot is 68,528 bytes with SHA-256 `69b53bcdbcf8471b5d1d1465843582b1df5e5203131dd3e3cf846ed0b3242b2d`; generated TypeScript is 35,921 bytes with SHA-256 `839c63852b3527eaf6ff681af25a855115aa4d5689d4c93c12de758c22403963`. The full pinned backend suite passes 101 tests. Frontend contract/type checks, eight deterministic tests, lint, and production build pass. All seven ignored real R2/R4 revisions remain available under the stricter reader. A live loopback request returned API 1.4.0, two of six observed fixture revisions with next offset 4 and `snapshot_consistent: false`, plus the exact checksum-matched 178-byte artifact snapshot; both capability and artifact headers retained `hardware_actions: false`.
+
+Research conclusion: a schema-valid enum is necessary but not sufficient for trustworthy lifecycle presentation. Ownership and cross-field relationships must be checked at the read boundary, and unsupported inspection content must not be normalized into success. Timestamps and remaining generic text fields still need strict type, timezone, and chronology validation in a subsequent slice.
+
 ## Organic meshes and Blender
 
 - [Blender MCP](https://github.com/ahujasid/blender-mcp) — Blender scene, mesh, material, and Python control through MCP.

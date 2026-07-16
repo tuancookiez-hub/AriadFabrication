@@ -3,15 +3,26 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import Enum
 import hashlib
 import json
 import math
 import os
 from pathlib import Path, PurePosixPath
 import re
-from typing import Any, Mapping
+from typing import Any, Literal, Mapping, TypeVar
 from urllib.parse import quote
 
+from ..domain import (
+    ApprovalStatus,
+    DecisionActor,
+    EvidenceLevel,
+    EvidenceMode,
+    FabricationStage,
+    FindingSeverity,
+    JobStatus,
+    StageStatus,
+)
 from .bounded_io import (
     BoundedFileMissingError,
     BoundedFileSizeMismatchError,
@@ -22,7 +33,9 @@ from .bounded_io import (
 from .comparison import compare_revision_details
 from .models import (
     INTERFACE_API_VERSION,
+    ApprovalView,
     ArtifactView,
+    DecisionView,
     EventView,
     FindingView,
     GcodeSummaryView,
@@ -31,12 +44,15 @@ from .models import (
     InspectionCheckView,
     InspectionFeatureView,
     InspectionMessageView,
+    InspectionProfileStatus,
     InspectionProfileView,
+    InspectionReportStatus,
     InspectionReportView,
     InspectionUnavailableView,
     InspectionView,
     JobView,
     PackageView,
+    PackageStatus,
     RevisionDetailResponse,
     RevisionComparisonResponse,
     RevisionListResponse,
@@ -56,7 +72,6 @@ _SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 _MEDIA_TYPE_PATTERN = re.compile(
     r"^[!#$%&'*+\-.^_`|~0-9A-Za-z]+/[!#$%&'*+\-.^_`|~0-9A-Za-z]+$"
 )
-_EVIDENCE_MODES = {"real", "simulated", "fixture", "unavailable"}
 _MAX_JSON_BYTES = 32 * 1024 * 1024
 _MAX_JSON_DEPTH = 32
 _MAX_JSON_NODES = 200_000
@@ -92,6 +107,11 @@ _PROFILE_HEADER_FIELDS = {
     "name",
     "status",
     "claim_boundary",
+}
+_REPORT_EVIDENCE_LEVELS = {
+    "geometry": EvidenceLevel.R2,
+    "printability": EvidenceLevel.R3,
+    "gcode_preflight": EvidenceLevel.R4,
 }
 _INSPECTION_CLAIM_BOUNDARY = (
     "Inspection values are replayed from checksum-verified persisted reports and profiles. "
@@ -420,7 +440,7 @@ class JourneyRepository:
                 job_id=_text(job.get("job_id"), "journey.job.job_id"),
                 title=_text(job.get("title"), "journey.job.title"),
                 request=_text(job.get("request"), "journey.job.request"),
-                status=_text(job.get("status"), "journey.job.status"),
+                status=_enum_value(job.get("status"), JobStatus, "journey.job.status"),
                 created_at=_text(job.get("created_at"), "journey.job.created_at"),
                 updated_at=_text(job.get("updated_at"), "journey.job.updated_at"),
                 metadata=_mapping(job.get("metadata", {}), "journey.job.metadata"),
@@ -434,7 +454,10 @@ class JourneyRepository:
                 spec=_mapping(loaded.revision.get("spec"), "revision.spec"),
             ),
             stages=stage_views,
-            package=self._package_view(loaded.package),
+            package=self._package_view(
+                loaded.package,
+                fixture=loaded.fixture is not None,
+            ),
             inspection=(
                 self._inspection_view(loaded)
                 if include_inspection
@@ -518,10 +541,13 @@ class JourneyRepository:
         job = _mapping(journey.get("job"), "journey.job")
         if job.get("job_id") != job_id:
             raise InvalidRevisionError("journey job id does not match its directory")
+        _enum_value(job.get("status"), JobStatus, "journey.job.status")
         revisions = _indexed(journey.get("revisions"), "revision_id", "journey.revisions")
         revision = revisions.get(revision_id)
         if revision is None:
             raise InvalidRevisionError("journey does not contain the requested revision")
+        if revision.get("job_id") != job_id:
+            raise InvalidRevisionError("revision ownership does not match the job")
         stage_runs = _indexed(journey.get("stage_runs"), "stage_run_id", "journey.stage_runs")
         events = _indexed(journey.get("events"), "event_id", "journey.events")
         all_journey_artifacts = _indexed(
@@ -538,8 +564,22 @@ class JourneyRepository:
             for record_id, record in all_findings.items()
             if record.get("revision_id") == revision_id
         }
-        decisions = _indexed(journey.get("decisions"), "decision_id", "journey.decisions")
-        approvals = _indexed(journey.get("approvals"), "approval_id", "journey.approvals")
+        all_decisions = _indexed(
+            journey.get("decisions"), "decision_id", "journey.decisions"
+        )
+        decisions = {
+            record_id: record
+            for record_id, record in all_decisions.items()
+            if record.get("revision_id") == revision_id
+        }
+        all_approvals = _indexed(
+            journey.get("approvals"), "approval_id", "journey.approvals"
+        )
+        approvals = {
+            record_id: record
+            for record_id, record in all_approvals.items()
+            if record.get("revision_id") == revision_id
+        }
         stage_ids = _string_list(revision.get("stage_run_ids"), "revision.stage_run_ids")
         for stage_id in stage_ids:
             stage = stage_runs.get(stage_id)
@@ -565,6 +605,16 @@ class JourneyRepository:
             )
             if manifest_findings != findings:
                 raise InvalidRevisionError("journey and manifest finding records differ")
+            manifest_decisions = _indexed(
+                manifest.get("decisions"), "decision_id", "manifest.decisions"
+            )
+            if manifest_decisions != decisions:
+                raise InvalidRevisionError("journey and manifest decision records differ")
+            manifest_approvals = _indexed(
+                manifest.get("approvals"), "approval_id", "manifest.approvals"
+            )
+            if manifest_approvals != approvals:
+                raise InvalidRevisionError("journey and manifest approval records differ")
             artifacts = manifest_artifacts
         if package is not None:
             if package.get("job_id") != job_id or package.get("revision_id") != revision_id:
@@ -572,8 +622,23 @@ class JourneyRepository:
         if fixture is not None:
             if fixture.get("classification") != "interface_fixture":
                 raise InvalidRevisionError("fixture marker has an unsupported classification")
+            if fixture.get("evidence_mode") != EvidenceMode.FIXTURE.value:
+                raise InvalidRevisionError("interface fixtures must use fixture evidence mode")
             if fixture.get("physical_validation") is not False:
                 raise InvalidRevisionError("interface fixtures must explicitly deny physical validation")
+        self._validate_revision_state(
+            job_id=job_id,
+            revision_id=revision_id,
+            stage_ids=stage_ids,
+            stage_runs=stage_runs,
+            events=events,
+            artifacts=artifacts,
+            findings=findings,
+            decisions=decisions,
+            approvals=approvals,
+            package=package,
+            fixture=fixture is not None,
+        )
         return _LoadedRevision(
             root=revision_root,
             journey=journey,
@@ -589,13 +654,220 @@ class JourneyRepository:
             approvals=approvals,
         )
 
+    def _validate_revision_state(
+        self,
+        *,
+        job_id: str,
+        revision_id: str,
+        stage_ids: list[str],
+        stage_runs: dict[str, dict[str, Any]],
+        events: dict[str, dict[str, Any]],
+        artifacts: dict[str, dict[str, Any]],
+        findings: dict[str, dict[str, Any]],
+        decisions: dict[str, dict[str, Any]],
+        approvals: dict[str, dict[str, Any]],
+        package: dict[str, Any] | None,
+        fixture: bool,
+    ) -> None:
+        for artifact in artifacts.values():
+            _validate_record_ownership(artifact, job_id, revision_id, "artifact")
+            mode = _evidence_mode(
+                artifact.get("evidence_mode"), "artifact.evidence_mode"
+            )
+            if fixture and mode is not EvidenceMode.FIXTURE:
+                raise InvalidRevisionError(
+                    "interface fixture artifacts must remain fixture evidence"
+                )
+
+        for finding in findings.values():
+            _validate_record_ownership(finding, job_id, revision_id, "finding")
+            _enum_value(
+                finding.get("severity"), FindingSeverity, "finding.severity"
+            )
+            mode = _evidence_mode(
+                finding.get("evidence_mode"), "finding.evidence_mode"
+            )
+            if fixture and mode is not EvidenceMode.FIXTURE:
+                raise InvalidRevisionError(
+                    "interface fixture findings must remain fixture evidence"
+                )
+            resolved = _boolean(finding.get("resolved"), "finding.resolved")
+            if resolved and _optional_text(finding.get("resolution")) is None:
+                raise InvalidRevisionError(
+                    "resolved findings require a recorded resolution"
+                )
+
+        if package is not None:
+            expected_schema = "1.0.0-interface-fixture" if fixture else "1.0.0"
+            expected_classification = (
+                "interface_fixture_package"
+                if fixture
+                else "printer_independent_fabrication_package"
+            )
+            if package.get("schema_version") != expected_schema:
+                raise InvalidRevisionError("package schema does not match its evidence class")
+            if package.get("classification") != expected_classification:
+                raise InvalidRevisionError(
+                    "package classification does not match its evidence class"
+                )
+            self._package_view(package, fixture=fixture)
+
+        for stage_id in stage_ids:
+            stage = stage_runs[stage_id]
+            stage_kind = _enum_value(
+                stage.get("stage"), FabricationStage, "stage.stage"
+            )
+            status = _enum_value(stage.get("status"), StageStatus, "stage.status")
+            mode = _evidence_mode(stage.get("evidence_mode"), "stage.evidence_mode")
+            evidence_level = _optional_enum_value(
+                stage.get("evidence_level"), EvidenceLevel, "stage.evidence_level"
+            )
+            _integer(stage.get("attempt"), "stage.attempt", minimum=1)
+            started_at = _optional_text(stage.get("started_at"))
+            completed_at = _optional_text(stage.get("completed_at"))
+            error_message = _optional_text(stage.get("error_message"))
+            if status is StageStatus.WAITING and (
+                started_at is not None or completed_at is not None
+            ):
+                raise InvalidRevisionError(
+                    "waiting stage runs cannot contain execution timestamps"
+                )
+            if status in {StageStatus.RUNNING, StageStatus.NEEDS_INPUT} and (
+                started_at is None or completed_at is not None
+            ):
+                raise InvalidRevisionError(
+                    f"{status.value} stage runs require only a start timestamp"
+                )
+            if status in {
+                StageStatus.PASSED,
+                StageStatus.PASSED_WITH_WARNINGS,
+                StageStatus.FAILED,
+            } and (started_at is None or completed_at is None):
+                raise InvalidRevisionError(
+                    f"{status.value} stage runs require start and completion timestamps"
+                )
+            if status is StageStatus.FAILED and error_message is None:
+                raise InvalidRevisionError("failed stage runs require an error message")
+            if status in {StageStatus.PASSED, StageStatus.PASSED_WITH_WARNINGS}:
+                if evidence_level is None:
+                    raise InvalidRevisionError(
+                        "passed stage runs require a recorded evidence level"
+                    )
+                if mode is EvidenceMode.UNAVAILABLE:
+                    raise InvalidRevisionError(
+                        "unavailable evidence cannot produce a passed stage run"
+                    )
+            if fixture and mode is not EvidenceMode.FIXTURE:
+                raise InvalidRevisionError(
+                    "interface fixture stages must remain fixture evidence"
+                )
+
+            event_records = self._records(
+                events,
+                stage.get("event_ids"),
+                "stage.event_ids",
+                expected_stage_id=stage_id,
+                expected_job_id=job_id,
+                expected_revision_id=revision_id,
+                allow_unscoped_revision=True,
+            )
+            sequences: list[int] = []
+            for event in event_records:
+                event_stage = _enum_value(
+                    event.get("stage"), FabricationStage, "event.stage"
+                )
+                if event_stage is not stage_kind:
+                    raise InvalidRevisionError(
+                        "event stage does not match its owning stage run"
+                    )
+                _enum_value(event.get("status"), StageStatus, "event.status")
+                sequences.append(
+                    _integer(event.get("sequence"), "event.sequence", minimum=1)
+                )
+            if len(sequences) != len(set(sequences)):
+                raise InvalidRevisionError(
+                    "stage events cannot contain duplicate sequence numbers"
+                )
+
+            self._records(
+                artifacts,
+                stage.get("input_artifact_ids"),
+                "stage.input_artifact_ids",
+                expected_job_id=job_id,
+                expected_revision_id=revision_id,
+            )
+            self._records(
+                artifacts,
+                stage.get("artifact_ids"),
+                "stage.artifact_ids",
+                expected_stage_id=stage_id,
+                expected_job_id=job_id,
+                expected_revision_id=revision_id,
+            )
+            self._records(
+                findings,
+                stage.get("finding_ids"),
+                "stage.finding_ids",
+                expected_stage_id=stage_id,
+                expected_job_id=job_id,
+                expected_revision_id=revision_id,
+            )
+            decision_records = self._records(
+                decisions,
+                stage.get("decision_ids"),
+                "stage.decision_ids",
+                expected_stage_id=stage_id,
+                expected_job_id=job_id,
+                expected_revision_id=revision_id,
+            )
+            for decision in decision_records:
+                _enum_value(
+                    decision.get("actor"), DecisionActor, "decision.actor"
+                )
+                _text_list(decision.get("alternatives"), "decision.alternatives")
+
+            approval_records = self._records(
+                approvals,
+                stage.get("approval_ids"),
+                "stage.approval_ids",
+                expected_stage_id=stage_id,
+                expected_job_id=job_id,
+                expected_revision_id=revision_id,
+            )
+            for approval in approval_records:
+                approval_status = _enum_value(
+                    approval.get("status"), ApprovalStatus, "approval.status"
+                )
+                _enum_value(
+                    approval.get("requested_by"),
+                    DecisionActor,
+                    "approval.requested_by",
+                )
+                decided_at = _optional_text(approval.get("decided_at"))
+                decided_by = _optional_enum_value(
+                    approval.get("decided_by"),
+                    DecisionActor,
+                    "approval.decided_by",
+                )
+                if approval_status is ApprovalStatus.REQUESTED:
+                    if decided_at is not None or decided_by is not None:
+                        raise InvalidRevisionError(
+                            "requested approvals cannot contain a decision"
+                        )
+                elif decided_at is None or decided_by is None:
+                    raise InvalidRevisionError(
+                        "decided approvals require decision time and actor"
+                    )
+
     def _stage_view(self, loaded: _LoadedRevision, stage_id: str) -> StageView:
         stage = loaded.stage_runs[stage_id]
+        stage_kind = _enum_value(stage.get("stage"), FabricationStage, "stage.stage")
         events = [
             EventView(
                 event_id=_text(item.get("event_id"), "event.event_id"),
+                stage=_enum_value(item.get("stage"), FabricationStage, "event.stage"),
                 event_type=_text(item.get("event_type"), "event.event_type"),
-                status=_text(item.get("status"), "event.status"),
+                status=_enum_value(item.get("status"), StageStatus, "event.status"),
                 message=_text(item.get("message"), "event.message"),
                 sequence=_integer(item.get("sequence"), "event.sequence", minimum=1),
                 timestamp=_text(item.get("timestamp"), "event.timestamp"),
@@ -614,7 +886,9 @@ class JourneyRepository:
                 finding_id=_text(item.get("finding_id"), "finding.finding_id"),
                 code=_text(item.get("code"), "finding.code"),
                 title=_text(item.get("title"), "finding.title"),
-                severity=_text(item.get("severity"), "finding.severity"),
+                severity=_enum_value(
+                    item.get("severity"), FindingSeverity, "finding.severity"
+                ),
                 evidence=_text(item.get("evidence"), "finding.evidence"),
                 evidence_mode=_evidence_mode(
                     item.get("evidence_mode"), "finding.evidence_mode"
@@ -641,28 +915,68 @@ class JourneyRepository:
                 expected_stage_id=stage_id,
             )
         ]
-        decisions = self._records(
-            loaded.decisions,
-            stage.get("decision_ids"),
-            "stage.decision_ids",
-            expected_stage_id=stage_id,
-        )
-        approvals = self._records(
-            loaded.approvals,
-            stage.get("approval_ids"),
-            "stage.approval_ids",
-            expected_stage_id=stage_id,
-        )
+        decisions = [
+            DecisionView(
+                decision_id=_text(item.get("decision_id"), "decision.decision_id"),
+                job_id=_text(item.get("job_id"), "decision.job_id"),
+                revision_id=_text(item.get("revision_id"), "decision.revision_id"),
+                stage_run_id=_optional_text(item.get("stage_run_id")),
+                question=_text(item.get("question"), "decision.question"),
+                choice=_text(item.get("choice"), "decision.choice"),
+                rationale=_text(item.get("rationale"), "decision.rationale"),
+                actor=_enum_value(item.get("actor"), DecisionActor, "decision.actor"),
+                alternatives=_text_list(
+                    item.get("alternatives"), "decision.alternatives"
+                ),
+                created_at=_text(item.get("created_at"), "decision.created_at"),
+                data=_mapping(item.get("data", {}), "decision.data"),
+            )
+            for item in self._records(
+                loaded.decisions,
+                stage.get("decision_ids"),
+                "stage.decision_ids",
+                expected_stage_id=stage_id,
+            )
+        ]
+        approvals = [
+            ApprovalView(
+                approval_id=_text(item.get("approval_id"), "approval.approval_id"),
+                job_id=_text(item.get("job_id"), "approval.job_id"),
+                revision_id=_text(item.get("revision_id"), "approval.revision_id"),
+                stage_run_id=_optional_text(item.get("stage_run_id")),
+                boundary=_text(item.get("boundary"), "approval.boundary"),
+                status=_enum_value(
+                    item.get("status"), ApprovalStatus, "approval.status"
+                ),
+                requested_by=_enum_value(
+                    item.get("requested_by"), DecisionActor, "approval.requested_by"
+                ),
+                rationale=str(item.get("rationale", "")).strip(),
+                requested_at=_text(item.get("requested_at"), "approval.requested_at"),
+                decided_at=_optional_text(item.get("decided_at")),
+                decided_by=_optional_enum_value(
+                    item.get("decided_by"), DecisionActor, "approval.decided_by"
+                ),
+            )
+            for item in self._records(
+                loaded.approvals,
+                stage.get("approval_ids"),
+                "stage.approval_ids",
+                expected_stage_id=stage_id,
+            )
+        ]
         tool = _mapping(stage.get("tool"), "stage.tool")
         return StageView(
             stage_run_id=stage_id,
-            stage=_text(stage.get("stage"), "stage.stage"),
-            status=_text(stage.get("status"), "stage.status"),
+            stage=stage_kind,
+            status=_enum_value(stage.get("status"), StageStatus, "stage.status"),
             attempt=_integer(stage.get("attempt"), "stage.attempt", minimum=1),
             evidence_mode=_evidence_mode(
                 stage.get("evidence_mode"), "stage.evidence_mode"
             ),
-            evidence_level=_optional_text(stage.get("evidence_level")),
+            evidence_level=_optional_enum_value(
+                stage.get("evidence_level"), EvidenceLevel, "stage.evidence_level"
+            ),
             tool=ToolView(
                 name=_text(tool.get("name"), "stage.tool.name"),
                 version=_text(tool.get("version"), "stage.tool.version"),
@@ -739,7 +1053,12 @@ class JourneyRepository:
             physical_evidence_present=physical,
         )
 
-    def _package_view(self, package: dict[str, Any] | None) -> PackageView | None:
+    def _package_view(
+        self,
+        package: dict[str, Any] | None,
+        *,
+        fixture: bool,
+    ) -> PackageView | None:
         if package is None:
             return None
         hardware = _mapping(package.get("hardware"), "package.hardware")
@@ -763,18 +1082,42 @@ class JourneyRepository:
         warnings = package.get("unresolved_warning_findings", [])
         if not isinstance(warnings, list):
             raise InvalidRevisionError("package unresolved warnings must be a list")
+        evidence_level = _optional_enum_value(
+            package.get("evidence_level"), EvidenceLevel, "package.evidence_level"
+        )
+        if evidence_level is not None and evidence_level is not EvidenceLevel.R4:
+            raise InvalidRevisionError("package.evidence_level must be R4 or null")
+        if fixture != (evidence_level is None):
+            raise InvalidRevisionError(
+                "fixture packages require null evidence; runtime packages require R4"
+            )
+        package_status = _enum_value(
+            package.get("status"), PackageStatus, "package.status"
+        )
+        if fixture != (package_status is PackageStatus.FIXTURE):
+            raise InvalidRevisionError(
+                "fixture and runtime package status classifications cannot be mixed"
+            )
         return PackageView(
-            status=_text(package.get("status"), "package.status"),
-            evidence_level=_optional_text(package.get("evidence_level")),
-            allowed_claim=_optional_text(package.get("allowed_claim")),
-            claim_boundary=_optional_text(package.get("claim_boundary")),
+            status=package_status,
+            evidence_level=evidence_level,
+            allowed_claim=_text(package.get("allowed_claim"), "package.allowed_claim"),
+            claim_boundary=_text(
+                package.get("claim_boundary"), "package.claim_boundary"
+            ),
             hardware=HardwareView(
-                printer_selected=_boolean(hardware.get("printer_selected"), "hardware.printer_selected"),
-                printer_connected=_boolean(
+                printer_selected=_false_boolean(
+                    hardware.get("printer_selected"), "hardware.printer_selected"
+                ),
+                printer_connected=_false_boolean(
                     hardware.get("printer_connected"), "hardware.printer_connected"
                 ),
-                gcode_uploaded=_boolean(hardware.get("gcode_uploaded"), "hardware.gcode_uploaded"),
-                print_started=_boolean(hardware.get("print_started"), "hardware.print_started"),
+                gcode_uploaded=_false_boolean(
+                    hardware.get("gcode_uploaded"), "hardware.gcode_uploaded"
+                ),
+                print_started=_false_boolean(
+                    hardware.get("print_started"), "hardware.print_started"
+                ),
             ),
             gcode_summary=gcode_view,
             slicer=_mapping(package.get("slicer", {}), "package.slicer"),
@@ -992,6 +1335,9 @@ class JourneyRepository:
         name: str,
         *,
         expected_stage_id: str | None = None,
+        expected_job_id: str | None = None,
+        expected_revision_id: str | None = None,
+        allow_unscoped_revision: bool = False,
     ) -> list[dict[str, Any]]:
         records: list[dict[str, Any]] = []
         for record_id in _string_list(ids, name):
@@ -1000,6 +1346,16 @@ class JourneyRepository:
                 raise InvalidRevisionError(f"{name} references missing record {record_id!r}")
             if expected_stage_id is not None and record.get("stage_run_id") != expected_stage_id:
                 raise InvalidRevisionError(f"{name} references a record owned by another stage")
+            if expected_job_id is not None and record.get("job_id") != expected_job_id:
+                raise InvalidRevisionError(f"{name} references a record owned by another job")
+            if expected_revision_id is not None:
+                record_revision_id = record.get("revision_id")
+                if record_revision_id != expected_revision_id and not (
+                    allow_unscoped_revision and record_revision_id is None
+                ):
+                    raise InvalidRevisionError(
+                        f"{name} references a record owned by another revision"
+                    )
             records.append(record)
         return records
 
@@ -1120,6 +1476,28 @@ def _inspection_report_view(
     raw_passed = value.get("passed")
     if raw_passed is not None and not isinstance(raw_passed, bool):
         raise _InspectionShapeError("inspection report pass state must be a boolean or null")
+    status = _inspection_optional_enum_value(
+        value.get("status"), InspectionReportStatus, "inspection report status"
+    )
+    evidence_level = _inspection_optional_enum_value(
+        value.get("evidence_level"), EvidenceLevel, "inspection report evidence level"
+    )
+    expected_level = _REPORT_EVIDENCE_LEVELS[report_kind]
+    if evidence_level is not None and evidence_level is not expected_level:
+        raise _InspectionShapeError(
+            f"{report_kind} reports may record only {expected_level.value} evidence"
+        )
+    if raw_passed is False and evidence_level is not None:
+        raise _InspectionShapeError("failed inspection reports cannot record evidence")
+    if raw_passed is True and status is InspectionReportStatus.FAILED:
+        raise _InspectionShapeError("a passing inspection report cannot have failed status")
+    if raw_passed is False and status in {
+        InspectionReportStatus.PASSED,
+        InspectionReportStatus.PASSED_WITH_WARNINGS,
+    }:
+        raise _InspectionShapeError("a failed inspection report cannot have passing status")
+    if raw_passed is True and any(not check.passed for check in checks):
+        raise _InspectionShapeError("a passing inspection report contains a failed check")
     messages = [
         *_inspection_messages(value.get("warnings", []), severity="warning"),
         *_inspection_messages(value.get("errors", []), severity="error"),
@@ -1129,9 +1507,9 @@ def _inspection_report_view(
         title=title,
         artifact=artifact,
         schema_version=_inspection_optional_text(value.get("schema_version")),
-        status=_inspection_optional_text(value.get("status")),
+        status=status,
         passed=raw_passed,
-        evidence_level=_inspection_optional_text(value.get("evidence_level")),
+        evidence_level=evidence_level,
         claim_boundary=_inspection_optional_text(value.get("claim_boundary")),
         measurements=raw_measurements,
         checks=checks,
@@ -1148,12 +1526,23 @@ def _inspection_profile_view(
     values = {key: item for key, item in value.items() if key not in _PROFILE_HEADER_FIELDS}
     if len(values) > _MAX_INSPECTION_FIELDS:
         raise _InspectionShapeError("inspection profile fields are not bounded")
+    status = _inspection_enum_value(
+        value.get("status"), InspectionProfileStatus, "inspection profile status"
+    )
+    fixture_status = status in {
+        InspectionProfileStatus.INTERFACE_FIXTURE,
+        InspectionProfileStatus.INTERFACE_FIXTURE_UNCALIBRATED,
+    }
+    if (artifact.evidence_mode is EvidenceMode.FIXTURE) != fixture_status:
+        raise _InspectionShapeError(
+            "inspection profile status does not match its evidence mode"
+        )
     return InspectionProfileView(
         profile_kind=profile_kind,
         artifact=artifact,
         profile_id=_inspection_text(value.get("profile_id") or value.get("orientation_id")),
         name=_inspection_text(value.get("name")),
-        status=_inspection_text(value.get("status")),
+        status=status,
         claim_boundary=_inspection_optional_text(value.get("claim_boundary")),
         values=values,
     )
@@ -1256,6 +1645,28 @@ def _inspection_optional_text(value: Any) -> str | None:
         return None
     normalized = str(value).strip()
     return normalized or None
+
+
+def _inspection_enum_value(
+    value: Any,
+    enum_type: type[EnumValue],
+    name: str,
+) -> EnumValue:
+    normalized = _inspection_text(value)
+    try:
+        return enum_type(normalized)
+    except ValueError as exc:
+        raise _InspectionShapeError(
+            f"{name} has unsupported value {normalized!r}"
+        ) from exc
+
+
+def _inspection_optional_enum_value(
+    value: Any,
+    enum_type: type[EnumValue],
+    name: str,
+) -> EnumValue | None:
+    return None if value is None else _inspection_enum_value(value, enum_type, name)
 
 
 def _inspection_optional_float(value: Any) -> float | None:
@@ -1371,6 +1782,16 @@ def _mapping(value: Any, name: str) -> dict[str, Any]:
     return value
 
 
+def _validate_record_ownership(
+    record: Mapping[str, Any],
+    job_id: str,
+    revision_id: str,
+    name: str,
+) -> None:
+    if record.get("job_id") != job_id or record.get("revision_id") != revision_id:
+        raise InvalidRevisionError(f"{name} ownership does not match the revision")
+
+
 def _text(value: Any, name: str) -> str:
     normalized = str(value).strip() if value is not None else ""
     if not normalized:
@@ -1378,11 +1799,29 @@ def _text(value: Any, name: str) -> str:
     return normalized
 
 
-def _evidence_mode(value: Any, name: str) -> str:
+EnumValue = TypeVar("EnumValue", bound=Enum)
+
+
+def _enum_value(value: Any, enum_type: type[EnumValue], name: str) -> EnumValue:
     normalized = _text(value, name)
-    if normalized not in _EVIDENCE_MODES:
-        raise InvalidRevisionError(f"{name} is not a supported evidence mode")
-    return normalized
+    try:
+        return enum_type(normalized)
+    except ValueError as exc:
+        raise InvalidRevisionError(
+            f"{name} has unsupported value {normalized!r}"
+        ) from exc
+
+
+def _optional_enum_value(
+    value: Any,
+    enum_type: type[EnumValue],
+    name: str,
+) -> EnumValue | None:
+    return None if value is None else _enum_value(value, enum_type, name)
+
+
+def _evidence_mode(value: Any, name: str) -> EvidenceMode:
+    return _enum_value(value, EvidenceMode, name)
 
 
 def _media_type(value: Any, name: str) -> str:
@@ -1432,6 +1871,18 @@ def _boolean(value: Any, name: str) -> bool:
     if not isinstance(value, bool):
         raise InvalidRevisionError(f"{name} must be a boolean")
     return value
+
+
+def _false_boolean(value: Any, name: str) -> Literal[False]:
+    if _boolean(value, name):
+        raise InvalidRevisionError(f"{name} must remain false in the read-only package")
+    return False
+
+
+def _text_list(value: Any, name: str) -> list[str]:
+    if not isinstance(value, list):
+        raise InvalidRevisionError(f"{name} must be a list")
+    return [_text(item, name) for item in value]
 
 
 def _string_list(value: Any, name: str) -> list[str]:

@@ -77,7 +77,7 @@ class JourneyRepositoryTests(unittest.TestCase):
         self.assertEqual(len(detail.stages[3].findings), 2)
         self.assertTrue(all(stage.evidence_mode == "fixture" for stage in detail.stages))
         self.assertFalse(detail.capabilities.hardware_actions)
-        self.assertEqual(detail.schema_version, "1.3.0")
+        self.assertEqual(detail.schema_version, "1.4.0")
         self.assertEqual(
             [report.report_kind for report in detail.inspection.reports],
             ["geometry", "printability", "gcode_preflight"],
@@ -354,6 +354,252 @@ class JourneyRepositoryTests(unittest.TestCase):
             with self.assertRaisesRegex(InvalidRevisionError, "finding.resolved"):
                 JourneyRepository(copied_root).get_revision(JOB_ID, REVISION_ID)
 
+    def test_lifecycle_vocabularies_and_cross_field_states_fail_closed(self):
+        cases = (
+            (
+                "job status",
+                ("job", "status"),
+                "physically_complete",
+                "journey.job.status has unsupported value",
+            ),
+            (
+                "revision ownership",
+                ("revisions", 0, "job_id"),
+                "job_other",
+                "revision ownership does not match",
+            ),
+            (
+                "stage kind",
+                ("stage_runs", 0, "stage"),
+                "magic_modeling",
+                "stage.stage has unsupported value",
+            ),
+            (
+                "stage status",
+                ("stage_runs", 0, "status"),
+                "printable",
+                "stage.status has unsupported value",
+            ),
+            (
+                "stage evidence",
+                ("stage_runs", 0, "evidence_level"),
+                "R99",
+                "stage.evidence_level has unsupported value",
+            ),
+            (
+                "event status",
+                ("events", 0, "status"),
+                "done",
+                "event.status has unsupported value",
+            ),
+            (
+                "finding severity",
+                ("findings", 0, "severity"),
+                "success",
+                "finding.severity has unsupported value",
+            ),
+            (
+                "fixture evidence mode",
+                ("stage_runs", 0, "evidence_mode"),
+                "real",
+                "fixture stages must remain fixture evidence",
+            ),
+            (
+                "event stage ownership",
+                ("events", 0, "stage"),
+                "manufacturing",
+                "event stage does not match",
+            ),
+            (
+                "finding resolution",
+                ("findings", 0, "resolved"),
+                True,
+                "resolved findings require",
+            ),
+        )
+        for label, parts, value, expected in cases:
+            with self.subTest(label=label), tempfile.TemporaryDirectory() as temporary:
+                copied_root = Path(temporary) / "interface"
+                shutil.copytree(FIXTURE_ROOT, copied_root)
+                revision_root = copied_root / JOB_ID / "revisions" / REVISION_ID
+                (revision_root / "manifest.json").unlink()
+                journey_path = revision_root / "journey.json"
+                journey = json.loads(journey_path.read_text(encoding="utf-8"))
+                target = journey
+                for part in parts[:-1]:
+                    target = target[part]
+                target[parts[-1]] = value
+                journey_path.write_text(
+                    json.dumps(journey, indent=2, sort_keys=True) + "\n",
+                    encoding="utf-8",
+                )
+
+                repository = JourneyRepository(copied_root)
+                with self.assertRaisesRegex(InvalidRevisionError, expected):
+                    repository.get_revision(JOB_ID, REVISION_ID)
+                if label == "job status":
+                    with self.assertRaisesRegex(InvalidRevisionError, expected):
+                        repository.get_artifact(
+                            JOB_ID, REVISION_ID, "art_fixture_note"
+                        )
+
+    def test_package_classification_and_hardware_states_fail_closed(self):
+        cases = (
+            (("status",), "physically_printable", "package.status has unsupported value"),
+            (
+                ("hardware", "print_started"),
+                True,
+                "hardware.print_started must remain false",
+            ),
+            (
+                ("evidence_level",),
+                "R4",
+                "fixture packages require null evidence",
+            ),
+            (
+                ("classification",),
+                "printer_independent_fabrication_package",
+                "package classification does not match",
+            ),
+        )
+        for parts, value, expected in cases:
+            with self.subTest(parts=parts), tempfile.TemporaryDirectory() as temporary:
+                copied_root = Path(temporary) / "interface"
+                shutil.copytree(FIXTURE_ROOT, copied_root)
+                package_path = (
+                    copied_root
+                    / JOB_ID
+                    / "revisions"
+                    / REVISION_ID
+                    / "fabrication"
+                    / "package.json"
+                )
+                package = json.loads(package_path.read_text(encoding="utf-8"))
+                target = package
+                for part in parts[:-1]:
+                    target = target[part]
+                target[parts[-1]] = value
+                package_path.write_text(
+                    json.dumps(package, indent=2, sort_keys=True) + "\n",
+                    encoding="utf-8",
+                )
+
+                with self.assertRaisesRegex(InvalidRevisionError, expected):
+                    JourneyRepository(copied_root).get_revision(JOB_ID, REVISION_ID)
+
+    def test_unsupported_report_and_profile_states_remain_unavailable(self):
+        cases = (
+            (
+                "geometry_validation_report",
+                Path("design") / "geometry_validation.json",
+                "art_fixture_geometry_report",
+                "status",
+                "physically_passed",
+            ),
+            (
+                "printer_profile",
+                Path("profiles") / "printer.json",
+                "art_fixture_printer_profile",
+                "status",
+                "calibrated",
+            ),
+        )
+        for role, relative, artifact_id, field, value in cases:
+            with self.subTest(role=role), tempfile.TemporaryDirectory() as temporary:
+                copied_root = Path(temporary) / "interface"
+                shutil.copytree(FIXTURE_ROOT, copied_root)
+                revision_root = copied_root / JOB_ID / "revisions" / REVISION_ID
+                source_path = revision_root / relative
+                source = json.loads(source_path.read_text(encoding="utf-8"))
+                source[field] = value
+                payload = (
+                    json.dumps(source, indent=2, sort_keys=True) + "\n"
+                ).encode("utf-8")
+                source_path.write_bytes(payload)
+                checksum = hashlib.sha256(payload).hexdigest()
+                for record_name in ("journey.json", "manifest.json"):
+                    record_path = revision_root / record_name
+                    record = json.loads(record_path.read_text(encoding="utf-8"))
+                    artifact = next(
+                        item
+                        for item in record["artifacts"]
+                        if item["artifact_id"] == artifact_id
+                    )
+                    artifact["checksum_sha256"] = checksum
+                    artifact["size_bytes"] = len(payload)
+                    record_path.write_text(
+                        json.dumps(record, indent=2, sort_keys=True) + "\n",
+                        encoding="utf-8",
+                    )
+
+                detail = JourneyRepository(copied_root).get_revision(JOB_ID, REVISION_ID)
+                unavailable = next(
+                    item for item in detail.inspection.unavailable if item.role == role
+                )
+                self.assertEqual(unavailable.reason, "unsupported_shape")
+
+    def test_decisions_and_approvals_are_typed_and_manifest_matched(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            copied_root = Path(temporary) / "interface"
+            shutil.copytree(FIXTURE_ROOT, copied_root)
+            revision_root = copied_root / JOB_ID / "revisions" / REVISION_ID
+            journey_path = revision_root / "journey.json"
+            manifest_path = revision_root / "manifest.json"
+            journey = json.loads(journey_path.read_text(encoding="utf-8"))
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            stage_id = journey["stage_runs"][0]["stage_run_id"]
+            decision = {
+                "decision_id": "decision_fixture_typed",
+                "job_id": JOB_ID,
+                "revision_id": REVISION_ID,
+                "stage_run_id": stage_id,
+                "question": "Use the fixture boundary?",
+                "choice": "Keep it explicit",
+                "rationale": "Fixtures cannot become evidence.",
+                "actor": "system",
+                "alternatives": ["Hide the boundary"],
+                "created_at": "2026-07-16T08:00:00+00:00",
+                "data": {},
+            }
+            approval = {
+                "approval_id": "approval_fixture_typed",
+                "job_id": JOB_ID,
+                "revision_id": REVISION_ID,
+                "stage_run_id": stage_id,
+                "boundary": "No hardware action",
+                "status": "requested",
+                "requested_by": "system",
+                "rationale": "No approval has been granted.",
+                "requested_at": "2026-07-16T08:00:00+00:00",
+                "decided_at": None,
+                "decided_by": None,
+            }
+            journey["decisions"].append(decision)
+            journey["approvals"].append(approval)
+            journey["stage_runs"][0]["decision_ids"].append(decision["decision_id"])
+            journey["stage_runs"][0]["approval_ids"].append(approval["approval_id"])
+            manifest["decisions"].append(decision)
+            manifest["approvals"].append(approval)
+            for path, value in ((journey_path, journey), (manifest_path, manifest)):
+                path.write_text(
+                    json.dumps(value, indent=2, sort_keys=True) + "\n",
+                    encoding="utf-8",
+                )
+
+            detail = JourneyRepository(copied_root).get_revision(JOB_ID, REVISION_ID)
+            self.assertEqual(detail.stages[0].decisions[0].actor, "system")
+            self.assertEqual(detail.stages[0].approvals[0].status, "requested")
+
+            journey["decisions"][-1]["actor"] = "assistant"
+            manifest["decisions"][-1]["actor"] = "assistant"
+            for path, value in ((journey_path, journey), (manifest_path, manifest)):
+                path.write_text(
+                    json.dumps(value, indent=2, sort_keys=True) + "\n",
+                    encoding="utf-8",
+                )
+            with self.assertRaisesRegex(InvalidRevisionError, "decision.actor"):
+                JourneyRepository(copied_root).get_revision(JOB_ID, REVISION_ID)
+
     def test_inspection_report_checksum_drift_is_visible_and_not_parsed(self):
         with tempfile.TemporaryDirectory() as temporary:
             copied_root = Path(temporary) / "interface"
@@ -499,6 +745,27 @@ class JourneyRepositoryTests(unittest.TestCase):
             with self.assertRaisesRegex(InvalidRevisionError, "owned by another stage"):
                 JourneyRepository(copied_root).get_revision(JOB_ID, REVISION_ID)
 
+        with tempfile.TemporaryDirectory() as temporary:
+            copied_root = Path(temporary) / "interface"
+            shutil.copytree(FIXTURE_ROOT, copied_root)
+            journey_path = (
+                copied_root / JOB_ID / "revisions" / REVISION_ID / "journey.json"
+            )
+            journey = json.loads(journey_path.read_text(encoding="utf-8"))
+            duplicate_event = dict(journey["events"][0])
+            duplicate_event["event_id"] = "evt_fixture_brief_duplicate_sequence"
+            journey["events"].append(duplicate_event)
+            journey["stage_runs"][0]["event_ids"].append(
+                duplicate_event["event_id"]
+            )
+            journey_path.write_text(
+                json.dumps(journey, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(InvalidRevisionError, "duplicate sequence"):
+                JourneyRepository(copied_root).get_revision(JOB_ID, REVISION_ID)
+
 
 class InterfaceHttpTests(unittest.TestCase):
     def setUp(self):
@@ -536,7 +803,7 @@ class InterfaceHttpTests(unittest.TestCase):
         detail = self.client.get(f"/api/v1/revisions/{JOB_ID}/{REVISION_ID}")
         self.assertEqual(detail.status_code, 200)
         payload = detail.json()
-        self.assertEqual(payload["schema_version"], "1.3.0")
+        self.assertEqual(payload["schema_version"], "1.4.0")
         self.assertEqual(
             [stage["stage"] for stage in payload["stages"]],
             [item[0] for item in STAGES],

@@ -2,13 +2,48 @@
 
 from __future__ import annotations
 
+from enum import Enum
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict
 
+from ..domain import (
+    ApprovalStatus,
+    DecisionActor,
+    EvidenceLevel,
+    EvidenceMode,
+    FabricationStage,
+    FindingSeverity,
+    JobStatus,
+    StageStatus,
+)
 
-InterfaceApiVersion = Literal["1.3.0"]
-INTERFACE_API_VERSION: InterfaceApiVersion = "1.3.0"
+
+InterfaceApiVersion = Literal["1.4.0"]
+INTERFACE_API_VERSION: InterfaceApiVersion = "1.4.0"
+
+
+class PackageStatus(str, Enum):
+    SLICER_VERIFIED = "slicer_verified"
+    SLICER_VERIFIED_WITH_PHYSICAL_UNKNOWNS = "slicer_verified_with_physical_unknowns"
+    FIXTURE = "fixture"
+
+
+class InspectionReportStatus(str, Enum):
+    PASSED = "passed"
+    PASSED_WITH_WARNINGS = "passed_with_warnings"
+    FAILED = "failed"
+
+
+class InspectionProfileStatus(str, Enum):
+    EXPERIMENTAL_ANALYSIS_ONLY = "experimental_analysis_only"
+    EXPERIMENTAL_UNCALIBRATED = "experimental_uncalibrated"
+    INTERFACE_FIXTURE = "interface_fixture"
+    INTERFACE_FIXTURE_UNCALIBRATED = "interface_fixture_uncalibrated"
+
+
+PackageEvidenceLevel = Literal["R4"]
+InspectionEvidenceLevel = Literal["R2", "R3", "R4"]
 
 
 class ApiModel(BaseModel):
@@ -46,8 +81,9 @@ class ToolView(ApiModel):
 
 class EventView(ApiModel):
     event_id: str
+    stage: FabricationStage
     event_type: str
-    status: str
+    status: StageStatus
     message: str
     sequence: int
     timestamp: str
@@ -58,9 +94,9 @@ class FindingView(ApiModel):
     finding_id: str
     code: str
     title: str
-    severity: str
+    severity: FindingSeverity
     evidence: str
-    evidence_mode: Literal["real", "simulated", "fixture", "unavailable"]
+    evidence_mode: EvidenceMode
     remediation: str | None
     affected_geometry: str | None
     resolved: bool
@@ -76,20 +112,48 @@ class ArtifactView(ApiModel):
     size_bytes: int | None
     producer: str
     producer_version: str
-    evidence_mode: Literal["real", "simulated", "fixture", "unavailable"]
+    evidence_mode: EvidenceMode
     stage_run_id: str
     available: bool
     download_url: str
     metadata: dict[str, Any]
 
 
+class DecisionView(ApiModel):
+    decision_id: str
+    job_id: str
+    revision_id: str
+    stage_run_id: str | None
+    question: str
+    choice: str
+    rationale: str
+    actor: DecisionActor
+    alternatives: list[str]
+    created_at: str
+    data: dict[str, Any]
+
+
+class ApprovalView(ApiModel):
+    approval_id: str
+    job_id: str
+    revision_id: str
+    stage_run_id: str | None
+    boundary: str
+    status: ApprovalStatus
+    requested_by: DecisionActor
+    rationale: str
+    requested_at: str
+    decided_at: str | None
+    decided_by: DecisionActor | None
+
+
 class StageView(ApiModel):
     stage_run_id: str
-    stage: str
-    status: str
+    stage: FabricationStage
+    status: StageStatus
     attempt: int
-    evidence_mode: Literal["real", "simulated", "fixture", "unavailable"]
-    evidence_level: str | None
+    evidence_mode: EvidenceMode
+    evidence_level: EvidenceLevel | None
     tool: ToolView
     started_at: str | None
     completed_at: str | None
@@ -98,15 +162,15 @@ class StageView(ApiModel):
     events: list[EventView]
     findings: list[FindingView]
     artifacts: list[ArtifactView]
-    decisions: list[dict[str, Any]]
-    approvals: list[dict[str, Any]]
+    decisions: list[DecisionView]
+    approvals: list[ApprovalView]
 
 
 class HardwareView(ApiModel):
-    printer_selected: bool
-    printer_connected: bool
-    gcode_uploaded: bool
-    print_started: bool
+    printer_selected: Literal[False]
+    printer_connected: Literal[False]
+    gcode_uploaded: Literal[False]
+    print_started: Literal[False]
 
 
 class GcodeSummaryView(ApiModel):
@@ -122,10 +186,10 @@ class GcodeSummaryView(ApiModel):
 
 
 class PackageView(ApiModel):
-    status: str
-    evidence_level: str | None
-    allowed_claim: str | None
-    claim_boundary: str | None
+    status: PackageStatus
+    evidence_level: PackageEvidenceLevel | None
+    allowed_claim: str
+    claim_boundary: str
     hardware: HardwareView
     gcode_summary: GcodeSummaryView | None
     slicer: dict[str, Any]
@@ -139,7 +203,7 @@ class InspectionArtifactView(ApiModel):
     size_bytes: int
     producer: str
     producer_version: str
-    evidence_mode: Literal["real", "simulated", "fixture", "unavailable"]
+    evidence_mode: EvidenceMode
     checksum_verified: Literal[True]
 
 
@@ -179,9 +243,9 @@ class InspectionReportView(ApiModel):
     title: str
     artifact: InspectionArtifactView
     schema_version: str | None
-    status: str | None
+    status: InspectionReportStatus | None
     passed: bool | None
-    evidence_level: str | None
+    evidence_level: InspectionEvidenceLevel | None
     claim_boundary: str | None
     measurements: dict[str, Any]
     checks: list[InspectionCheckView]
@@ -193,7 +257,7 @@ class InspectionProfileView(ApiModel):
     artifact: InspectionArtifactView
     profile_id: str
     name: str
-    status: str
+    status: InspectionProfileStatus
     claim_boundary: str | None
     values: dict[str, Any]
 
@@ -250,14 +314,14 @@ class ComparisonRevisionView(ApiModel):
     revision_number: int
     parent_revision_id: str | None
     title: str
-    job_status: str
+    job_status: JobStatus
     source_kind: Literal["interface_fixture", "runtime_revision"]
     source_label: str
     fixture: bool
     physical_evidence_present: bool
-    achieved_evidence_level: str | None
-    package_status: str | None
-    package_evidence_level: str | None
+    achieved_evidence_level: EvidenceLevel | None
+    package_status: PackageStatus | None
+    package_evidence_level: PackageEvidenceLevel | None
     allowed_claim: str | None
     normalized_record_count: int
     compared_record_count: int
@@ -306,13 +370,13 @@ class RevisionSummary(ApiModel):
     revision_id: str
     availability: Literal["available", "invalid"]
     title: str | None
-    job_status: str | None
+    job_status: JobStatus | None
     revision_number: int | None
     parent_revision_id: str | None
     stage_count: int
-    latest_stage: str | None
-    latest_status: str | None
-    achieved_evidence_level: str | None
+    latest_stage: FabricationStage | None
+    latest_status: StageStatus | None
+    achieved_evidence_level: EvidenceLevel | None
     warning_count: int
     updated_at: str | None
     source: SourceView | None
@@ -356,7 +420,7 @@ class JobView(ApiModel):
     job_id: str
     title: str
     request: str
-    status: str
+    status: JobStatus
     created_at: str
     updated_at: str
     metadata: dict[str, Any]

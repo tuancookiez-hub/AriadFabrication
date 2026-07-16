@@ -93,6 +93,33 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * ApprovalStatus
+         * @enum {string}
+         */
+        ApprovalStatus: "requested" | "granted" | "rejected" | "revoked";
+        /** ApprovalView */
+        ApprovalView: {
+            /** Approval Id */
+            approval_id: string;
+            /** Boundary */
+            boundary: string;
+            /** Decided At */
+            decided_at: string | null;
+            decided_by: components["schemas"]["DecisionActor"] | null;
+            /** Job Id */
+            job_id: string;
+            /** Rationale */
+            rationale: string;
+            /** Requested At */
+            requested_at: string;
+            requested_by: components["schemas"]["DecisionActor"];
+            /** Revision Id */
+            revision_id: string;
+            /** Stage Run Id */
+            stage_run_id: string | null;
+            status: components["schemas"]["ApprovalStatus"];
+        };
         /** ArtifactView */
         ArtifactView: {
             /** Artifact Id */
@@ -103,11 +130,7 @@ export interface components {
             checksum_sha256: string;
             /** Download Url */
             download_url: string;
-            /**
-             * Evidence Mode
-             * @enum {string}
-             */
-            evidence_mode: "real" | "simulated" | "fixture" | "unavailable";
+            evidence_mode: components["schemas"]["EvidenceMode"];
             /** Media Type */
             media_type: string;
             /** Metadata */
@@ -183,8 +206,7 @@ export interface components {
         };
         /** ComparisonRevisionView */
         ComparisonRevisionView: {
-            /** Achieved Evidence Level */
-            achieved_evidence_level: string | null;
+            achieved_evidence_level: components["schemas"]["EvidenceLevel"] | null;
             /** Allowed Claim */
             allowed_claim: string | null;
             /** Compared Record Count */
@@ -193,16 +215,14 @@ export interface components {
             fixture: boolean;
             /** Job Id */
             job_id: string;
-            /** Job Status */
-            job_status: string;
+            job_status: components["schemas"]["JobStatus"];
             /** Normalized Record Count */
             normalized_record_count: number;
             /** Omitted Record Count */
             omitted_record_count: number;
             /** Package Evidence Level */
-            package_evidence_level: string | null;
-            /** Package Status */
-            package_status: string | null;
+            package_evidence_level: "R4" | null;
+            package_status: components["schemas"]["PackageStatus"] | null;
             /** Parent Revision Id */
             parent_revision_id: string | null;
             /** Physical Evidence Present */
@@ -220,6 +240,37 @@ export interface components {
             source_label: string;
             /** Title */
             title: string;
+        };
+        /**
+         * DecisionActor
+         * @enum {string}
+         */
+        DecisionActor: "user" | "model" | "system";
+        /** DecisionView */
+        DecisionView: {
+            actor: components["schemas"]["DecisionActor"];
+            /** Alternatives */
+            alternatives: string[];
+            /** Choice */
+            choice: string;
+            /** Created At */
+            created_at: string;
+            /** Data */
+            data: {
+                [key: string]: unknown;
+            };
+            /** Decision Id */
+            decision_id: string;
+            /** Job Id */
+            job_id: string;
+            /** Question */
+            question: string;
+            /** Rationale */
+            rationale: string;
+            /** Revision Id */
+            revision_id: string;
+            /** Stage Run Id */
+            stage_run_id: string | null;
         };
         /** ErrorResponse */
         ErrorResponse: {
@@ -240,11 +291,31 @@ export interface components {
             message: string;
             /** Sequence */
             sequence: number;
-            /** Status */
-            status: string;
+            stage: components["schemas"]["FabricationStage"];
+            status: components["schemas"]["StageStatus"];
             /** Timestamp */
             timestamp: string;
         };
+        /**
+         * EvidenceLevel
+         * @enum {string}
+         */
+        EvidenceLevel: "R0" | "R1" | "R2" | "R3" | "R4" | "R5" | "R6" | "R7";
+        /**
+         * EvidenceMode
+         * @enum {string}
+         */
+        EvidenceMode: "real" | "simulated" | "fixture" | "unavailable";
+        /**
+         * FabricationStage
+         * @enum {string}
+         */
+        FabricationStage: "brief" | "design" | "geometry_validation" | "printability_validation" | "slicing" | "fabrication_package" | "manufacturing";
+        /**
+         * FindingSeverity
+         * @enum {string}
+         */
+        FindingSeverity: "info" | "warning" | "error" | "critical";
         /** FindingView */
         FindingView: {
             /** Affected Geometry */
@@ -257,11 +328,7 @@ export interface components {
             };
             /** Evidence */
             evidence: string;
-            /**
-             * Evidence Mode
-             * @enum {string}
-             */
-            evidence_mode: "real" | "simulated" | "fixture" | "unavailable";
+            evidence_mode: components["schemas"]["EvidenceMode"];
             /** Finding Id */
             finding_id: string;
             /** Remediation */
@@ -270,8 +337,7 @@ export interface components {
             resolution: string | null;
             /** Resolved */
             resolved: boolean;
-            /** Severity */
-            severity: string;
+            severity: components["schemas"]["FindingSeverity"];
             /** Title */
             title: string;
         };
@@ -304,14 +370,26 @@ export interface components {
         };
         /** HardwareView */
         HardwareView: {
-            /** Gcode Uploaded */
-            gcode_uploaded: boolean;
-            /** Print Started */
-            print_started: boolean;
-            /** Printer Connected */
-            printer_connected: boolean;
-            /** Printer Selected */
-            printer_selected: boolean;
+            /**
+             * Gcode Uploaded
+             * @constant
+             */
+            gcode_uploaded: false;
+            /**
+             * Print Started
+             * @constant
+             */
+            print_started: false;
+            /**
+             * Printer Connected
+             * @constant
+             */
+            printer_connected: false;
+            /**
+             * Printer Selected
+             * @constant
+             */
+            printer_selected: false;
         };
         /** HealthResponse */
         HealthResponse: {
@@ -320,7 +398,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.3.0";
+            schema_version: "1.4.0";
             /**
              * Service
              * @constant
@@ -348,11 +426,7 @@ export interface components {
              * @constant
              */
             checksum_verified: true;
-            /**
-             * Evidence Mode
-             * @enum {string}
-             */
-            evidence_mode: "real" | "simulated" | "fixture" | "unavailable";
+            evidence_mode: components["schemas"]["EvidenceMode"];
             /** Producer */
             producer: string;
             /** Producer Version */
@@ -423,6 +497,11 @@ export interface components {
             /** Title */
             title: string;
         };
+        /**
+         * InspectionProfileStatus
+         * @enum {string}
+         */
+        InspectionProfileStatus: "experimental_analysis_only" | "experimental_uncalibrated" | "interface_fixture" | "interface_fixture_uncalibrated";
         /** InspectionProfileView */
         InspectionProfileView: {
             artifact: components["schemas"]["InspectionArtifactView"];
@@ -437,13 +516,17 @@ export interface components {
              * @enum {string}
              */
             profile_kind: "printer" | "material" | "process" | "orientation";
-            /** Status */
-            status: string;
+            status: components["schemas"]["InspectionProfileStatus"];
             /** Values */
             values: {
                 [key: string]: unknown;
             };
         };
+        /**
+         * InspectionReportStatus
+         * @enum {string}
+         */
+        InspectionReportStatus: "passed" | "passed_with_warnings" | "failed";
         /** InspectionReportView */
         InspectionReportView: {
             artifact: components["schemas"]["InspectionArtifactView"];
@@ -452,7 +535,7 @@ export interface components {
             /** Claim Boundary */
             claim_boundary: string | null;
             /** Evidence Level */
-            evidence_level: string | null;
+            evidence_level: ("R2" | "R3" | "R4") | null;
             /** Measurements */
             measurements: {
                 [key: string]: unknown;
@@ -468,8 +551,7 @@ export interface components {
             report_kind: "geometry" | "printability" | "gcode_preflight";
             /** Schema Version */
             schema_version: string | null;
-            /** Status */
-            status: string | null;
+            status: components["schemas"]["InspectionReportStatus"] | null;
             /** Title */
             title: string;
         };
@@ -504,6 +586,11 @@ export interface components {
             /** Unavailable */
             unavailable: components["schemas"]["InspectionUnavailableView"][];
         };
+        /**
+         * JobStatus
+         * @enum {string}
+         */
+        JobStatus: "active" | "needs_input" | "ready_for_design" | "design_generated" | "geometry_verified" | "printability_assessed" | "slicer_verified" | "failed" | "completed" | "cancelled";
         /** JobView */
         JobView: {
             /** Created At */
@@ -516,29 +603,32 @@ export interface components {
             };
             /** Request */
             request: string;
-            /** Status */
-            status: string;
+            status: components["schemas"]["JobStatus"];
             /** Title */
             title: string;
             /** Updated At */
             updated_at: string;
         };
+        /**
+         * PackageStatus
+         * @enum {string}
+         */
+        PackageStatus: "slicer_verified" | "slicer_verified_with_physical_unknowns" | "fixture";
         /** PackageView */
         PackageView: {
             /** Allowed Claim */
-            allowed_claim: string | null;
+            allowed_claim: string;
             /** Claim Boundary */
-            claim_boundary: string | null;
+            claim_boundary: string;
             /** Evidence Level */
-            evidence_level: string | null;
+            evidence_level: "R4" | null;
             gcode_summary: components["schemas"]["GcodeSummaryView"] | null;
             hardware: components["schemas"]["HardwareView"];
             /** Slicer */
             slicer: {
                 [key: string]: unknown;
             };
-            /** Status */
-            status: string;
+            status: components["schemas"]["PackageStatus"];
             /** Unresolved Warning Count */
             unresolved_warning_count: number;
         };
@@ -574,7 +664,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.3.0";
+            schema_version: "1.4.0";
             /** Summaries */
             summaries: components["schemas"]["ComparisonAreaSummaryView"][];
             /** Total Change Count */
@@ -593,7 +683,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.3.0";
+            schema_version: "1.4.0";
             source: components["schemas"]["SourceView"];
             /** Stages */
             stages: components["schemas"]["StageView"][];
@@ -607,7 +697,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.3.0";
+            schema_version: "1.4.0";
             window: components["schemas"]["RevisionListWindowView"];
         };
         /** RevisionListWindowView */
@@ -651,8 +741,7 @@ export interface components {
         };
         /** RevisionSummary */
         RevisionSummary: {
-            /** Achieved Evidence Level */
-            achieved_evidence_level: string | null;
+            achieved_evidence_level: components["schemas"]["EvidenceLevel"] | null;
             /**
              * Availability
              * @enum {string}
@@ -662,12 +751,9 @@ export interface components {
             error: string | null;
             /** Job Id */
             job_id: string;
-            /** Job Status */
-            job_status: string | null;
-            /** Latest Stage */
-            latest_stage: string | null;
-            /** Latest Status */
-            latest_status: string | null;
+            job_status: components["schemas"]["JobStatus"] | null;
+            latest_stage: components["schemas"]["FabricationStage"] | null;
+            latest_status: components["schemas"]["StageStatus"] | null;
             /** Parent Revision Id */
             parent_revision_id: string | null;
             /** Revision Id */
@@ -720,12 +806,15 @@ export interface components {
             /** Physical Evidence Present */
             physical_evidence_present: boolean;
         };
+        /**
+         * StageStatus
+         * @enum {string}
+         */
+        StageStatus: "waiting" | "running" | "needs_input" | "passed" | "passed_with_warnings" | "failed" | "cancelled" | "superseded";
         /** StageView */
         StageView: {
             /** Approvals */
-            approvals: {
-                [key: string]: unknown;
-            }[];
+            approvals: components["schemas"]["ApprovalView"][];
             /** Artifacts */
             artifacts: components["schemas"]["ArtifactView"][];
             /** Attempt */
@@ -733,30 +822,21 @@ export interface components {
             /** Completed At */
             completed_at: string | null;
             /** Decisions */
-            decisions: {
-                [key: string]: unknown;
-            }[];
+            decisions: components["schemas"]["DecisionView"][];
             /** Error Message */
             error_message: string | null;
             /** Events */
             events: components["schemas"]["EventView"][];
-            /** Evidence Level */
-            evidence_level: string | null;
-            /**
-             * Evidence Mode
-             * @enum {string}
-             */
-            evidence_mode: "real" | "simulated" | "fixture" | "unavailable";
+            evidence_level: components["schemas"]["EvidenceLevel"] | null;
+            evidence_mode: components["schemas"]["EvidenceMode"];
             /** Findings */
             findings: components["schemas"]["FindingView"][];
-            /** Stage */
-            stage: string;
+            stage: components["schemas"]["FabricationStage"];
             /** Stage Run Id */
             stage_run_id: string;
             /** Started At */
             started_at: string | null;
-            /** Status */
-            status: string;
+            status: components["schemas"]["StageStatus"];
             /** Summary */
             summary: string;
             tool: components["schemas"]["ToolView"];

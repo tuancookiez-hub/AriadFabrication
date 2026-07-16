@@ -83,18 +83,20 @@ class ApprovalStatus(str, Enum):
     REVOKED = "revoked"
 
 
-_JOB_STATUSES = {
-    "active",
-    "needs_input",
-    "ready_for_design",
-    "design_generated",
-    "geometry_verified",
-    "printability_assessed",
-    "slicer_verified",
-    "failed",
-    "completed",
-    "cancelled",
-}
+class JobStatus(str, Enum):
+    ACTIVE = "active"
+    NEEDS_INPUT = "needs_input"
+    READY_FOR_DESIGN = "ready_for_design"
+    DESIGN_GENERATED = "design_generated"
+    GEOMETRY_VERIFIED = "geometry_verified"
+    PRINTABILITY_ASSESSED = "printability_assessed"
+    SLICER_VERIFIED = "slicer_verified"
+    FAILED = "failed"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+
+
+_JOB_STATUSES = {status.value for status in JobStatus}
 _SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 
 

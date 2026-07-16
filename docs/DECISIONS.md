@@ -273,6 +273,24 @@ This file records accepted project-level decisions. Change an accepted decision 
 
 **Consequence:** Read-only listing can no longer perform work proportional to an arbitrary run tree or imply that a bounded observation is globally complete. Stable multi-request snapshot pagination remains deferred and explicitly unclaimed. The next integrity gap is strict validation of persisted lifecycle/status/evidence vocabularies before presentation.
 
+### D-028 — Fail closed on unsupported persisted lifecycle and evidence state
+
+**Status:** Accepted for M4-I on 2026-07-16.
+
+**Decision:** Advance the read API to 1.4.0. Use the domain enums for job, fabrication-stage, stage-status, evidence-level/mode, finding-severity, decision-actor, and approval-status fields, and API-specific closed enums for package and inspection state. Publish those closed values into OpenAPI-generated browser types. Package hardware fields remain literal `false`, not general booleans.
+
+**Integrity boundary:** Before returning revision detail or any artifact, validate revision/job ownership; every referenced record's job/revision/stage ownership; unique event sequence numbers within a stage; stage status against required start/completion timestamps, evidence, and errors; decision/approval state; fixture-only evidence modes; runtime/fixture package schema, classification, status, and R4 evidence; manifest decision/approval parity; and disabled package hardware fields. Unsupported checksum-verified inspection status/evidence/profile shapes become `unsupported_shape` unavailable records rather than plausible passes. This is persisted-record integrity validation, not rerunning CAD, validators, slicing, simulation, or physical work.
+
+**Evidence:** Mutation tests reject unsupported job/stage/event/finding/package/evidence values, foreign revision ownership, cross-stage references, duplicate per-stage event sequences, invalid terminal-stage combinations, mixed fixture/runtime evidence, enabled hardware flags, invalid decision actors, and inconsistent approvals. Tests prove artifact reads inherit the same fail-closed lifecycle load and that unsupported inspection states remain unavailable. The full pinned suite passes 101 backend tests; all seven ignored real R2/R4 revisions remain available. Generated-contract drift, eight deterministic frontend tests, lint, and production build pass. A live loopback check returned API 1.4.0, a bounded two-of-six revision page with `snapshot_consistent: false`, and a byte-identical 178-byte artifact whose checksum matched its ETag while all hardware-action indicators remained false.
+
+**Contract evidence:** The canonical OpenAPI snapshot is 68,528 bytes with SHA-256 `69b53bcdbcf8471b5d1d1465843582b1df5e5203131dd3e3cf846ed0b3242b2d`, five GET paths, and 45 schemas. Generated TypeScript is 35,921 bytes with SHA-256 `839c63852b3527eaf6ff681af25a855115aa4d5689d4c93c12de758c22403963`.
+
+**Resource and dependency impact:** No dependency was added. Validation is linear in records already admitted by the existing bounded JSON and comparison/list ceilings. The stricter model adds enum schemas and approximately 3.4 KiB to generated TypeScript; production frontend bundle sizes are unchanged.
+
+**Removal path:** A future persisted-schema migration may replace individual checks only if it preserves closed vocabularies, ownership and cross-field validation, literal-false hardware state, inspection-unavailable semantics, and regression coverage. Widening generated types back to arbitrary strings or booleans is not acceptable.
+
+**Consequence:** Unsupported lifecycle language can no longer become a credible UI status, and fixture/package state cannot silently imply real or physical progress. Generic scalar-text coercion, timezone-aware timestamp parsing, and temporal ordering remain the next persisted-integrity gap.
+
 ## Deferred decisions
 
 These require later evidence and should not be decided through preference alone:

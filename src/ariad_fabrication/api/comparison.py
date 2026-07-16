@@ -9,12 +9,14 @@ from typing import Any
 
 from .models import (
     INTERFACE_API_VERSION,
+    ApprovalView,
     ComparisonArea,
     ComparisonAreaSummaryView,
     ComparisonChangeKind,
     ComparisonChangeView,
     ComparisonRelationship,
     ComparisonRevisionView,
+    DecisionView,
     RevisionComparisonResponse,
     RevisionDetailResponse,
     read_only_capabilities,
@@ -242,7 +244,7 @@ def _comparison_records(detail: RevisionDetailResponse) -> _RecordCollector:
     for stage in detail.stages:
         records.append(
             area="stage",
-            key=f"{stage.stage}:{stage.attempt}",
+            key=f"{stage.stage.value}:{stage.attempt}",
             label=stage.stage.replace("_", " "),
             value={
                 "stage": stage.stage,
@@ -329,7 +331,7 @@ def _comparison_records(detail: RevisionDetailResponse) -> _RecordCollector:
         for finding in stage.findings:
             records.append(
                 area="finding",
-                key=f"{stage.stage}:{finding.code}",
+                key=f"{stage.stage.value}:{finding.code}",
                 label=finding.title,
                 value={
                     "stage": stage.stage,
@@ -391,12 +393,13 @@ def _comparison_records(detail: RevisionDetailResponse) -> _RecordCollector:
 
 
 def _project_records(
-    values: list[dict[str, Any]],
+    values: list[DecisionView] | list[ApprovalView],
     fields: tuple[str, ...],
 ) -> list[dict[str, Any]]:
+    records = [value.model_dump(mode="json") for value in values]
     return [
         {field_name: value[field_name] for field_name in fields if field_name in value}
-        for value in values
+        for value in records
     ]
 
 

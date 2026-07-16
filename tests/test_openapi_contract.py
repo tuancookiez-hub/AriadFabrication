@@ -40,18 +40,20 @@ class OpenApiContractTests(unittest.TestCase):
         self.assertEqual(capabilities["properties"]["hardware_actions"]["const"], False)
 
         health = document["components"]["schemas"]["HealthResponse"]["properties"]
-        self.assertEqual(health["schema_version"]["const"], "1.3.0")
+        self.assertEqual(health["schema_version"]["const"], "1.4.0")
         self.assertEqual(health["service"]["const"], "ariad-interface-api")
         self.assertEqual(health["status"]["const"], "ok")
 
     def test_response_models_do_not_hide_guaranteed_fields_as_optional(self):
         schemas = generate_openapi_document()["components"]["schemas"]
         response_models = {
+            "ApprovalView",
             "ArtifactView",
             "CapabilitiesView",
             "ComparisonAreaSummaryView",
             "ComparisonChangeView",
             "ComparisonRevisionView",
+            "DecisionView",
             "EventView",
             "ErrorResponse",
             "FindingView",
@@ -82,6 +84,76 @@ class OpenApiContractTests(unittest.TestCase):
             with self.subTest(model=model_name):
                 schema = schemas[model_name]
                 self.assertEqual(set(schema["required"]), set(schema["properties"]))
+
+    def test_persisted_state_vocabularies_and_hardware_boundaries_are_explicit(self):
+        schemas = generate_openapi_document()["components"]["schemas"]
+        expected_enums = {
+            "ApprovalStatus": {"requested", "granted", "rejected", "revoked"},
+            "DecisionActor": {"user", "model", "system"},
+            "EvidenceLevel": {"R0", "R1", "R2", "R3", "R4", "R5", "R6", "R7"},
+            "EvidenceMode": {"real", "simulated", "fixture", "unavailable"},
+            "FabricationStage": {
+                "brief",
+                "design",
+                "geometry_validation",
+                "printability_validation",
+                "slicing",
+                "fabrication_package",
+                "manufacturing",
+            },
+            "FindingSeverity": {"info", "warning", "error", "critical"},
+            "InspectionProfileStatus": {
+                "experimental_analysis_only",
+                "experimental_uncalibrated",
+                "interface_fixture",
+                "interface_fixture_uncalibrated",
+            },
+            "InspectionReportStatus": {"passed", "passed_with_warnings", "failed"},
+            "JobStatus": {
+                "active",
+                "needs_input",
+                "ready_for_design",
+                "design_generated",
+                "geometry_verified",
+                "printability_assessed",
+                "slicer_verified",
+                "failed",
+                "completed",
+                "cancelled",
+            },
+            "PackageStatus": {
+                "slicer_verified",
+                "slicer_verified_with_physical_unknowns",
+                "fixture",
+            },
+            "StageStatus": {
+                "waiting",
+                "running",
+                "needs_input",
+                "passed",
+                "passed_with_warnings",
+                "failed",
+                "cancelled",
+                "superseded",
+            },
+        }
+        for name, values in expected_enums.items():
+            with self.subTest(enum=name):
+                self.assertEqual(set(schemas[name]["enum"]), values)
+
+        hardware = schemas["HardwareView"]["properties"]
+        self.assertTrue(all(field["const"] is False for field in hardware.values()))
+        stage = schemas["StageView"]["properties"]
+        self.assertEqual(stage["stage"]["$ref"], "#/components/schemas/FabricationStage")
+        self.assertEqual(stage["status"]["$ref"], "#/components/schemas/StageStatus")
+        self.assertEqual(
+            stage["decisions"]["items"]["$ref"],
+            "#/components/schemas/DecisionView",
+        )
+        self.assertEqual(
+            stage["approvals"]["items"]["$ref"],
+            "#/components/schemas/ApprovalView",
+        )
 
     def test_revision_listing_contract_discloses_and_bounds_its_window(self):
         document = generate_openapi_document()
