@@ -12,6 +12,10 @@ import subprocess
 from typing import Any, Sequence
 from zipfile import is_zipfile
 
+from ..schema_validation import (
+    GCODE_PREFLIGHT_REPORT_SCHEMA,
+    validate_persisted_instance,
+)
 from .gcode import GCodePreflightReport, GCodeSummary
 from .profiles import ProfileBundle
 
@@ -433,6 +437,12 @@ class PrusaSlicerAdapter:
             profiles=profiles,
             commands=tuple(commands),
         )
-        _write_json(preflight_path, preflight.to_dict())
+        preflight_value = preflight.to_dict()
+        validate_persisted_instance(
+            preflight_value,
+            GCODE_PREFLIGHT_REPORT_SCHEMA,
+            record_name="generated G-code preflight report",
+        )
+        _write_json(preflight_path, preflight_value)
         _write_json(report_path, outcome.to_dict())
         return outcome

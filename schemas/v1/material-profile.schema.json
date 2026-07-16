@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ariad.local/schemas/v1/material-profile.schema.json",
+  "title": "Ariad FFF Material Analysis Profile v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile_id",
+    "name",
+    "status",
+    "material_type",
+    "filament_diameter_mm",
+    "density_g_cm3",
+    "selected_nozzle_temperature_c",
+    "allowed_nozzle_temperature_c",
+    "selected_bed_temperature_c",
+    "allowed_bed_temperature_c",
+    "maximum_volumetric_speed_mm3_s",
+    "fan_percent",
+    "source",
+    "claim_boundary"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "profile_id": {"type": "string", "minLength": 1, "maxLength": 256},
+    "name": {"type": "string", "minLength": 1, "maxLength": 512},
+    "status": {"const": "experimental_uncalibrated"},
+    "material_type": {"type": "string", "minLength": 1, "maxLength": 128},
+    "filament_diameter_mm": {"type": "number", "exclusiveMinimum": 0},
+    "density_g_cm3": {"type": "number", "exclusiveMinimum": 0},
+    "selected_nozzle_temperature_c": {"type": "number", "exclusiveMinimum": 0},
+    "first_layer_nozzle_temperature_c": {"type": "number", "exclusiveMinimum": 0},
+    "allowed_nozzle_temperature_c": {"$ref": "#/$defs/positive_range"},
+    "selected_bed_temperature_c": {"type": "number", "minimum": 0},
+    "first_layer_bed_temperature_c": {"type": "number", "minimum": 0},
+    "allowed_bed_temperature_c": {"$ref": "#/$defs/nonnegative_range"},
+    "maximum_volumetric_speed_mm3_s": {"type": "number", "exclusiveMinimum": 0},
+    "fan_percent": {"$ref": "#/$defs/percentage_range"},
+    "source": {"type": "string", "minLength": 1, "maxLength": 2048},
+    "claim_boundary": {"type": "string", "minLength": 1, "maxLength": 4096}
+  },
+  "$defs": {
+    "positive_range": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minimum", "maximum"],
+      "properties": {
+        "minimum": {"type": "number", "exclusiveMinimum": 0},
+        "maximum": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "nonnegative_range": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minimum", "maximum"],
+      "properties": {
+        "minimum": {"type": "number", "minimum": 0},
+        "maximum": {"type": "number", "minimum": 0}
+      }
+    },
+    "percentage_range": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minimum", "maximum"],
+      "properties": {
+        "minimum": {"type": "number", "minimum": 0, "maximum": 100},
+        "maximum": {"type": "number", "minimum": 0, "maximum": 100}
+      }
+    }
+  }
+}

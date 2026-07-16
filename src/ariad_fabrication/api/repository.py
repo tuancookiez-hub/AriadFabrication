@@ -28,9 +28,23 @@ from ..fabrication_contracts import PRODUCTION_PACKAGE_REQUIRED_ROLE_SET
 from ..schema_validation import (
     ARTIFACT_MANIFEST_SCHEMA,
     FABRICATION_PACKAGE_SCHEMA,
+    GCODE_PREFLIGHT_REPORT_SCHEMA,
+    GEOMETRY_VALIDATION_REPORT_SCHEMA,
     INTERFACE_FABRICATION_PACKAGE_SCHEMA,
+    INTERFACE_GCODE_PREFLIGHT_REPORT_SCHEMA,
+    INTERFACE_GEOMETRY_VALIDATION_REPORT_SCHEMA,
+    INTERFACE_MATERIAL_PROFILE_SCHEMA,
+    INTERFACE_ORIENTATION_PROFILE_SCHEMA,
+    INTERFACE_PRINTER_PROFILE_SCHEMA,
+    INTERFACE_PRINTABILITY_REPORT_SCHEMA,
+    INTERFACE_PROCESS_PROFILE_SCHEMA,
     JOURNEY_EVENT_SCHEMA,
+    MATERIAL_PROFILE_SCHEMA,
+    ORIENTATION_PROFILE_SCHEMA,
     PART_SPEC_SCHEMA,
+    PRINTER_PROFILE_SCHEMA,
+    PRINTABILITY_REPORT_SCHEMA,
+    PROCESS_PROFILE_SCHEMA,
     PersistedSchemaValidationError,
     validate_persisted_instance,
 )
@@ -110,6 +124,38 @@ _PROFILE_ROLES = {
     "material_profile": "material",
     "process_profile": "process",
     "orientation_profile": "orientation",
+}
+_REPORT_SCHEMAS = {
+    "geometry_validation_report": (
+        GEOMETRY_VALIDATION_REPORT_SCHEMA,
+        INTERFACE_GEOMETRY_VALIDATION_REPORT_SCHEMA,
+    ),
+    "printability_report": (
+        PRINTABILITY_REPORT_SCHEMA,
+        INTERFACE_PRINTABILITY_REPORT_SCHEMA,
+    ),
+    "gcode_preflight": (
+        GCODE_PREFLIGHT_REPORT_SCHEMA,
+        INTERFACE_GCODE_PREFLIGHT_REPORT_SCHEMA,
+    ),
+}
+_PROFILE_SCHEMAS = {
+    "printer_profile": (
+        PRINTER_PROFILE_SCHEMA,
+        INTERFACE_PRINTER_PROFILE_SCHEMA,
+    ),
+    "material_profile": (
+        MATERIAL_PROFILE_SCHEMA,
+        INTERFACE_MATERIAL_PROFILE_SCHEMA,
+    ),
+    "process_profile": (
+        PROCESS_PROFILE_SCHEMA,
+        INTERFACE_PROCESS_PROFILE_SCHEMA,
+    ),
+    "orientation_profile": (
+        ORIENTATION_PROFILE_SCHEMA,
+        INTERFACE_ORIENTATION_PROFILE_SCHEMA,
+    ),
 }
 _PROFILE_HEADER_FIELDS = {
     "schema_version",
@@ -535,6 +581,21 @@ class JourneyRepository:
         actual_hash = hashlib.sha256(content).hexdigest()
         if actual_hash != expected_hash:
             raise ArtifactIntegrityError("recorded artifact checksum does not match the file")
+        role = _text(artifact.get("role"), "artifact.role")
+        if role in _REPORT_SCHEMAS or role in _PROFILE_SCHEMAS or (
+            role == "part_spec" and loaded.fixture is None
+        ):
+            _, value, error = self._read_inspection_json(
+                loaded,
+                role,
+                schema_name=(PART_SPEC_SCHEMA if role == "part_spec" else None),
+            )
+            if error is not None or value is None:
+                reason = error.reason if error is not None else "unavailable"
+                raise ArtifactIntegrityError(
+                    f"recorded {role} content failed semantic validation ({reason})"
+                )
+            self._validate_inspection_content_identity(loaded, {role: value})
         return VerifiedArtifactSnapshot(
             content=content,
             filename=path.name,
@@ -1932,6 +1993,7 @@ class JourneyRepository:
         reports: list[InspectionReportView] = []
         profiles: list[InspectionProfileView] = []
         unavailable: list[InspectionUnavailableView] = []
+        verified_values: dict[str, dict[str, Any]] = {}
 
         is_gate_fixture = loaded.fixture is not None and loaded.fixture.get("scenario") is not None
         if not is_gate_fixture:
@@ -1953,11 +2015,23 @@ class JourneyRepository:
                     )
                 )
 
+        if loaded.fixture is None and loaded.package is not None:
+            _, part_spec, error = self._read_inspection_json(
+                loaded,
+                "part_spec",
+                schema_name=PART_SPEC_SCHEMA,
+            )
+            if error is not None:
+                unavailable.append(error)
+            elif part_spec is not None:
+                verified_values["part_spec"] = part_spec
+
         for role, (report_kind, title) in _REPORT_ROLES.items():
             artifact, value, error = self._read_inspection_json(loaded, role)
             if error is not None:
                 unavailable.append(error)
             elif artifact is not None and value is not None:
+                verified_values[role] = value
                 try:
                     reports.append(
                         _inspection_report_view(
@@ -1982,6 +2056,7 @@ class JourneyRepository:
             if error is not None:
                 unavailable.append(error)
             elif artifact is not None and value is not None:
+                verified_values[role] = value
                 try:
                     profiles.append(
                         _inspection_profile_view(
@@ -2000,6 +2075,8 @@ class JourneyRepository:
                         )
                     )
 
+        self._validate_inspection_content_identity(loaded, verified_values)
+
         return InspectionView(
             features=features,
             reports=reports,
@@ -2013,6 +2090,8 @@ class JourneyRepository:
         self,
         loaded: _LoadedRevision,
         role: str,
+        *,
+        schema_name: str | None = None,
     ) -> tuple[
         InspectionArtifactView | None,
         dict[str, Any] | None,
@@ -2115,6 +2194,25 @@ class JourneyRepository:
                 "unsupported_shape",
                 "The checksum-verified report exceeds the bounded inspection shape.",
             )
+        if schema_name is None:
+            schema_pair = (_REPORT_SCHEMAS | _PROFILE_SCHEMAS).get(role)
+            if schema_pair is not None:
+                schema_name = schema_pair[1 if loaded.fixture is not None else 0]
+        if schema_name is not None:
+            try:
+                validate_persisted_instance(
+                    value,
+                    schema_name,
+                    record_name=f"{role} inspection artifact",
+                )
+            except PersistedSchemaValidationError:
+                return None, None, _inspection_unavailable_for_record(
+                    role,
+                    artifact_id,
+                    checksum,
+                    "unsupported_shape",
+                    "The checksum-verified artifact violates its role-specific schema.",
+                )
         artifact = InspectionArtifactView(
             artifact_id=artifact_id,
             role=role,
@@ -2130,6 +2228,126 @@ class JourneyRepository:
             checksum_verified=True,
         )
         return artifact, value, None
+
+    def _validate_inspection_content_identity(
+        self,
+        loaded: _LoadedRevision,
+        values: Mapping[str, dict[str, Any]],
+    ) -> None:
+        """Cross-check semantic identities only after checksum and schema verification."""
+
+        if loaded.fixture is not None or loaded.package is None:
+            return
+        package = loaded.package
+        part_spec = values.get("part_spec")
+        if part_spec is not None and part_spec != loaded.revision.get("spec"):
+            raise InvalidRevisionError(
+                "packaged PartSpec content differs from the revision PartSpec"
+            )
+        package_profile_ids = _mapping(
+            package.get("profile_ids"), "package.profile_ids"
+        )
+        profile_id_fields = {
+            "printer_profile": ("profile_id", "printer"),
+            "material_profile": ("profile_id", "material"),
+            "process_profile": ("profile_id", "process"),
+            "orientation_profile": ("orientation_id", "orientation"),
+        }
+        for role, (content_field, package_field) in profile_id_fields.items():
+            profile = values.get(role)
+            if profile is None:
+                continue
+            if profile.get(content_field) != package_profile_ids.get(package_field):
+                raise InvalidRevisionError(
+                    f"{role} identity differs from package.profile_ids.{package_field}"
+                )
+        printer = values.get("printer_profile")
+        if (
+            printer is not None
+            and printer.get("profile_family_id")
+            != package_profile_ids.get("printer_family")
+        ):
+            raise InvalidRevisionError(
+                "printer_profile family differs from package.profile_ids.printer_family"
+            )
+
+        printability = values.get("printability_report")
+        if printability is not None:
+            report_profile_ids = _mapping(
+                printability.get("profile_ids"),
+                "printability report profile_ids",
+            )
+            if report_profile_ids != package_profile_ids:
+                raise InvalidRevisionError(
+                    "printability report profile ids differ from the fabrication package"
+                )
+            raw_required = package.get("required_artifacts")
+            if not isinstance(raw_required, list):
+                raise InvalidRevisionError(
+                    "package.required_artifacts must be a list"
+                )
+            required_by_role: dict[str, Mapping[str, Any]] = {}
+            for index, raw_descriptor in enumerate(raw_required):
+                descriptor = _mapping(
+                    raw_descriptor,
+                    f"package.required_artifacts[{index}]",
+                )
+                required_by_role[
+                    _text(descriptor.get("role"), "package artifact role")
+                ] = descriptor
+            for report_field, artifact_role in (
+                ("source_geometry", "exact_geometry"),
+                ("oriented_geometry", "oriented_geometry"),
+            ):
+                report_descriptor = _mapping(
+                    printability.get(report_field),
+                    f"printability report {report_field}",
+                )
+                package_descriptor = required_by_role.get(artifact_role)
+                if package_descriptor is None:
+                    raise InvalidRevisionError(
+                        f"fabrication package omits {artifact_role!r} content identity"
+                    )
+                expected_descriptor = {
+                    "filename": PurePosixPath(
+                        _text(
+                            package_descriptor.get("path"),
+                            f"package {artifact_role} path",
+                        )
+                    ).name,
+                    "checksum_sha256": _checksum(
+                        package_descriptor.get("checksum_sha256"),
+                        f"package {artifact_role} checksum",
+                    ),
+                    "size_bytes": _integer(
+                        package_descriptor.get("size_bytes"),
+                        f"package {artifact_role} size",
+                    ),
+                }
+                observed_descriptor = {
+                    field: report_descriptor.get(field)
+                    for field in ("filename", "checksum_sha256", "size_bytes")
+                }
+                if observed_descriptor != expected_descriptor:
+                    raise InvalidRevisionError(
+                        f"printability report {report_field} identity differs from the package"
+                    )
+
+        geometry = values.get("geometry_validation_report")
+        if (
+            geometry is not None
+            and printability is not None
+            and geometry.get("benchmark_id") != printability.get("benchmark_id")
+        ):
+            raise InvalidRevisionError(
+                "geometry and printability reports identify different benchmarks"
+            )
+
+        preflight = values.get("gcode_preflight")
+        if preflight is not None and preflight != package.get("preflight"):
+            raise InvalidRevisionError(
+                "G-code preflight artifact differs from the fabrication package preflight"
+            )
 
     def _records(
         self,

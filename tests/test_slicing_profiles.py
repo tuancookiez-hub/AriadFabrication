@@ -3,7 +3,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
 
-from ariad_fabrication.slicing import ProfileBundle
+from ariad_fabrication.slicing import PrinterProfile, ProfileBundle
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -72,6 +72,55 @@ class SlicingProfileTests(unittest.TestCase):
         self.assertEqual(bundle.process.infill_percent, 30.0)
         self.assertEqual(bundle.process.support_policy, "disabled")
         self.assertGreaterEqual(len(bundle.validate()), 29)
+
+    def test_profile_mapping_rejects_scalar_coercion_and_unknown_fields(self):
+        source = json.loads(
+            (
+                PROFILE_ROOT / "printers" / "generic_open_fdm_220.json"
+            ).read_text(encoding="utf-8")
+        )
+        cases = (
+            ("nozzle_diameter_mm", "0.4"),
+            ("undeclared_capability", True),
+        )
+        for field, value in cases:
+            with self.subTest(field=field):
+                mutated = dict(source)
+                mutated[field] = value
+                with self.assertRaisesRegex(ValueError, "printer-profile.schema.json"):
+                    PrinterProfile.from_mapping(mutated)
+
+    def test_profile_file_rejects_duplicate_json_keys(self):
+        source_path = PROFILE_ROOT / "printers" / "generic_open_fdm_220.json"
+        source = source_path.read_text(encoding="utf-8")
+        duplicate = source.replace(
+            '  "profile_id":',
+            '  "profile_id": "duplicate",\n  "profile_id":',
+            1,
+        )
+        with TemporaryDirectory() as temporary:
+            altered = Path(temporary) / "duplicate.json"
+            altered.write_text(duplicate, encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "strict UTF-8 JSON"):
+                ProfileBundle.from_paths(
+                    printer_path=altered,
+                    material_path=PROFILE_ROOT / "materials" / "generic_pla_175.json",
+                    process_path=(
+                        PROFILE_ROOT
+                        / "processes"
+                        / "standard_020_no_support.json"
+                    ),
+                    orientation_path=(
+                        PROFILE_ROOT
+                        / "orientations"
+                        / "upright_source_z_centered.json"
+                    ),
+                    slicer_config_path=(
+                        PROFILE_ROOT
+                        / "prusaslicer"
+                        / "generic_open_fdm_220__generic_pla__standard_020_no_support.ini"
+                    ),
+                )
 
 
 if __name__ == "__main__":

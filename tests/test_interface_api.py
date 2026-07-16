@@ -77,7 +77,7 @@ class JourneyRepositoryTests(unittest.TestCase):
         self.assertEqual(len(detail.stages[3].findings), 2)
         self.assertTrue(all(stage.evidence_mode == "fixture" for stage in detail.stages))
         self.assertFalse(detail.capabilities.hardware_actions)
-        self.assertEqual(detail.schema_version, "1.6.0")
+        self.assertEqual(detail.schema_version, "1.7.0")
         self.assertEqual(
             [report.report_kind for report in detail.inspection.reports],
             ["geometry", "printability", "gcode_preflight"],
@@ -695,6 +695,15 @@ class JourneyRepositoryTests(unittest.TestCase):
                     item for item in detail.inspection.unavailable if item.role == role
                 )
                 self.assertEqual(unavailable.reason, "unsupported_shape")
+                with self.assertRaisesRegex(
+                    ArtifactIntegrityError,
+                    "failed semantic validation",
+                ):
+                    JourneyRepository(copied_root).get_artifact(
+                        JOB_ID,
+                        REVISION_ID,
+                        artifact_id,
+                    )
 
     def test_inspection_text_and_numbers_do_not_coerce(self):
         cases = (
@@ -1066,7 +1075,7 @@ class InterfaceHttpTests(unittest.TestCase):
         detail = self.client.get(f"/api/v1/revisions/{JOB_ID}/{REVISION_ID}")
         self.assertEqual(detail.status_code, 200)
         payload = detail.json()
-        self.assertEqual(payload["schema_version"], "1.6.0")
+        self.assertEqual(payload["schema_version"], "1.7.0")
         self.assertEqual(
             [stage["stage"] for stage in payload["stages"]],
             [item[0] for item in STAGES],

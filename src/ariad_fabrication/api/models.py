@@ -19,8 +19,8 @@ from ..domain import (
 )
 
 
-InterfaceApiVersion = Literal["1.6.0"]
-INTERFACE_API_VERSION: InterfaceApiVersion = "1.6.0"
+InterfaceApiVersion = Literal["1.7.0"]
+INTERFACE_API_VERSION: InterfaceApiVersion = "1.7.0"
 Timestamp = Annotated[str, Field(json_schema_extra={"format": "date-time"})]
 
 

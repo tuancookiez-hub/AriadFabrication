@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ariad.local/schemas/v1/interface-printability-report.schema.json",
+  "title": "Ariad Interface Fixture Printability Report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "passed",
+    "evidence_level",
+    "claim_boundary",
+    "measurements",
+    "checks",
+    "warnings",
+    "errors"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0-interface-fixture"},
+    "status": {"enum": ["passed", "passed_with_warnings", "failed"]},
+    "passed": {"type": "boolean"},
+    "evidence_level": {"enum": ["R3", null]},
+    "claim_boundary": {"type": "string", "minLength": 1, "maxLength": 4096},
+    "measurements": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bed_contact_area_mm2", "minimum_wall_mm", "oriented_size_mm"],
+      "properties": {
+        "bed_contact_area_mm2": {"type": "number", "minimum": 0},
+        "minimum_wall_mm": {"type": "number", "minimum": 0},
+        "oriented_size_mm": {"$ref": "#/$defs/xyz"}
+      }
+    },
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "check_id",
+          "category",
+          "description",
+          "actual",
+          "requirement",
+          "passed",
+          "remediation"
+        ],
+        "properties": {
+          "check_id": {"type": "string", "minLength": 1, "maxLength": 128},
+          "category": {"type": "string", "minLength": 1, "maxLength": 128},
+          "description": {"type": "string", "minLength": 1, "maxLength": 2048},
+          "actual": {},
+          "requirement": {},
+          "passed": {"type": "boolean"},
+          "remediation": {"type": "string", "minLength": 1, "maxLength": 2048}
+        }
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {"$ref": "#/$defs/warning"}
+    },
+    "errors": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {"type": "string", "minLength": 1, "maxLength": 2048}
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"passed": {"const": true}}, "required": ["passed"]},
+      "then": {
+        "properties": {
+          "status": {"enum": ["passed", "passed_with_warnings"]},
+          "evidence_level": {"const": "R3"},
+          "errors": {"maxItems": 0},
+          "checks": {
+            "items": {
+              "properties": {"passed": {"const": true}},
+              "required": ["passed"]
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "status": {"const": "failed"},
+          "evidence_level": {"type": "null"},
+          "errors": {"minItems": 1},
+          "checks": {
+            "contains": {
+              "properties": {"passed": {"const": false}},
+              "required": ["passed"]
+            },
+            "minContains": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "passed"}}, "required": ["status"]},
+      "then": {"properties": {"warnings": {"maxItems": 0}}}
+    },
+    {
+      "if": {
+        "properties": {"status": {"const": "passed_with_warnings"}},
+        "required": ["status"]
+      },
+      "then": {"properties": {"warnings": {"minItems": 1}}}
+    }
+  ],
+  "$defs": {
+    "xyz": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "z"],
+      "properties": {
+        "x": {"type": "number", "minimum": 0},
+        "y": {"type": "number", "minimum": 0},
+        "z": {"type": "number", "minimum": 0}
+      }
+    },
+    "warning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "title", "evidence", "physical_resolution"],
+      "properties": {
+        "code": {"type": "string", "minLength": 1, "maxLength": 256},
+        "title": {"type": "string", "minLength": 1, "maxLength": 512},
+        "evidence": {"type": "string", "minLength": 1, "maxLength": 4096},
+        "physical_resolution": {"type": "string", "minLength": 1, "maxLength": 4096}
+      }
+    }
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ariad.local/schemas/v1/geometry-validation-report.schema.json",
+  "title": "Ariad Geometry Validation Report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "benchmark_id",
+    "passed",
+    "evidence_level",
+    "checks",
+    "measurements",
+    "tool_versions",
+    "claim_boundary"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "benchmark_id": {"type": "string", "minLength": 1, "maxLength": 256},
+    "passed": {"type": "boolean"},
+    "evidence_level": {"enum": ["R2", null]},
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 500,
+      "items": {"$ref": "#/$defs/check"}
+    },
+    "measurements": {
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 128
+    },
+    "tool_versions": {
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 32,
+      "additionalProperties": {"type": "string", "minLength": 1, "maxLength": 256}
+    },
+    "claim_boundary": {"type": "string", "minLength": 1, "maxLength": 4096}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"passed": {"const": true}}, "required": ["passed"]},
+      "then": {
+        "properties": {
+          "evidence_level": {"const": "R2"},
+          "checks": {
+            "items": {
+              "properties": {"passed": {"const": true}},
+              "required": ["passed"]
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "evidence_level": {"type": "null"},
+          "checks": {
+            "contains": {
+              "properties": {"passed": {"const": false}},
+              "required": ["passed"]
+            },
+            "minContains": 1
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "check_id",
+        "description",
+        "passed",
+        "expected",
+        "actual",
+        "tolerance_mm"
+      ],
+      "properties": {
+        "check_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "description": {"type": "string", "minLength": 1, "maxLength": 2048},
+        "passed": {"type": "boolean"},
+        "expected": {},
+        "actual": {},
+        "tolerance_mm": {
+          "type": ["number", "null"],
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

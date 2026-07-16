@@ -21,6 +21,10 @@ from zipfile import ZipFile, is_zipfile
 import xml.etree.ElementTree as ET
 
 from ..domain import PartSpec
+from ..schema_validation import (
+    GEOMETRY_VALIDATION_REPORT_SCHEMA,
+    validate_persisted_instance,
+)
 from .contracts import (
     CAD_CONTRACT_VERSION,
     CadArtifactDescriptor,
@@ -157,7 +161,13 @@ def execute_request(request: CadBuildRequest, output_directory: Path) -> CadBuil
             request.expected,
             tool_versions=tool_versions,
         )
-        _write_json(report_path, report.to_dict())
+        report_value = report.to_dict()
+        validate_persisted_instance(
+            report_value,
+            GEOMETRY_VALIDATION_REPORT_SCHEMA,
+            record_name="generated geometry validation report",
+        )
+        _write_json(report_path, report_value)
 
         export_evidence: dict[str, Any] = {
             "step": {

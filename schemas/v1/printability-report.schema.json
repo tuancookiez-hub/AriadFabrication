@@ -23,93 +23,40 @@
   ],
   "properties": {
     "schema_version": {"const": "1.0.0"},
-    "classification": {"const": "deterministic_profile_specific_printability_assessment"},
-    "benchmark_id": {"type": "string", "minLength": 1},
+    "classification": {
+      "const": "deterministic_profile_specific_printability_assessment"
+    },
+    "benchmark_id": {"type": "string", "minLength": 1, "maxLength": 256},
     "status": {"enum": ["passed", "passed_with_warnings", "failed"]},
     "passed": {"type": "boolean"},
-    "evidence_level": {"type": ["string", "null"], "enum": ["R3", null]},
+    "evidence_level": {"enum": ["R3", null]},
     "checks": {
       "type": "array",
       "minItems": 1,
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "check_id",
-          "category",
-          "description",
-          "passed",
-          "actual",
-          "requirement",
-          "remediation"
-        ],
-        "properties": {
-          "check_id": {"type": "string", "minLength": 1},
-          "category": {"type": "string", "minLength": 1},
-          "description": {"type": "string", "minLength": 1},
-          "passed": {"type": "boolean"},
-          "actual": {},
-          "requirement": {},
-          "remediation": {"type": "string", "minLength": 1}
-        }
-      }
+      "maxItems": 100,
+      "items": {"$ref": "#/$defs/check"}
     },
     "warnings": {
       "type": "array",
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["code", "title", "evidence", "physical_resolution"],
-        "properties": {
-          "code": {"type": "string", "minLength": 1},
-          "title": {"type": "string", "minLength": 1},
-          "evidence": {"type": "string", "minLength": 1},
-          "physical_resolution": {"type": "string", "minLength": 1}
-        }
-      }
+      "maxItems": 100,
+      "items": {"$ref": "#/$defs/warning"}
     },
-    "measurements": {"type": "object"},
-    "profile_ids": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["printer", "printer_family", "material", "process", "orientation"],
-      "properties": {
-        "printer": {"type": "string", "minLength": 1},
-        "printer_family": {"type": "string", "minLength": 1},
-        "material": {"type": "string", "minLength": 1},
-        "process": {"type": "string", "minLength": 1},
-        "orientation": {"type": "string", "minLength": 1}
-      }
-    },
+    "measurements": {"$ref": "#/$defs/measurements"},
+    "profile_ids": {"$ref": "#/$defs/profile_ids"},
     "source_geometry": {"$ref": "#/$defs/artifact"},
-    "oriented_geometry": {
-      "allOf": [
-        {"$ref": "#/$defs/artifact"},
-        {
-          "type": "object",
-          "required": ["materialization"],
-          "properties": {
-            "materialization": {"type": "string", "minLength": 1}
-          }
-        }
-      ]
-    },
+    "oriented_geometry": {"$ref": "#/$defs/oriented_artifact"},
     "tool_versions": {
       "type": "object",
-      "minProperties": 1,
-      "additionalProperties": {"type": "string", "minLength": 1}
-    },
-    "policy": {
-      "type": "object",
-      "required": ["status", "rules", "risk_policy", "policy_notes"],
+      "additionalProperties": false,
+      "required": ["validator", "cadquery", "ocp"],
       "properties": {
-        "status": {"type": "string", "minLength": 1},
-        "rules": {"type": "object", "minProperties": 1},
-        "risk_policy": {"type": "object", "minProperties": 1},
-        "policy_notes": {"type": "array", "items": {"type": "string"}}
+        "validator": {"type": "string", "minLength": 1, "maxLength": 256},
+        "cadquery": {"type": "string", "minLength": 1, "maxLength": 256},
+        "ocp": {"type": "string", "minLength": 1, "maxLength": 256}
       }
     },
-    "claim_boundary": {"type": "string", "minLength": 1}
+    "policy": {"$ref": "#/$defs/policy"},
+    "claim_boundary": {"type": "string", "minLength": 1, "maxLength": 4096}
   },
   "allOf": [
     {
@@ -117,26 +64,254 @@
       "then": {
         "properties": {
           "evidence_level": {"const": "R3"},
-          "status": {"enum": ["passed", "passed_with_warnings"]}
+          "status": {"enum": ["passed", "passed_with_warnings"]},
+          "checks": {
+            "items": {
+              "properties": {"passed": {"const": true}},
+              "required": ["passed"]
+            }
+          }
         }
       },
       "else": {
         "properties": {
           "evidence_level": {"type": "null"},
-          "status": {"const": "failed"}
+          "status": {"const": "failed"},
+          "checks": {
+            "contains": {
+              "properties": {"passed": {"const": false}},
+              "required": ["passed"]
+            },
+            "minContains": 1
+          }
         }
       }
+    },
+    {
+      "if": {"properties": {"status": {"const": "passed"}}, "required": ["status"]},
+      "then": {"properties": {"warnings": {"maxItems": 0}}}
+    },
+    {
+      "if": {
+        "properties": {"status": {"const": "passed_with_warnings"}},
+        "required": ["status"]
+      },
+      "then": {"properties": {"warnings": {"minItems": 1}}}
     }
   ],
   "$defs": {
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "check_id",
+        "category",
+        "description",
+        "passed",
+        "actual",
+        "requirement",
+        "remediation"
+      ],
+      "properties": {
+        "check_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "category": {"type": "string", "minLength": 1, "maxLength": 128},
+        "description": {"type": "string", "minLength": 1, "maxLength": 2048},
+        "passed": {"type": "boolean"},
+        "actual": {},
+        "requirement": {},
+        "remediation": {"type": "string", "minLength": 1, "maxLength": 2048}
+      }
+    },
+    "warning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "title", "evidence", "physical_resolution"],
+      "properties": {
+        "code": {"type": "string", "minLength": 1, "maxLength": 256},
+        "title": {"type": "string", "minLength": 1, "maxLength": 512},
+        "evidence": {"type": "string", "minLength": 1, "maxLength": 4096},
+        "physical_resolution": {"type": "string", "minLength": 1, "maxLength": 4096}
+      }
+    },
+    "xyz": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "z"],
+      "properties": {
+        "x": {"type": "number", "minimum": 0},
+        "y": {"type": "number", "minimum": 0},
+        "z": {"type": "number", "minimum": 0}
+      }
+    },
+    "vector3": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {"type": "number"}
+    },
+    "bounds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minimum", "maximum"],
+      "properties": {
+        "minimum": {"$ref": "#/$defs/vector3"},
+        "maximum": {"$ref": "#/$defs/vector3"}
+      }
+    },
+    "measurements": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_bounds_mm",
+        "orientation_translation_mm",
+        "oriented_size_mm",
+        "bed_placement_bounds_mm",
+        "bed_contact_area_mm2",
+        "minimum_wall_mm",
+        "minimum_open_feature_mm",
+        "horizontal_hole_diameters_mm",
+        "overhang_analysis",
+        "stake_diametral_clearance_mm"
+      ],
+      "properties": {
+        "source_bounds_mm": {"$ref": "#/$defs/bounds"},
+        "orientation_translation_mm": {"$ref": "#/$defs/vector3"},
+        "oriented_size_mm": {"$ref": "#/$defs/xyz"},
+        "bed_placement_bounds_mm": {"$ref": "#/$defs/bounds"},
+        "bed_contact_area_mm2": {"type": "number", "minimum": 0},
+        "minimum_wall_mm": {"type": "number", "minimum": 0},
+        "minimum_open_feature_mm": {"type": "number", "minimum": 0},
+        "horizontal_hole_diameters_mm": {
+          "type": "array",
+          "maxItems": 128,
+          "items": {"type": "number", "minimum": 0}
+        },
+        "overhang_analysis": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "bed_supported_downward_area_mm2",
+            "bounded_bridge_downward_area_mm2",
+            "downward_facing_area_mm2",
+            "maximum_downward_angle_degrees_from_vertical",
+            "unresolved_steep_overhang_area_mm2"
+          ],
+          "properties": {
+            "bed_supported_downward_area_mm2": {"type": "number", "minimum": 0},
+            "bounded_bridge_downward_area_mm2": {"type": "number", "minimum": 0},
+            "downward_facing_area_mm2": {"type": "number", "minimum": 0},
+            "maximum_downward_angle_degrees_from_vertical": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 180
+            },
+            "unresolved_steep_overhang_area_mm2": {"type": "number", "minimum": 0}
+          }
+        },
+        "stake_diametral_clearance_mm": {"type": "number"}
+      }
+    },
+    "profile_ids": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["printer", "printer_family", "material", "process", "orientation"],
+      "properties": {
+        "printer": {"type": "string", "minLength": 1, "maxLength": 256},
+        "printer_family": {"type": "string", "minLength": 1, "maxLength": 256},
+        "material": {"type": "string", "minLength": 1, "maxLength": 256},
+        "process": {"type": "string", "minLength": 1, "maxLength": 256},
+        "orientation": {"type": "string", "minLength": 1, "maxLength": 256}
+      }
+    },
     "artifact": {
       "type": "object",
+      "additionalProperties": false,
       "required": ["filename", "checksum_sha256", "size_bytes"],
       "properties": {
-        "filename": {"type": "string", "minLength": 1},
+        "filename": {"type": "string", "minLength": 1, "maxLength": 255},
         "checksum_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
         "size_bytes": {"type": "integer", "minimum": 1}
       }
+    },
+    "oriented_artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["filename", "checksum_sha256", "size_bytes", "materialization"],
+      "properties": {
+        "filename": {"type": "string", "minLength": 1, "maxLength": 255},
+        "checksum_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "size_bytes": {"type": "integer", "minimum": 1},
+        "materialization": {"type": "string", "minLength": 1, "maxLength": 2048}
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "rules", "risk_policy", "policy_notes"],
+      "properties": {
+        "status": {"const": "frozen_for_m3"},
+        "rules": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "build_volume_margin_xy_mm",
+            "build_volume_margin_z_mm",
+            "maximum_bounded_internal_bridge_span_mm",
+            "maximum_layer_height_nozzle_ratio",
+            "maximum_support_free_overhang_degrees_from_vertical",
+            "minimum_bed_contact_area_mm2",
+            "minimum_elephant_foot_clearance_nozzle_multiple",
+            "minimum_open_feature_nozzle_multiple",
+            "minimum_wall_nozzle_multiple",
+            "tessellation_angular_tolerance_rad",
+            "tessellation_linear_tolerance_mm"
+          ],
+          "properties": {
+            "build_volume_margin_xy_mm": {"type": "number", "minimum": 0},
+            "build_volume_margin_z_mm": {"type": "number", "minimum": 0},
+            "maximum_bounded_internal_bridge_span_mm": {"type": "number", "minimum": 0},
+            "maximum_layer_height_nozzle_ratio": {"type": "number", "minimum": 0},
+            "maximum_support_free_overhang_degrees_from_vertical": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 180
+            },
+            "minimum_bed_contact_area_mm2": {"type": "number", "minimum": 0},
+            "minimum_elephant_foot_clearance_nozzle_multiple": {
+              "type": "number",
+              "minimum": 0
+            },
+            "minimum_open_feature_nozzle_multiple": {"type": "number", "minimum": 0},
+            "minimum_wall_nozzle_multiple": {"type": "number", "minimum": 0},
+            "tessellation_angular_tolerance_rad": {"type": "number", "minimum": 0},
+            "tessellation_linear_tolerance_mm": {"type": "number", "minimum": 0}
+          }
+        },
+        "risk_policy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "floating_bridge_anchor_warning",
+            "low_bed_adhesion_warning",
+            "slicer_mesh_repair",
+            "unknown_slicer_warning"
+          ],
+          "properties": {
+            "floating_bridge_anchor_warning": {"$ref": "#/$defs/risk_disposition"},
+            "low_bed_adhesion_warning": {"$ref": "#/$defs/risk_disposition"},
+            "slicer_mesh_repair": {"$ref": "#/$defs/risk_disposition"},
+            "unknown_slicer_warning": {"$ref": "#/$defs/risk_disposition"}
+          }
+        },
+        "policy_notes": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {"type": "string", "minLength": 1, "maxLength": 4096}
+        }
+      }
+    },
+    "risk_disposition": {
+      "enum": ["block_r4", "allow_r4_with_warning"]
     }
   }
 }

@@ -30,6 +30,23 @@ INTERFACE_FABRICATION_PACKAGE_SCHEMA = (
     "interface-fabrication-package.schema.json"
 )
 PRINTABILITY_REPORT_SCHEMA = "printability-report.schema.json"
+GEOMETRY_VALIDATION_REPORT_SCHEMA = "geometry-validation-report.schema.json"
+GCODE_PREFLIGHT_REPORT_SCHEMA = "gcode-preflight-report.schema.json"
+PRINTER_PROFILE_SCHEMA = "printer-profile.schema.json"
+MATERIAL_PROFILE_SCHEMA = "material-profile.schema.json"
+PROCESS_PROFILE_SCHEMA = "process-profile.schema.json"
+ORIENTATION_PROFILE_SCHEMA = "orientation-profile.schema.json"
+INTERFACE_GEOMETRY_VALIDATION_REPORT_SCHEMA = (
+    "interface-geometry-validation-report.schema.json"
+)
+INTERFACE_PRINTABILITY_REPORT_SCHEMA = "interface-printability-report.schema.json"
+INTERFACE_GCODE_PREFLIGHT_REPORT_SCHEMA = (
+    "interface-gcode-preflight-report.schema.json"
+)
+INTERFACE_PRINTER_PROFILE_SCHEMA = "interface-printer-profile.schema.json"
+INTERFACE_MATERIAL_PROFILE_SCHEMA = "interface-material-profile.schema.json"
+INTERFACE_PROCESS_PROFILE_SCHEMA = "interface-process-profile.schema.json"
+INTERFACE_ORIENTATION_PROFILE_SCHEMA = "interface-orientation-profile.schema.json"
 
 PERSISTED_SCHEMA_FILENAMES = frozenset(
     {
@@ -39,6 +56,19 @@ PERSISTED_SCHEMA_FILENAMES = frozenset(
         FABRICATION_PACKAGE_SCHEMA,
         INTERFACE_FABRICATION_PACKAGE_SCHEMA,
         PRINTABILITY_REPORT_SCHEMA,
+        GEOMETRY_VALIDATION_REPORT_SCHEMA,
+        GCODE_PREFLIGHT_REPORT_SCHEMA,
+        PRINTER_PROFILE_SCHEMA,
+        MATERIAL_PROFILE_SCHEMA,
+        PROCESS_PROFILE_SCHEMA,
+        ORIENTATION_PROFILE_SCHEMA,
+        INTERFACE_GEOMETRY_VALIDATION_REPORT_SCHEMA,
+        INTERFACE_PRINTABILITY_REPORT_SCHEMA,
+        INTERFACE_GCODE_PREFLIGHT_REPORT_SCHEMA,
+        INTERFACE_PRINTER_PROFILE_SCHEMA,
+        INTERFACE_MATERIAL_PROFILE_SCHEMA,
+        INTERFACE_PROCESS_PROFILE_SCHEMA,
+        INTERFACE_ORIENTATION_PROFILE_SCHEMA,
     }
 )
 

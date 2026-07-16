@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ariad.local/schemas/v1/orientation-profile.schema.json",
+  "title": "Ariad Manufacturing Orientation Profile v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "orientation_id",
+    "name",
+    "status",
+    "source_up_axis",
+    "transform_4x4",
+    "placement",
+    "ensure_on_bed",
+    "claim_boundary"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "orientation_id": {"type": "string", "minLength": 1, "maxLength": 256},
+    "name": {"type": "string", "minLength": 1, "maxLength": 512},
+    "status": {"const": "experimental_analysis_only"},
+    "source_up_axis": {"const": "Z"},
+    "transform_4x4": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "array",
+        "minItems": 4,
+        "maxItems": 4,
+        "items": {"type": "number"}
+      }
+    },
+    "placement": {"const": "center_xy"},
+    "ensure_on_bed": {"const": true},
+    "claim_boundary": {"type": "string", "minLength": 1, "maxLength": 4096}
+  }
+}

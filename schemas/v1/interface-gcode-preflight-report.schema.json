@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ariad.local/schemas/v1/interface-gcode-preflight-report.schema.json",
+  "title": "Ariad Interface Fixture G-code Preflight Report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "passed",
+    "evidence_level",
+    "claim_boundary",
+    "measurements",
+    "checks",
+    "warnings",
+    "errors"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0-interface-fixture"},
+    "status": {"enum": ["passed", "failed"]},
+    "passed": {"type": "boolean"},
+    "evidence_level": {"enum": ["R4", null]},
+    "claim_boundary": {"type": "string", "minLength": 1, "maxLength": 4096},
+    "measurements": {"type": "object", "additionalProperties": false},
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["check_id", "measured", "requirement", "passed"],
+        "properties": {
+          "check_id": {"type": "string", "minLength": 1, "maxLength": 128},
+          "measured": {},
+          "requirement": {"type": "string", "minLength": 1, "maxLength": 512},
+          "passed": {"type": "boolean"}
+        }
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {"type": "string", "minLength": 1, "maxLength": 2048}
+    },
+    "errors": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {"type": "string", "minLength": 1, "maxLength": 2048}
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"passed": {"const": true}}, "required": ["passed"]},
+      "then": {
+        "properties": {
+          "status": {"const": "passed"},
+          "evidence_level": {"const": "R4"},
+          "errors": {"maxItems": 0},
+          "checks": {
+            "items": {
+              "properties": {"passed": {"const": true}},
+              "required": ["passed"]
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "status": {"const": "failed"},
+          "evidence_level": {"type": "null"},
+          "errors": {"minItems": 1},
+          "checks": {
+            "contains": {
+              "properties": {"passed": {"const": false}},
+              "required": ["passed"]
+            },
+            "minContains": 1
+          }
+        }
+      }
+    }
+  ]
+}

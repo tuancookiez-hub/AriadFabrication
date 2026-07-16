@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ariad.local/schemas/v1/interface-orientation-profile.schema.json",
+  "title": "Ariad Interface Fixture Orientation Profile v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "orientation_id",
+    "name",
+    "status",
+    "source_up_axis",
+    "placement",
+    "ensure_on_bed",
+    "claim_boundary"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0-interface-fixture"},
+    "orientation_id": {"type": "string", "minLength": 1, "maxLength": 256},
+    "name": {"type": "string", "minLength": 1, "maxLength": 512},
+    "status": {"const": "interface_fixture"},
+    "source_up_axis": {"const": "Z"},
+    "placement": {"const": "centered"},
+    "ensure_on_bed": {"const": true},
+    "claim_boundary": {"type": "string", "minLength": 1, "maxLength": 4096}
+  }
+}

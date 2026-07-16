@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ariad.local/schemas/v1/gcode-preflight-report.schema.json",
+  "title": "Ariad Disconnected G-code Preflight Report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["passed", "checks", "errors", "warnings", "claim_boundary"],
+  "properties": {
+    "passed": {"type": "boolean"},
+    "checks": {
+      "type": "array",
+      "minItems": 13,
+      "maxItems": 13,
+      "allOf": [
+        {"$ref": "#/$defs/has_layers"},
+        {"$ref": "#/$defs/millimetre_units"},
+        {"$ref": "#/$defs/absolute_xyz_mode"},
+        {"$ref": "#/$defs/extrusion_mode"},
+        {"$ref": "#/$defs/x_bounds"},
+        {"$ref": "#/$defs/y_bounds"},
+        {"$ref": "#/$defs/z_bounds"},
+        {"$ref": "#/$defs/nozzle_temperature"},
+        {"$ref": "#/$defs/bed_temperature"},
+        {"$ref": "#/$defs/single_tool"},
+        {"$ref": "#/$defs/forbidden_commands"},
+        {"$ref": "#/$defs/support_policy"},
+        {"$ref": "#/$defs/profile_layer_height"}
+      ],
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["check_id", "passed", "measured", "requirement"],
+        "properties": {
+          "check_id": {
+            "enum": [
+              "has_layers",
+              "millimetre_units",
+              "absolute_xyz_mode",
+              "extrusion_mode",
+              "x_bounds",
+              "y_bounds",
+              "z_bounds",
+              "nozzle_temperature",
+              "bed_temperature",
+              "single_tool",
+              "forbidden_commands",
+              "support_policy",
+              "profile_layer_height"
+            ]
+          },
+          "passed": {"type": "boolean"},
+          "measured": {},
+          "requirement": {"type": "string", "minLength": 1, "maxLength": 512}
+        }
+      }
+    },
+    "errors": {
+      "type": "array",
+      "maxItems": 13,
+      "items": {"type": "string", "minLength": 1, "maxLength": 128}
+    },
+    "warnings": {
+      "type": "array",
+      "maxItems": 32,
+      "items": {"type": "string", "minLength": 1, "maxLength": 2048}
+    },
+    "claim_boundary": {"type": "string", "minLength": 1, "maxLength": 4096}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"passed": {"const": true}}, "required": ["passed"]},
+      "then": {
+        "properties": {
+          "errors": {"maxItems": 0},
+          "checks": {
+            "items": {
+              "properties": {"passed": {"const": true}},
+              "required": ["passed"]
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "errors": {"minItems": 1},
+          "checks": {
+            "contains": {
+              "properties": {"passed": {"const": false}},
+              "required": ["passed"]
+            },
+            "minContains": 1
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "has_layers": {"contains": {"properties": {"check_id": {"const": "has_layers"}}, "required": ["check_id"]}, "minContains": 1, "maxContains": 1},
+    "millimetre_units": {"contains": {"properties": {"check_id": {"const": "millimetre_units"}}, "required": ["check_id"]}, "minContains": 1, "maxContains": 1},
+    "absolute_xyz_mode": {"contains": {"properties": {"check_id": {"const": "absolute_xyz_mode"}}, "required": ["check_id"]}, "minContains": 1, "maxContains": 1},
+    "extrusion_mode": {"contains": {"properties": {"check_id": {"const": "extrusion_mode"}}, "required": ["check_id"]}, "minContains": 1, "maxContains": 1},
+    "x_bounds": {"contains": {"properties": {"check_id": {"const": "x_bounds"}}, "required": ["check_id"]}, "minContains": 1, "maxContains": 1},
+    "y_bounds": {"contains": {"properties": {"check_id": {"const": "y_bounds"}}, "required": ["check_id"]}, "minContains": 1, "maxContains": 1},
+    "z_bounds": {"contains": {"properties": {"check_id": {"const": "z_bounds"}}, "required": ["check_id"]}, "minContains": 1, "maxContains": 1},
+    "nozzle_temperature": {"contains": {"properties": {"check_id": {"const": "nozzle_temperature"}}, "required": ["check_id"]}, "minContains": 1, "maxContains": 1},
+    "bed_temperature": {"contains": {"properties": {"check_id": {"const": "bed_temperature"}}, "required": ["check_id"]}, "minContains": 1, "maxContains": 1},
+    "single_tool": {"contains": {"properties": {"check_id": {"const": "single_tool"}}, "required": ["check_id"]}, "minContains": 1, "maxContains": 1},
+    "forbidden_commands": {"contains": {"properties": {"check_id": {"const": "forbidden_commands"}}, "required": ["check_id"]}, "minContains": 1, "maxContains": 1},
+    "support_policy": {"contains": {"properties": {"check_id": {"const": "support_policy"}}, "required": ["check_id"]}, "minContains": 1, "maxContains": 1},
+    "profile_layer_height": {"contains": {"properties": {"check_id": {"const": "profile_layer_height"}}, "required": ["check_id"]}, "minContains": 1, "maxContains": 1}
+  }
+}

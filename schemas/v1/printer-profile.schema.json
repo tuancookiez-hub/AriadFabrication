@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ariad.local/schemas/v1/printer-profile.schema.json",
+  "title": "Ariad FFF Printer Analysis Profile v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile_id",
+    "profile_family_id",
+    "name",
+    "status",
+    "technology",
+    "build_volume_mm",
+    "bed_origin",
+    "bed_shape_mm",
+    "nozzle_diameter_mm",
+    "filament_diameter_mm",
+    "extruder_count",
+    "firmware_flavor",
+    "maximum_nozzle_temperature_c",
+    "maximum_bed_temperature_c",
+    "source",
+    "claim_boundary"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "profile_id": {"type": "string", "minLength": 1, "maxLength": 256},
+    "profile_family_id": {"type": "string", "minLength": 1, "maxLength": 256},
+    "name": {"type": "string", "minLength": 1, "maxLength": 512},
+    "status": {"const": "experimental_analysis_only"},
+    "technology": {"const": "FFF"},
+    "build_volume_mm": {"$ref": "#/$defs/positive_xyz"},
+    "bed_origin": {"type": "string", "minLength": 1, "maxLength": 128},
+    "bed_shape_mm": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 64,
+      "items": {
+        "type": "array",
+        "prefixItems": [
+          {"type": "number", "minimum": 0},
+          {"type": "number", "minimum": 0}
+        ],
+        "items": false,
+        "minItems": 2,
+        "maxItems": 2
+      }
+    },
+    "nozzle_diameter_mm": {"type": "number", "exclusiveMinimum": 0},
+    "filament_diameter_mm": {"type": "number", "exclusiveMinimum": 0},
+    "extruder_count": {"type": "integer", "minimum": 1},
+    "firmware_flavor": {"type": "string", "minLength": 1, "maxLength": 128},
+    "maximum_nozzle_temperature_c": {"type": "number", "exclusiveMinimum": 0},
+    "maximum_bed_temperature_c": {"type": "number", "minimum": 0},
+    "source": {"type": "string", "minLength": 1, "maxLength": 2048},
+    "claim_boundary": {"type": "string", "minLength": 1, "maxLength": 4096}
+  },
+  "$defs": {
+    "positive_xyz": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "z"],
+      "properties": {
+        "x": {"type": "number", "exclusiveMinimum": 0},
+        "y": {"type": "number", "exclusiveMinimum": 0},
+        "z": {"type": "number", "exclusiveMinimum": 0}
+      }
+    }
+  }
+}

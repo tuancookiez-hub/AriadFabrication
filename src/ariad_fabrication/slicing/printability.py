@@ -16,6 +16,10 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from ..cad.canonical import canonicalize_step
+from ..schema_validation import (
+    PRINTABILITY_REPORT_SCHEMA,
+    validate_persisted_instance,
+)
 from .profiles import ProfileBundle
 
 
@@ -668,8 +672,14 @@ def assess_golden_part_printability(
 def write_printability_report(path: Path, report: PrintabilityReport) -> None:
     if path.exists():
         raise FileExistsError(f"printability report is immutable: {path}")
+    value = report.to_dict()
+    validate_persisted_instance(
+        value,
+        PRINTABILITY_REPORT_SCHEMA,
+        record_name="generated printability report",
+    )
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
-        json.dumps(report.to_dict(), indent=2, sort_keys=True, ensure_ascii=False) + "\n",
+        json.dumps(value, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )

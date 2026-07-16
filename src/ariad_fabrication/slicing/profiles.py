@@ -11,6 +11,14 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Any, Mapping, Sequence
 
+from ..schema_validation import (
+    MATERIAL_PROFILE_SCHEMA,
+    ORIENTATION_PROFILE_SCHEMA,
+    PRINTER_PROFILE_SCHEMA,
+    PROCESS_PROFILE_SCHEMA,
+    validate_persisted_instance,
+)
+
 
 PROFILE_CONTRACT_VERSION = "1.0.0"
 
@@ -66,8 +74,28 @@ def _integer(value: Any, name: str, *, minimum: int = 1) -> int:
 
 
 def _load_json(path: Path) -> Mapping[str, Any]:
-    value = json.loads(path.read_text(encoding="utf-8"))
+    try:
+        value = json.loads(
+            path.read_text(encoding="utf-8"),
+            parse_constant=_reject_json_constant,
+            object_pairs_hook=_reject_duplicate_json_object,
+        )
+    except (UnicodeError, json.JSONDecodeError, ValueError, RecursionError) as exc:
+        raise ValueError(f"{path} must contain strict UTF-8 JSON") from exc
     return _mapping(value, str(path))
+
+
+def _reject_json_constant(value: str) -> None:
+    raise ValueError(f"non-finite JSON constant is not allowed: {value}")
+
+
+def _reject_duplicate_json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    value: dict[str, Any] = {}
+    for key, item in pairs:
+        if key in value:
+            raise ValueError(f"duplicate JSON object key is not allowed: {key!r}")
+        value[key] = item
+    return value
 
 
 def _version(value: Mapping[str, Any]) -> None:
@@ -101,6 +129,11 @@ class PrinterProfile:
 
     @classmethod
     def from_mapping(cls, value: Mapping[str, Any]) -> "PrinterProfile":
+        validate_persisted_instance(
+            dict(value),
+            PRINTER_PROFILE_SCHEMA,
+            record_name="printer profile",
+        )
         _version(value)
         volume = _mapping(value.get("build_volume_mm"), "build_volume_mm")
         raw_shape = value.get("bed_shape_mm")
@@ -195,6 +228,11 @@ class MaterialProfile:
 
     @classmethod
     def from_mapping(cls, value: Mapping[str, Any]) -> "MaterialProfile":
+        validate_persisted_instance(
+            dict(value),
+            MATERIAL_PROFILE_SCHEMA,
+            record_name="material profile",
+        )
         _version(value)
 
         def numeric_range(key: str, *, allow_zero: bool = False) -> tuple[float, float]:
@@ -308,6 +346,11 @@ class ProcessProfile:
 
     @classmethod
     def from_mapping(cls, value: Mapping[str, Any]) -> "ProcessProfile":
+        validate_persisted_instance(
+            dict(value),
+            PROCESS_PROFILE_SCHEMA,
+            record_name="process profile",
+        )
         _version(value)
         speeds = _mapping(value.get("speeds_mm_s"), "speeds_mm_s")
         required_speeds = (
@@ -387,6 +430,11 @@ class OrientationProfile:
 
     @classmethod
     def from_mapping(cls, value: Mapping[str, Any]) -> "OrientationProfile":
+        validate_persisted_instance(
+            dict(value),
+            ORIENTATION_PROFILE_SCHEMA,
+            record_name="orientation profile",
+        )
         _version(value)
         raw_matrix = value.get("transform_4x4")
         if not isinstance(raw_matrix, Sequence) or len(raw_matrix) != 4:
