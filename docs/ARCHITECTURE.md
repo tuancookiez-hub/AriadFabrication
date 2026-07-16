@@ -172,7 +172,7 @@ Toolpath playback is not structural or thermal proof.
 | Domain and workers | Python 3.11 | Matches the existing package and CadQuery ecosystem |
 | CAD | CadQuery backed by OCCT | Functional lane; source is a first-class artifact |
 | API | FastAPI on the existing Python domain | M4-A implements a loopback-only, read-only filesystem boundary; job execution and streaming remain later |
-| Browser interface | Vite + React + TypeScript | M4-L implements journey evidence, bounded revision discovery/pages, bounded persisted-file snapshots, verified artifact delivery, strict persisted lifecycle/scalar/time/root/report/profile/schema/lineage/package/content-identity contracts, direct Three.js preview, worker-owned toolpath playback, generated API response types, bounded persisted-evidence selection, and server-owned revision comparison |
+| Browser interface | Vite + React + TypeScript | M4-M implements journey evidence, bounded revision discovery/pages, bounded persisted-file snapshots, verified artifact delivery, strict persisted lifecycle/scalar/time/root/report/profile/schema/lineage/package/content-identity contracts, direct Three.js preview, worker-owned toolpath playback, generated API response types, bounded persisted-evidence selection, server-owned revision comparison, and tested keyboard/contrast/reduced-motion foundations |
 | Model integration | OpenAI Responses API with strict structured output and function tools | Model output cannot bypass deterministic gates |
 | Slicing | Adapter over PrusaSlicer and/or OrcaSlicer CLI | Profiles and tool versions are recorded |
 | Metadata | SQLite initially | Filesystem stores large artifacts; migration path remains open |
@@ -203,7 +203,7 @@ Each provider must have a deterministic fixture for tests and must report whethe
 
 ## Current implementation mapping
 
-M3 implements one complete printer-independent Golden Part path through R4, and M4-A through M4-L expose its persisted records through a read-only application slice:
+M3 implements one complete printer-independent Golden Part path through R4, and M4-A through M4-M expose its persisted records through a read-only application slice:
 
 - `domain/spec.py` implements immutable `PartSpec` 1.0.0 and design-readiness rules.
 - `domain/journey.py` implements jobs, immutable revisions and records, append-only events, artifact lineage, and manifests.
@@ -235,7 +235,7 @@ M3 implements one complete printer-independent Golden Part path through R4, and 
 - `api/app.py` exposes loopback-only health, bounded revision-list, revision-detail, revision-comparison, and verified-snapshot artifact routes while advertising `hardware_actions: false` in every application contract. Revision offset/page-size constraints fail at HTTP validation before discovery; binary, 404, integrity-conflict, and size-limit responses are explicit in OpenAPI.
 - `api/openapi.py` deterministically generates and checks the committed OpenAPI snapshot without reading journey data; runtime documentation/schema routes remain disabled.
 - `api/fixture.py` deterministically generates the committed `benchmarks/interface/` family. Every stage is labelled `fixture`; complete parent/child, `needs_input`, failed Geometry, failed Printability, and incomplete Package journeys stop at their persisted gate.
-- `web/` contains the Vite React/TypeScript client, shipment-style timeline, warning and claim presentation, bounded observed-revision pages with incomplete/non-snapshot disclosure, artifact links, fixture boundary, reduced-motion behavior, bounded Three.js GLB inspection, worker-owned G-code layer playback, a selectable feature/check/finding/profile/artifact evidence explorer, a persisted revision picker/diff view, generated OpenAPI response aliases, real-artifact integration tests, lint/type checks, and production build.
+- `web/` contains the Vite React/TypeScript client, shipment-style timeline, warning and claim presentation, bounded observed-revision pages with incomplete/non-snapshot disclosure, artifact links, fixture boundary, bounded Three.js GLB inspection, worker-owned G-code layer playback, a selectable feature/check/finding/profile/artifact evidence explorer, a persisted revision picker/diff view, generated OpenAPI response aliases, semantic landmarks and keyboard tabs, route title/focus handling, non-color status cues, live reduced-motion handling, contrast regression checks, real-artifact integration tests, lint/type checks, and production build. The Three.js renderer owns only a dedicated empty canvas host; React retains ownership of loading/error overlays.
 - `.github/workflows/ci.yml` defines lightweight backend and frontend checks, including canonical OpenAPI and generated-TypeScript drift gates. The approximately 1 GiB CAD/slicer environment remains a separate full verification path.
 - `experiments/slicer_benchmark/` compares official 3DBenchy and the conventional warship under the same real slicer/profile while earning no Golden Part evidence.
 - `model_gen.py` creates a cuboid STL fixture.

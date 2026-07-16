@@ -1,8 +1,8 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { Link, MemoryRouter, useLocation } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 
-import { JourneyView, RevisionListingStatus } from './App'
+import { JourneyView, RevisionListingStatus, RouteAccessibility } from './App'
 import { EvidenceInspector } from './EvidenceInspector'
 import type { Artifact, Inspection, RevisionDetail, RevisionListWindow } from './types'
 
@@ -140,6 +140,33 @@ const detail: RevisionDetail = {
   },
 }
 
+function RouteFocusFixture() {
+  const location = useLocation()
+  return (
+    <>
+      <RouteAccessibility />
+      <Link to="/next">Open next route</Link>
+      <h1 data-route-heading tabIndex={-1}>
+        {location.pathname === '/next' ? 'Next route' : 'Initial route'}
+      </h1>
+    </>
+  )
+}
+
+describe('RouteAccessibility', () => {
+  it('moves focus to the new route heading without stealing initial focus', () => {
+    render(
+      <MemoryRouter>
+        <RouteFocusFixture />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByRole('heading', { name: 'Initial route' })).not.toHaveFocus()
+    fireEvent.click(screen.getByRole('link', { name: 'Open next route' }))
+    expect(screen.getByRole('heading', { name: 'Next route' })).toHaveFocus()
+  })
+})
+
 describe('JourneyView', () => {
   it('keeps fixture and hardware boundaries visible', () => {
     render(
@@ -155,15 +182,55 @@ describe('JourneyView', () => {
     expect(screen.getByText('Persisted evidence replay')).toBeInTheDocument()
     expect(screen.getByText('Verified before parsing')).toBeInTheDocument()
     expect(screen.getByText(/does not highlight exact geometry/i)).toBeInTheDocument()
+    expect(screen.getByRole('main')).toHaveAttribute('id', 'main-content')
+    expect(screen.getByRole('link', { name: 'Skip to main content' })).toHaveAttribute(
+      'href',
+      '#main-content',
+    )
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      'OpenGrow interface fixture',
+    )
+    expect(screen.getByRole('button', { name: /stake bore diameter.*passed/i })).toBeInTheDocument()
+    expect(document.title).toBe('OpenGrow interface fixture — Ariad Fabrication')
     fireEvent.click(screen.getByRole('button', { name: 'Features 1' }))
     expect(screen.getByText(/requested feature from the revision specification/i)).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Artifacts 1' }))
     expect(screen.getByText(reportArtifact.checksum_sha256)).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Model' }))
+    const evidenceTab = screen.getByRole('tab', { name: 'Evidence' })
+    fireEvent.keyDown(evidenceTab, { key: 'ArrowLeft' })
+    expect(screen.getByRole('tab', { name: 'Model' })).toHaveFocus()
+    expect(screen.getByRole('tab', { name: 'Model' })).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByText('No GLB preview recorded')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Toolpath' }))
+    fireEvent.click(screen.getByRole('tab', { name: 'Toolpath' }))
     expect(screen.getByText('No G-code recorded')).toBeInTheDocument()
     expect(screen.queryByText('Printable')).not.toBeInTheDocument()
+  })
+
+  it('does not expose an unavailable artifact as an actionable link', () => {
+    const unavailableDetail: RevisionDetail = {
+      ...detail,
+      stages: [
+        {
+          ...detail.stages[0],
+          artifacts: [{ ...reportArtifact, available: false }],
+        },
+      ],
+      inspection: {
+        ...detail.inspection,
+        reports: [],
+      },
+    }
+
+    render(
+      <MemoryRouter>
+        <JourneyView detail={unavailableDetail} />
+      </MemoryRouter>,
+    )
+
+    expect(
+      screen.queryByRole('link', { name: 'Open geometry validation report artifact' }),
+    ).not.toBeInTheDocument()
+    expect(screen.getByText('Unavailable').closest('[aria-disabled="true"]')).not.toBeNull()
   })
 
   it('keeps a corrupt inspection source unavailable instead of presenting its checks', () => {

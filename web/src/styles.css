@@ -11,10 +11,11 @@
   --line: #2d2d32;
   --muted: #aaa6a1;
   --white: #f7f4ef;
-  --red: #ef2929;
+  --red: #f23a3a;
   --red-soft: #4b1718;
   --amber: #f2b84b;
   --green: #52c788;
+  --focus: #ff7373;
 }
 
 * {
@@ -34,6 +35,16 @@ a {
   color: inherit;
 }
 
+:where(a, button, input, select, summary, [tabindex]):focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+main:focus,
+[data-route-heading]:focus {
+  outline: none;
+}
+
 button,
 a {
   -webkit-tap-highlight-color: transparent;
@@ -41,6 +52,26 @@ a {
 
 .app-shell {
   min-height: 100vh;
+}
+
+.skip-link {
+  position: fixed;
+  z-index: 100;
+  top: 0.75rem;
+  left: 0.75rem;
+  padding: 0.7rem 0.9rem;
+  border: 2px solid var(--focus);
+  border-radius: 8px;
+  background: var(--white);
+  color: var(--bg);
+  font-weight: 800;
+  text-decoration: none;
+  transform: translateY(calc(-100% - 1rem));
+}
+
+.skip-link:focus-visible {
+  outline-color: var(--bg);
+  transform: translateY(0);
 }
 
 .topbar {
@@ -265,7 +296,8 @@ main {
 .listing-pagination button:hover:not(:disabled),
 .listing-pagination button:focus-visible {
   border-color: var(--red);
-  outline: none;
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
 }
 
 .listing-pagination button:disabled {
@@ -297,10 +329,9 @@ main {
   transform: translateY(-3px);
   border-color: var(--red);
   background: var(--panel-raised);
-  outline: none;
 }
 
-.revision-card h2 {
+.revision-card h3 {
   margin: 0.9rem 0 1.6rem;
   font-family: Georgia, "Times New Roman", serif;
   font-size: 1.65rem;
@@ -541,8 +572,12 @@ main {
 }
 
 .artifact-missing {
-  cursor: not-allowed;
-  opacity: 0.55;
+  color: var(--muted);
+  cursor: default;
+}
+
+.artifact-missing > span:last-child {
+  color: #ff9c9e;
 }
 
 .event-log {
@@ -643,7 +678,7 @@ main {
   text-transform: uppercase;
 }
 
-.inspector-tabs button[aria-pressed='true'] {
+.inspector-tabs button[aria-selected='true'] {
   border-color: #5b1d1e;
   background: var(--red-soft);
   color: var(--white);
@@ -651,7 +686,8 @@ main {
 
 .inspector-tabs button:focus-visible {
   border-color: var(--red);
-  outline: none;
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
 }
 
 .model-viewport {
@@ -663,6 +699,11 @@ main {
   background: #0d0d0f;
 }
 
+.model-canvas-host {
+  position: absolute;
+  inset: 0;
+}
+
 .model-canvas {
   display: block;
   width: 100%;
@@ -672,7 +713,17 @@ main {
 }
 
 .model-canvas:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: -3px;
   box-shadow: inset 0 0 0 2px var(--red);
+}
+
+.viewer-help,
+.reduced-motion-note {
+  margin: 0.65rem 0 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.45;
 }
 
 .viewer-status {
@@ -727,7 +778,6 @@ main {
 .viewer-toolbar a:hover,
 .viewer-toolbar a:focus-visible {
   border-color: var(--red);
-  outline: none;
 }
 
 .viewer-toolbar button:disabled {
@@ -810,11 +860,13 @@ main {
   flex-wrap: wrap;
   gap: 0.9rem;
   margin-top: 0.8rem;
+  padding: 0;
   color: var(--muted);
   font-size: 0.75rem;
+  list-style: none;
 }
 
-.toolpath-legend span {
+.toolpath-legend li {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -822,15 +874,15 @@ main {
 
 .toolpath-legend i {
   width: 1.6rem;
-  height: 2px;
+  height: 0;
 }
 
 .legend-extrusion {
-  background: var(--red);
+  border-top: 2px solid var(--red);
 }
 
 .legend-travel {
-  background: #77777f;
+  border-top: 2px dashed #aaa6a1;
 }
 
 .sticky-panel dl {
@@ -1069,12 +1121,20 @@ main {
 
 .check-list button {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 0.5rem;
   align-items: center;
   padding: 0.55rem;
   border-radius: 6px;
   font-size: 0.71rem;
+}
+
+.check-list-result {
+  color: #d7d3ce;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .check-dot {
@@ -1278,12 +1338,13 @@ main {
 .comparison-launcher .compare-button {
   border-color: var(--red);
   background: var(--red);
+  color: var(--bg);
 }
 
 .comparison-launcher select:focus-visible,
 .comparison-launcher button:focus-visible,
 .comparison-change summary:focus-visible {
-  outline: 2px solid rgba(239, 41, 41, 0.55);
+  outline: 3px solid var(--focus);
   outline-offset: 2px;
 }
 
@@ -1514,6 +1575,18 @@ main {
   display: none;
 }
 
+.comparison-change summary::after {
+  margin-left: auto;
+  color: var(--muted);
+  content: '+';
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.comparison-change[open] summary::after {
+  content: '−';
+}
+
 .comparison-change summary > span:last-child {
   display: grid;
   gap: 0.25rem;
@@ -1680,6 +1753,8 @@ main {
   *::before,
   *::after {
     scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
 }

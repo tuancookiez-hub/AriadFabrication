@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import type { Material, Mesh, Object3D, PerspectiveCamera, Texture, WebGLRenderer } from 'three'
 import type { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 
@@ -36,8 +36,9 @@ function formatBytes(value: number | null): string {
 }
 
 export function ModelInspector({ artifact }: { artifact: Artifact | null }) {
-  const hostRef = useRef<HTMLDivElement>(null)
+  const canvasHostRef = useRef<HTMLDivElement>(null)
   const resetCameraRef = useRef<(() => void) | null>(null)
+  const instructionsId = useId()
   const [state, setState] = useState<ViewerState>(() =>
     artifact
       ? { phase: 'loading', message: 'Loading checksum-verified GLB preview…' }
@@ -47,8 +48,9 @@ export function ModelInspector({ artifact }: { artifact: Artifact | null }) {
   useEffect(() => {
     if (!artifact) return
 
-    const hostElement: HTMLDivElement = hostRef.current!
-    if (!hostElement) return
+    const mountedHost = canvasHostRef.current
+    if (!mountedHost) return
+    const hostElement: HTMLDivElement = mountedHost
     const selectedArtifact = artifact
     const abortController = new AbortController()
     let cancelled = false
@@ -86,11 +88,12 @@ export function ModelInspector({ artifact }: { artifact: Artifact | null }) {
         renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
         renderer.domElement.className = 'model-canvas'
         renderer.domElement.tabIndex = 0
-        renderer.domElement.setAttribute('role', 'img')
+        renderer.domElement.setAttribute('role', 'region')
         renderer.domElement.setAttribute(
           'aria-label',
-          'Interactive tessellated model preview. Drag to orbit, scroll to zoom, and use arrow keys to pan.',
+          'Interactive tessellated model preview',
         )
+        renderer.domElement.setAttribute('aria-describedby', instructionsId)
         hostElement.replaceChildren(renderer.domElement)
 
         scene.add(new THREE.HemisphereLight(0xffffff, 0x2d1010, 2.4))
@@ -133,13 +136,19 @@ export function ModelInspector({ artifact }: { artifact: Artifact | null }) {
             : positions.count / 3
         })
         if (triangleCount > MAX_MODEL_TRIANGLES) {
+          disposeModel(model)
+          model = null
           throw new Error(
             `GLB exceeds the ${MAX_MODEL_TRIANGLES.toLocaleString()} triangle preview limit`,
           )
         }
 
         const bounds = new THREE.Box3().setFromObject(model)
-        if (bounds.isEmpty()) throw new Error('The GLB preview contains no visible geometry')
+        if (bounds.isEmpty()) {
+          disposeModel(model)
+          model = null
+          throw new Error('The GLB preview contains no visible geometry')
+        }
         const centre = bounds.getCenter(new THREE.Vector3())
         const size = bounds.getSize(new THREE.Vector3())
         model.position.sub(centre)
@@ -225,7 +234,7 @@ export function ModelInspector({ artifact }: { artifact: Artifact | null }) {
       renderer?.forceContextLoss()
       hostElement.replaceChildren()
     }
-  }, [artifact])
+  }, [artifact, instructionsId])
 
   if (!artifact) {
     return (
@@ -239,7 +248,8 @@ export function ModelInspector({ artifact }: { artifact: Artifact | null }) {
 
   return (
     <div className="model-inspector">
-      <div className="model-viewport" ref={hostRef} aria-busy={state.phase === 'loading'}>
+      <div className="model-viewport" aria-busy={state.phase === 'loading'}>
+        <div className="model-canvas-host" ref={canvasHostRef} />
         {state.phase !== 'ready' ? (
           <div className={`viewer-status viewer-status-${state.phase}`} role="status">
             <strong>{state.phase === 'error' ? 'Preview unavailable' : 'Preparing model'}</strong>
@@ -247,6 +257,10 @@ export function ModelInspector({ artifact }: { artifact: Artifact | null }) {
           </div>
         ) : null}
       </div>
+      <p className="viewer-help" id={instructionsId}>
+        Drag to orbit, use the wheel or pinch gesture to zoom, and focus the viewport to pan with
+        the arrow keys.
+      </p>
       <div className="viewer-toolbar">
         <button
           type="button"
@@ -255,7 +269,7 @@ export function ModelInspector({ artifact }: { artifact: Artifact | null }) {
         >
           Reset camera
         </button>
-        <a href={artifact.download_url}>Open GLB</a>
+        <a href={artifact.download_url} aria-label="Open checksum-verified GLB artifact">Open GLB</a>
       </div>
       <div className="preview-boundary">
         <strong>Geometry preview — not validation</strong>

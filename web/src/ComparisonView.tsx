@@ -121,7 +121,7 @@ export function ComparisonView({ comparison }: { comparison: RevisionComparison 
             ← All revisions
           </Link>
           <p className="eyebrow">Persisted revision comparison</p>
-          <h1>What changed between the records?</h1>
+          <h1 data-route-heading tabIndex={-1}>What changed between the records?</h1>
           <p>
             The server normalized and compared recorded requirements and evidence. The browser is
             displaying that result; it did not rerun any fabrication stage.
@@ -167,9 +167,9 @@ export function ComparisonView({ comparison }: { comparison: RevisionComparison 
         </div>
 
         {comparison.summaries.length > 0 ? (
-          <div className="comparison-summary-grid" aria-label="Change counts by evidence area">
+          <div className="comparison-summary-grid" role="list" aria-label="Change counts by evidence area">
             {comparison.summaries.map((summary) => (
-              <article key={summary.area}>
+              <article key={summary.area} role="listitem">
                 <strong>{readable(summary.area)}</strong>
                 <span>
                   {summary.changed} changed · {summary.added} added · {summary.removed} removed

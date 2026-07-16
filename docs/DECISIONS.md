@@ -345,6 +345,24 @@ This file records accepted project-level decisions. Change an accepted decision 
 
 **Consequence:** Persisted report/profile bytes can no longer acquire undeclared shapes or contradict the package identities they are used to explain. Browser-level visual/accessibility evidence and frozen no-hardware job execution semantics remain the next M4 work.
 
+### D-032 — Establish an accessible interaction baseline and preserve React renderer ownership
+
+**Status:** Accepted for M4-M on 2026-07-16.
+
+**Decision:** Keep the existing dependency-free React interaction layer and establish an explicit accessibility baseline before adding animation libraries, component kits, or mutation controls. Provide skip navigation, a single main landmark, route-specific document titles, route-change focus transfer, ordered card headings, polite loading status, explicit artifact link names, and a WAI-ARIA-style inspection tablist with Arrow, Home, and End keyboard behavior. Render unavailable artifacts as non-actions. Pair report pass/fail color with text and toolpath color with solid/dashed line semantics. Observe reduced-motion preference changes for the lifetime of the page, stop automatic playback when reduction is requested, retain manual layer controls, and expose the reason visibly.
+
+**Visual evidence boundary:** Raise the red foreground so the common dark-panel normal-text pair exceeds 4.5:1, use dark text on the red primary action, and use a dedicated focus color whose common dark-panel pair exceeds 3:1. Enforce those selected pairs with a formula-based stylesheet regression test. This proves only the frozen color pairs and component semantics under test; it is not a claim of complete WCAG conformance, screen-reader compatibility, zoom/reflow success, or visual-browser approval.
+
+**Renderer ownership boundary:** Three.js may replace children only inside a dedicated React-owned-empty canvas host. Loading and error overlays remain React-owned siblings. The previous implementation imperatively replaced the viewport's React-managed child, which could race reconciliation and remove or corrupt status content. The canvas now has an accessible region name, visible keyboard/pointer instructions, and a checksum-specific artifact link.
+
+**Evidence:** Component tests verify skip/main/title/heading semantics, route focus transfer, report pass text, keyboard tab selection and focus, and that an unavailable artifact has no actionable link. Stylesheet tests enforce four common normal-text contrast pairs, a focus-indicator pair, skip-link exposure, reduced-motion coverage, and dark primary-button text. Explicit test cleanup prevents one rendered component from contaminating the next assertion. Frontend generated-contract drift, test TypeScript, twelve deterministic tests, ESLint, production TypeScript, and Vite build pass; two real-artifact tests remain environment-gated. The application bundle is 337.16 KiB / 103.68 KiB gzip, CSS is 26.07 KiB / 5.76 KiB gzip, and the lazy Three.js chunk remains 724.46 KiB / 184.72 KiB gzip. The unchanged backend suite passes 122 tests.
+
+**Resource and dependency impact:** No dependency was added. Route and media-query effects are event-driven; the Three.js viewer remains event-rendered rather than continuously animated. The semantic and focus code adds approximately 0.97 KiB gzip to the application entry and 0.29 KiB gzip to CSS compared with M4-L. The existing Three.js size warning is unchanged.
+
+**Removal path:** A future design system or accessibility framework may replace these primitives only if it preserves route focus/title behavior, semantic landmarks and tab keyboard behavior, non-actionable unavailable records, non-color cues, live reduced-motion handling, contrast/focus regression coverage, dedicated renderer ownership, and component tests. Removing individual visual treatments is acceptable only after equivalent evidence replaces them.
+
+**Consequence:** The interface now has a testable keyboard, focus, motion, contrast, and renderer-ownership foundation without pretending static tests equal human browser or assistive-technology review. Screenshot-level and assistive-technology QA remain blocked by the recorded local browser-runner conflict. Frozen no-hardware job-runner, event, cancellation, idempotency, concurrency, resource, and failure semantics are the next M4 work.
+
 ## Deferred decisions
 
 These require later evidence and should not be decided through preference alone:

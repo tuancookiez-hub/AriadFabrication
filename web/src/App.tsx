@@ -1,9 +1,11 @@
-import { type FormEvent, useEffect, useState } from 'react'
+import { type FormEvent, useEffect, useRef, useState } from 'react'
 import {
   Link,
   Navigate,
+  Outlet,
   RouterProvider,
   createBrowserRouter,
+  useLocation,
   useNavigate,
   useParams,
 } from 'react-router-dom'
@@ -46,9 +48,44 @@ function formatBytes(value: number | null): string {
   return `${(value / (1024 * 1024)).toFixed(1)} MiB`
 }
 
-function AppShell({ children }: { children: React.ReactNode }) {
+function pageDocumentTitle(pageTitle: string): string {
+  return pageTitle === 'Ariad Fabrication Journey'
+    ? pageTitle
+    : `${pageTitle} — Ariad Fabrication`
+}
+
+export function RouteAccessibility() {
+  const location = useLocation()
+  const previousLocation = useRef(location.key)
+
+  useEffect(() => {
+    if (previousLocation.current === location.key) return
+    previousLocation.current = location.key
+    const target =
+      document.querySelector<HTMLElement>('[data-route-heading]') ??
+      document.getElementById('main-content')
+    target?.focus()
+  }, [location.key])
+
+  return null
+}
+
+function AppShell({
+  children,
+  pageTitle,
+}: {
+  children: React.ReactNode
+  pageTitle: string
+}) {
+  useEffect(() => {
+    document.title = pageDocumentTitle(pageTitle)
+  }, [pageTitle])
+
   return (
     <div className="app-shell">
+      <a className="skip-link" href="#main-content">
+        Skip to main content
+      </a>
       <header className="topbar">
         <Link className="brand" to="/" aria-label="Ariad Fabrication home">
           <img src={logoUrl} alt="Ariad Fabrication" />
@@ -57,17 +94,23 @@ function AppShell({ children }: { children: React.ReactNode }) {
             <small>Follow the thread from idea to evidence</small>
           </span>
         </Link>
-        <div className="boundary-pill" title="This interface has no hardware endpoints">
+        <div className="boundary-pill">
           Read-only · hardware disconnected
         </div>
       </header>
-      <main>{children}</main>
+      <main id="main-content" tabIndex={-1}>
+        {children}
+      </main>
     </div>
   )
 }
 
 function Loading({ message }: { message: string }) {
-  return <div className="state-panel">{message}</div>
+  return (
+    <div className="state-panel" role="status" aria-live="polite">
+      {message}
+    </div>
+  )
 }
 
 function ErrorPanel({ error }: { error: string }) {
@@ -84,7 +127,7 @@ function RevisionCard({ revision }: { revision: RevisionSummary }) {
     return (
       <article className="revision-card invalid-card">
         <div className="card-kicker">Persisted revision unavailable</div>
-        <h2>{revision.job_id}</h2>
+        <h3>{revision.job_id}</h3>
         <p>{revision.error ?? 'The record is malformed or incomplete.'}</p>
       </article>
     )
@@ -97,7 +140,7 @@ function RevisionCard({ revision }: { revision: RevisionSummary }) {
       <div className="card-kicker">
         {revision.source?.fixture ? 'Interface fixture' : 'Persisted pipeline revision'}
       </div>
-      <h2>{revision.title}</h2>
+      <h3>{revision.title}</h3>
       <div className="metric-row">
         <span>{revision.achieved_evidence_level ?? 'No evidence level'}</span>
         <span>{revision.stage_count} recorded stages</span>
@@ -298,11 +341,11 @@ function JourneyIndexPage() {
     revisions?.filter((revision) => revision.availability === 'available') ?? []
 
   return (
-    <AppShell>
+    <AppShell pageTitle="Ariad Fabrication Journey">
       <section className="hero">
         <div>
           <p className="eyebrow">Fabrication Journey · M4</p>
-          <h1>Inspect what happened. See what remains unproven.</h1>
+          <h1 data-route-heading tabIndex={-1}>Inspect what happened. See what remains unproven.</h1>
           <p>
             Each card comes from a persisted revision. The interface does not calculate fictional
             progress or turn warnings into a printable badge.
@@ -388,19 +431,36 @@ function StageCard({ stage, position }: { stage: Stage; position: number }) {
           <div className="artifact-list">
             <h4>Artifacts</h4>
             {stage.artifacts.map((artifact) => (
-              <a
-                className={artifact.available ? 'artifact-row' : 'artifact-row artifact-missing'}
-                href={artifact.available ? artifact.download_url : undefined}
-                key={artifact.artifact_id}
-              >
-                <span>
-                  <strong>{readable(artifact.role)}</strong>
-                  <small>
-                    {artifact.media_type} · {formatBytes(artifact.size_bytes)} · {artifact.evidence_mode}
-                  </small>
-                </span>
-                <span>{artifact.available ? 'Open' : 'Unavailable'}</span>
-              </a>
+              artifact.available ? (
+                <a
+                  aria-label={`Open ${readable(artifact.role)} artifact`}
+                  className="artifact-row"
+                  href={artifact.download_url}
+                  key={artifact.artifact_id}
+                >
+                  <span>
+                    <strong>{readable(artifact.role)}</strong>
+                    <small>
+                      {artifact.media_type} · {formatBytes(artifact.size_bytes)} · {artifact.evidence_mode}
+                    </small>
+                  </span>
+                  <span>Open</span>
+                </a>
+              ) : (
+                <div
+                  aria-disabled="true"
+                  className="artifact-row artifact-missing"
+                  key={artifact.artifact_id}
+                >
+                  <span>
+                    <strong>{readable(artifact.role)}</strong>
+                    <small>
+                      {artifact.media_type} · {formatBytes(artifact.size_bytes)} · {artifact.evidence_mode}
+                    </small>
+                  </span>
+                  <span>Unavailable</span>
+                </div>
+              )
             ))}
           </div>
         ) : null}
@@ -448,7 +508,7 @@ export function JourneyView({ detail }: { detail: RevisionDetail }) {
   )
 
   return (
-    <AppShell>
+    <AppShell pageTitle={detail.job.title}>
       {detail.source.fixture ? (
         <div className="fixture-banner" role="status">
           <strong>INTERFACE FIXTURE</strong>
@@ -461,7 +521,7 @@ export function JourneyView({ detail }: { detail: RevisionDetail }) {
             ← All revisions
           </Link>
           <p className="eyebrow">Revision {detail.revision.number}</p>
-          <h1>{detail.job.title}</h1>
+          <h1 data-route-heading tabIndex={-1}>{detail.job.title}</h1>
           <p>{detail.job.request}</p>
         </div>
         <div className="evidence-panel">
@@ -554,8 +614,8 @@ function JourneyDetailPage() {
   }, [jobId, revisionId])
 
   if (!jobId || !revisionId) return <Navigate to="/" replace />
-  if (error) return <AppShell><ErrorPanel error={error} /></AppShell>
-  if (!detail) return <AppShell><Loading message="Following the persisted thread…" /></AppShell>
+  if (error) return <AppShell pageTitle="Revision unavailable"><ErrorPanel error={error} /></AppShell>
+  if (!detail) return <AppShell pageTitle="Loading revision"><Loading message="Following the persisted thread…" /></AppShell>
   return <JourneyView detail={detail} />
 }
 
@@ -586,19 +646,29 @@ function RevisionComparisonPage() {
   if (!baseJobId || !baseRevisionId || !candidateJobId || !candidateRevisionId) {
     return <Navigate to="/" replace />
   }
-  if (error) return <AppShell><ErrorPanel error={error} /></AppShell>
-  if (!comparison) return <AppShell><Loading message="Comparing persisted records…" /></AppShell>
-  return <AppShell><ComparisonView comparison={comparison} /></AppShell>
+  if (error) return <AppShell pageTitle="Comparison unavailable"><ErrorPanel error={error} /></AppShell>
+  if (!comparison) return <AppShell pageTitle="Loading comparison"><Loading message="Comparing persisted records…" /></AppShell>
+  return <AppShell pageTitle="Revision comparison"><ComparisonView comparison={comparison} /></AppShell>
 }
 
 const router = createBrowserRouter([
-  { path: '/', element: <JourneyIndexPage /> },
-  { path: '/jobs/:jobId/revisions/:revisionId', element: <JourneyDetailPage /> },
   {
-    path: '/compare/:baseJobId/:baseRevisionId/:candidateJobId/:candidateRevisionId',
-    element: <RevisionComparisonPage />,
+    element: (
+      <>
+        <RouteAccessibility />
+        <Outlet />
+      </>
+    ),
+    children: [
+      { path: '/', element: <JourneyIndexPage /> },
+      { path: '/jobs/:jobId/revisions/:revisionId', element: <JourneyDetailPage /> },
+      {
+        path: '/compare/:baseJobId/:baseRevisionId/:candidateJobId/:candidateRevisionId',
+        element: <RevisionComparisonPage />,
+      },
+      { path: '*', element: <Navigate to="/" replace /> },
+    ],
   },
-  { path: '*', element: <Navigate to="/" replace /> },
 ])
 
 export default function App() {

@@ -73,9 +73,10 @@ function drawLayer(canvas: HTMLCanvasElement, layer: LayerPayload): void {
         offsetY - layer.segments[offset + 3] * scale,
       )
     }
-    context.strokeStyle = extruding ? '#ef2929' : 'rgba(174, 174, 182, 0.35)'
+    context.strokeStyle = extruding ? '#f23a3a' : 'rgba(174, 174, 182, 0.65)'
     context.lineWidth = extruding ? 1.35 : 0.8
     context.lineCap = 'round'
+    context.setLineDash(extruding ? [] : [5, 4])
     context.stroke()
   }
   renderKind(false)
@@ -101,9 +102,20 @@ export function ToolpathInspector({
   const [layer, setLayer] = useState<LayerPayload | null>(null)
   const [layerIndex, setLayerIndex] = useState(0)
   const [playing, setPlaying] = useState(false)
-  const [reducedMotion] = useState(
+  const [reducedMotion, setReducedMotion] = useState(
     () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false,
   )
+
+  useEffect(() => {
+    const query = window.matchMedia?.('(prefers-reduced-motion: reduce)')
+    if (!query) return
+    const update = (event: MediaQueryListEvent): void => {
+      setReducedMotion(event.matches)
+      if (event.matches) setPlaying(false)
+    }
+    query.addEventListener('change', update)
+    return () => query.removeEventListener('change', update)
+  }, [])
 
   useEffect(() => {
     if (!artifact) return
@@ -182,7 +194,7 @@ export function ToolpathInspector({
           role="img"
           aria-label={
             layer
-              ? `Top-down G-code playback for layer ${layer.layerIndex + 1} at ${layer.zMm.toFixed(2)} millimetres`
+              ? `Top-down G-code playback for layer ${layer.layerIndex + 1} at ${layer.zMm.toFixed(2)} millimetres, with ${layer.extrusionSegmentCount} extrusion segments and ${layer.travelSegmentCount} travel segments${layer.truncated ? ', display sampled' : ''}`
               : 'G-code layer playback loading'
           }
         />
@@ -204,6 +216,7 @@ export function ToolpathInspector({
           </div>
           <input
             aria-label="Displayed G-code layer"
+            aria-valuetext={`Layer ${layerIndex + 1} of ${summary.layerCount}${layer ? `, Z ${layer.zMm.toFixed(2)} millimetres` : ''}`}
             type="range"
             min={0}
             max={Math.max(summary.layerCount - 1, 0)}
@@ -216,7 +229,7 @@ export function ToolpathInspector({
               onClick={() => setLayerIndex((current) => Math.max(current - 1, 0))}
               disabled={layerIndex === 0}
             >
-              Previous
+              Previous layer
             </button>
             <button
               type="button"
@@ -231,16 +244,22 @@ export function ToolpathInspector({
               onClick={() => setLayerIndex((current) => Math.min(current + 1, summary.layerCount - 1))}
               disabled={layerIndex >= summary.layerCount - 1}
             >
-              Next
+              Next layer
             </button>
           </div>
+          {reducedMotion ? (
+            <p className="reduced-motion-note">
+              Automatic playback is disabled by your reduced-motion preference. Previous and Next
+              layer controls remain available.
+            </p>
+          ) : null}
         </div>
       ) : null}
 
-      <div className="toolpath-legend" aria-label="Toolpath color legend">
-        <span><i className="legend-extrusion" />Extrusion motion</span>
-        <span><i className="legend-travel" />Travel motion</span>
-      </div>
+      <ul className="toolpath-legend" aria-label="Toolpath line legend">
+        <li><i className="legend-extrusion" />Solid line: extrusion motion</li>
+        <li><i className="legend-travel" />Dashed line: travel motion</li>
+      </ul>
       <div className="preview-boundary">
         <strong>Manufacturing playback — not engineering simulation</strong>
         <p>

@@ -116,7 +116,7 @@ function ReportExplorer({ reports }: { reports: InspectionReport[] }) {
 
   return (
     <div className="report-explorer">
-      <div className="evidence-choice-list" aria-label="Persisted reports">
+      <div className="evidence-choice-list" role="group" aria-label="Persisted reports">
         {reports.map((report) => (
           <button
             type="button"
@@ -165,16 +165,18 @@ function ReportExplorer({ reports }: { reports: InspectionReport[] }) {
       <ReportSource report={selectedReport} />
 
       <div className="check-browser">
-        <div className="check-list" aria-label={`${selectedReport.title} checks`}>
+        <div className="check-list" role="group" aria-label={`${selectedReport.title} checks`}>
           {selectedReport.checks.map((check) => (
             <button
               type="button"
+              aria-label={`${readable(check.check_id)} — ${check.passed ? 'passed' : 'failed'}`}
               aria-pressed={selectedCheck?.check_id === check.check_id}
               key={check.check_id}
               onClick={() => setCheckId(check.check_id)}
             >
               <span className={`check-dot check-dot-${check.passed ? 'pass' : 'fail'}`} aria-hidden="true" />
               <span>{readable(check.check_id)}</span>
+              <span className="check-list-result">{check.passed ? 'Pass' : 'Fail'}</span>
             </button>
           ))}
         </div>
@@ -221,7 +223,7 @@ function FeatureExplorer({ features }: { features: InspectionFeature[] }) {
   }
   return (
     <div className="record-explorer">
-      <div className="evidence-choice-list" aria-label="Persisted feature requirements">
+      <div className="evidence-choice-list" role="group" aria-label="Persisted feature requirements">
         {features.map((item) => (
           <button
             type="button"
@@ -283,7 +285,7 @@ function FindingExplorer({ findings }: { findings: Finding[] }) {
   if (!finding) return <div className="evidence-empty">No finding is recorded in this revision.</div>
   return (
     <div className="record-explorer">
-      <div className="evidence-choice-list" aria-label="Persisted findings">
+      <div className="evidence-choice-list" role="group" aria-label="Persisted findings">
         {findings.map((item) => (
           <button
             type="button"
@@ -321,18 +323,19 @@ function FindingExplorer({ findings }: { findings: Finding[] }) {
 }
 
 function ProfileExplorer({ profiles }: { profiles: InspectionProfile[] }) {
-  const [profileId, setProfileId] = useState(profiles[0]?.profile_id ?? '')
-  const profile = profiles.find((item) => item.profile_id === profileId) ?? profiles[0]
+  const profileKey = (item: InspectionProfile): string => `${item.profile_kind}:${item.profile_id}`
+  const [selectedKey, setSelectedKey] = useState(profiles[0] ? profileKey(profiles[0]) : '')
+  const profile = profiles.find((item) => profileKey(item) === selectedKey) ?? profiles[0]
   if (!profile) return <div className="evidence-empty">No checksum-verified profile is available.</div>
   return (
     <div className="record-explorer">
-      <div className="evidence-choice-list" aria-label="Persisted profiles">
+      <div className="evidence-choice-list" role="group" aria-label="Persisted profiles">
         {profiles.map((item) => (
           <button
             type="button"
-            aria-pressed={profile.profile_id === item.profile_id}
+            aria-pressed={profileKey(profile) === profileKey(item)}
             key={`${item.profile_kind}-${item.profile_id}`}
-            onClick={() => setProfileId(item.profile_id)}
+            onClick={() => setSelectedKey(profileKey(item))}
           >
             <strong>{readable(item.profile_kind)}</strong>
             <span>{item.profile_id}</span>
@@ -372,7 +375,7 @@ function ArtifactExplorer({ artifacts }: { artifacts: Artifact[] }) {
   if (!artifact) return <div className="evidence-empty">No artifact is recorded in this revision.</div>
   return (
     <div className="record-explorer">
-      <div className="evidence-choice-list artifact-choice-list" aria-label="Persisted artifacts">
+      <div className="evidence-choice-list artifact-choice-list" role="group" aria-label="Persisted artifacts">
         {artifacts.map((item) => (
           <button
             type="button"
