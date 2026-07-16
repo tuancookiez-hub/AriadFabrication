@@ -7,8 +7,8 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict
 
 
-InterfaceApiVersion = Literal["1.2.2"]
-INTERFACE_API_VERSION: InterfaceApiVersion = "1.2.2"
+InterfaceApiVersion = Literal["1.3.0"]
+INTERFACE_API_VERSION: InterfaceApiVersion = "1.3.0"
 
 
 class ApiModel(BaseModel):
@@ -319,10 +319,37 @@ class RevisionSummary(ApiModel):
     error: str | None
 
 
+RevisionListTruncationReason = Literal[
+    "directory_entry_limit",
+    "candidate_limit",
+    "window_limit",
+    "filesystem_error",
+]
+
+
+class RevisionListWindowView(ApiModel):
+    discovery_complete: bool
+    snapshot_consistent: Literal[False]
+    ordering: Literal["job_id_revision_id_ascending"]
+    directory_entries_examined: int
+    observed_candidate_count: int
+    offset: int
+    limit: int
+    returned_count: int
+    observed_omitted_count: int
+    next_offset: int | None
+    truncation_reasons: list[RevisionListTruncationReason]
+    max_directory_entries: int
+    max_candidates: int
+    error: str | None
+    claim_boundary: str
+
+
 class RevisionListResponse(ApiModel):
     schema_version: InterfaceApiVersion
     capabilities: CapabilitiesView
     revisions: list[RevisionSummary]
+    window: RevisionListWindowView
 
 
 class JobView(ApiModel):

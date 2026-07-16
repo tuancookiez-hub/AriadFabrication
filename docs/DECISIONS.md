@@ -255,6 +255,24 @@ This file records accepted project-level decisions. Change an accepted decision 
 
 **Consequence:** Persisted-file size limits now constrain the bytes requested from the filesystem rather than checking only before or after an unbounded allocation. Revision discovery/listing still needs its own work-count and truncation contract.
 
+### D-027 — Bound revision discovery and disclose live listing windows
+
+**Status:** Accepted for M4-H on 2026-07-16.
+
+**Decision:** Advance the read API to 1.3.0. Discover revisions with non-symlink-following directory scans that examine at most 5,000 job/revision entries and retain at most 500 candidates. Sort the observed set by job ID then revision ID, accept offsets only through 500 and page sizes from 1 through 200, and load root JSON only for the selected page.
+
+**Truth boundary:** Every list response includes discovery completeness, entries examined, observed candidate count, returned and observed-omitted counts, next offset, truncation reasons, fixed ordering, active ceilings, and a claim boundary. `snapshot_consistent` is always false because each request rescans the live local directory. An incomplete discovery is not an exact total, and records may shift between offset pages if files change.
+
+**Evidence:** Repository tests prove a two-record page performs exactly two revision loads, candidate and directory ceilings produce explicit incomplete results, and default fixture discovery returns six observed candidates without truncation. HTTP tests prove offset/page limits return 422 before discovery. The React status region exposes incomplete discovery, reasons, non-snapshot language, and bounded Previous/Next offsets. A live loopback request for offset 2 / limit 2 returned API 1.3.0, two records, six observed candidates, next offset 4, `window_limit`, and `hardware_actions: false`. The full pinned suite passes 96 backend tests; generated-type drift, eight deterministic frontend tests, lint, and production build pass.
+
+**Contract evidence:** The canonical OpenAPI snapshot is 62,597 bytes with SHA-256 `2425427793d2a6d88e408efb17b8af05b5d1c225bd03ab6d51a37efe1c2fc974`, five GET paths, and 32 schemas. Generated TypeScript is 32,529 bytes with SHA-256 `2ffb742b31be693178d3127a4b96926e1f1339c569a72afef4891dee7b7241da`.
+
+**Resource and dependency impact:** No dependency was added. Filesystem metadata work is bounded per request, and at most 200 selected root records are parsed. Directory ordering is normalized after discovery rather than trusted from the operating system. The bound is a service-safety limit, not proof that the run tree contains no additional revisions.
+
+**Removal path:** A database, immutable content-addressed index, or sealed catalog snapshot may replace live scanning if it preserves path confinement, bounded work, exact completeness semantics, deterministic ordering, and tests. Returning to recursive unbounded enumeration or silently truncated totals is not acceptable.
+
+**Consequence:** Read-only listing can no longer perform work proportional to an arbitrary run tree or imply that a bounded observation is globally complete. Stable multi-request snapshot pagination remains deferred and explicitly unclaimed. The next integrity gap is strict validation of persisted lifecycle/status/evidence vocabularies before presentation.
+
 ## Deferred decisions
 
 These require later evidence and should not be decided through preference alone:

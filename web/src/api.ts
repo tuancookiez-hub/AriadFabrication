@@ -29,8 +29,16 @@ async function requestJson<T>(path: string, signal?: AbortSignal): Promise<T> {
   return (await response.json()) as T
 }
 
-export function listRevisions(signal?: AbortSignal): Promise<RevisionListResponse> {
-  return requestJson('/api/v1/revisions', signal)
+export function listRevisions(
+  offset = 0,
+  limit = 100,
+  signal?: AbortSignal,
+): Promise<RevisionListResponse> {
+  const query = new URLSearchParams({
+    offset: String(offset),
+    limit: String(limit),
+  })
+  return requestJson(`/api/v1/revisions?${query}`, signal)
 }
 
 export function getRevision(

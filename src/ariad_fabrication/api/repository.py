@@ -6,6 +6,7 @@ from dataclasses import dataclass
 import hashlib
 import json
 import math
+import os
 from pathlib import Path, PurePosixPath
 import re
 from typing import Any, Mapping
@@ -39,6 +40,8 @@ from .models import (
     RevisionDetailResponse,
     RevisionComparisonResponse,
     RevisionListResponse,
+    RevisionListTruncationReason,
+    RevisionListWindowView,
     RevisionSummary,
     RevisionView,
     SourceView,
@@ -58,6 +61,11 @@ _MAX_JSON_BYTES = 32 * 1024 * 1024
 _MAX_JSON_DEPTH = 32
 _MAX_JSON_NODES = 200_000
 MAX_ARTIFACT_DOWNLOAD_BYTES = 64 * 1024 * 1024
+DEFAULT_REVISION_LIST_LIMIT = 100
+MAX_REVISION_LIST_LIMIT = 200
+MAX_REVISION_LIST_OFFSET = 500
+MAX_REVISION_DISCOVERY_ENTRIES = 5_000
+MAX_REVISION_CANDIDATES = 500
 _MAX_INSPECTION_JSON_BYTES = 2 * 1024 * 1024
 _MAX_INSPECTION_CHECKS = 500
 _MAX_INSPECTION_FEATURES = 100
@@ -88,6 +96,18 @@ _PROFILE_HEADER_FIELDS = {
 _INSPECTION_CLAIM_BOUNDARY = (
     "Inspection values are replayed from checksum-verified persisted reports and profiles. "
     "Selection does not rerun validation, inspect exact STEP geometry, or provide physical proof."
+)
+_LISTING_CLAIM_BOUNDARY = (
+    "This window contains only revision directories observed within the stated discovery and "
+    "page limits. Each request re-examines the live local directory, so offset pages are not a "
+    "snapshot and may shift if files change. An incomplete discovery is not evidence that "
+    "omitted revisions do not exist."
+)
+_TRUNCATION_ORDER: tuple[RevisionListTruncationReason, ...] = (
+    "directory_entry_limit",
+    "candidate_limit",
+    "window_limit",
+    "filesystem_error",
 )
 
 
@@ -141,6 +161,15 @@ class _LoadedRevision:
     approvals: dict[str, dict[str, Any]]
 
 
+@dataclass(frozen=True)
+class _RevisionDiscovery:
+    roots: tuple[Path, ...]
+    directory_entries_examined: int
+    complete: bool
+    reasons: tuple[RevisionListTruncationReason, ...]
+    error: str | None
+
+
 class _InspectionShapeError(ValueError):
     pass
 
@@ -151,25 +180,30 @@ class JourneyRepository:
     def __init__(self, runs_root: Path | str) -> None:
         self.runs_root = Path(runs_root).expanduser().resolve()
 
-    def list_revisions(self) -> RevisionListResponse:
-        items: list[RevisionSummary] = []
-        if not self.runs_root.is_dir():
-            return RevisionListResponse(
-                schema_version=INTERFACE_API_VERSION,
-                capabilities=read_only_capabilities(),
-                revisions=[],
+    def list_revisions(
+        self,
+        *,
+        offset: int = 0,
+        limit: int = DEFAULT_REVISION_LIST_LIMIT,
+    ) -> RevisionListResponse:
+        offset = _integer(offset, "revision list offset")
+        limit = _integer(limit, "revision list limit", minimum=1)
+        if offset > MAX_REVISION_LIST_OFFSET:
+            raise ValueError(
+                f"revision list offset cannot exceed {MAX_REVISION_LIST_OFFSET}"
             )
+        if limit > MAX_REVISION_LIST_LIMIT:
+            raise ValueError(
+                f"revision list limit cannot exceed {MAX_REVISION_LIST_LIMIT}"
+            )
+        discovery = self._discover_revision_roots()
         candidates = sorted(
-            (
-                revision
-                for job in self.runs_root.iterdir()
-                if job.is_dir()
-                for revision in (job / "revisions").glob("*")
-                if revision.is_dir()
-            ),
+            discovery.roots,
             key=lambda item: (item.parent.parent.name, item.name),
         )
-        for revision_root in candidates:
+        selected = candidates[offset : offset + limit]
+        items: list[RevisionSummary] = []
+        for revision_root in selected:
             job_id = revision_root.parent.parent.name
             revision_id = revision_root.name
             try:
@@ -229,11 +263,125 @@ class JourneyRepository:
                     error=None,
                 )
             )
-        items.sort(key=lambda item: item.updated_at or "", reverse=True)
+        reasons = set(discovery.reasons)
+        if len(selected) < len(candidates):
+            reasons.add("window_limit")
+        next_offset = (
+            offset + len(selected)
+            if offset + len(selected) < len(candidates)
+            else None
+        )
         return RevisionListResponse(
             schema_version=INTERFACE_API_VERSION,
             capabilities=read_only_capabilities(),
             revisions=items,
+            window=RevisionListWindowView(
+                discovery_complete=discovery.complete,
+                snapshot_consistent=False,
+                ordering="job_id_revision_id_ascending",
+                directory_entries_examined=discovery.directory_entries_examined,
+                observed_candidate_count=len(candidates),
+                offset=offset,
+                limit=limit,
+                returned_count=len(items),
+                observed_omitted_count=len(candidates) - len(selected),
+                next_offset=next_offset,
+                truncation_reasons=[
+                    reason for reason in _TRUNCATION_ORDER if reason in reasons
+                ],
+                max_directory_entries=MAX_REVISION_DISCOVERY_ENTRIES,
+                max_candidates=MAX_REVISION_CANDIDATES,
+                error=discovery.error,
+                claim_boundary=_LISTING_CLAIM_BOUNDARY,
+            ),
+        )
+
+    def _discover_revision_roots(self) -> _RevisionDiscovery:
+        roots: list[Path] = []
+        entries_examined = 0
+        reasons: set[RevisionListTruncationReason] = set()
+        filesystem_error = False
+        stop = False
+
+        try:
+            job_entries = os.scandir(self.runs_root)
+        except FileNotFoundError:
+            return _RevisionDiscovery((), 0, True, (), None)
+        except NotADirectoryError:
+            return _RevisionDiscovery(
+                (),
+                0,
+                False,
+                ("filesystem_error",),
+                "The configured runs root is not a directory.",
+            )
+        except OSError:
+            return _RevisionDiscovery(
+                (),
+                0,
+                False,
+                ("filesystem_error",),
+                "The configured runs root could not be examined.",
+            )
+
+        with job_entries:
+            for job_entry in job_entries:
+                if entries_examined >= MAX_REVISION_DISCOVERY_ENTRIES:
+                    reasons.add("directory_entry_limit")
+                    break
+                entries_examined += 1
+                try:
+                    if not job_entry.is_dir(follow_symlinks=False):
+                        continue
+                except OSError:
+                    filesystem_error = True
+                    continue
+                revisions_path = Path(job_entry.path) / "revisions"
+                if revisions_path.is_symlink():
+                    continue
+                try:
+                    revision_entries = os.scandir(revisions_path)
+                except (FileNotFoundError, NotADirectoryError):
+                    continue
+                except OSError:
+                    filesystem_error = True
+                    continue
+                with revision_entries:
+                    for revision_entry in revision_entries:
+                        if entries_examined >= MAX_REVISION_DISCOVERY_ENTRIES:
+                            reasons.add("directory_entry_limit")
+                            stop = True
+                            break
+                        entries_examined += 1
+                        try:
+                            if not revision_entry.is_dir(follow_symlinks=False):
+                                continue
+                        except OSError:
+                            filesystem_error = True
+                            continue
+                        if len(roots) >= MAX_REVISION_CANDIDATES:
+                            reasons.add("candidate_limit")
+                            stop = True
+                            break
+                        roots.append(Path(revision_entry.path))
+                if stop:
+                    break
+
+        if filesystem_error:
+            reasons.add("filesystem_error")
+        ordered_reasons = tuple(
+            reason for reason in _TRUNCATION_ORDER if reason in reasons
+        )
+        return _RevisionDiscovery(
+            roots=tuple(roots),
+            directory_entries_examined=entries_examined,
+            complete=not reasons,
+            reasons=ordered_reasons,
+            error=(
+                "At least one directory entry could not be examined."
+                if filesystem_error
+                else None
+            ),
         )
 
     def get_revision(self, job_id: str, revision_id: str) -> RevisionDetailResponse:

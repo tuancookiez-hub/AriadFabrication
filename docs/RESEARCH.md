@@ -87,6 +87,16 @@ The API 1.2.2 OpenAPI snapshot remains 58,589 bytes with five paths and 31 schem
 
 Research conclusion: a pre-read `stat()` is not an allocation bound. Positive-size reads plus a detection byte make file capture bounded, while byte ceilings remain necessary because the standard JSON decoder materializes objects before post-parse depth/node checks. Stronger adversarial parsing would require a streaming parser or process-level memory isolation and should be justified by deployment risk rather than implied today.
 
+## Bounded revision discovery and live listing windows
+
+M4-H local evidence on 2026-07-16: revision discovery now uses non-symlink-following directory scans, examines at most 5,000 job/revision entries, and retains at most 500 observed candidates. Requests accept offsets only through 500 and page sizes from 1 through 200; repository instrumentation proves only the selected page loads revision JSON. Candidate and directory ceilings produce explicit incomplete-discovery reasons, while an ordinary page reports observed, returned, omitted, and next-offset values.
+
+The response also fixes lexical job/revision ordering and declares `snapshot_consistent: false`. This matters because each request rescans a live local directory: a changed run tree can move offset boundaries between page requests even when each individual response is internally deterministic. The browser repeats that claim boundary, distinguishes an observed count from an exact global total, and does not show an empty-root claim after an incomplete discovery.
+
+API 1.3.0 has five GET paths and 32 schemas. Its canonical OpenAPI snapshot is 62,597 bytes with SHA-256 `2425427793d2a6d88e408efb17b8af05b5d1c225bd03ab6d51a37efe1c2fc974`; generated TypeScript is 32,529 bytes with SHA-256 `2ffb742b31be693178d3127a4b96926e1f1339c569a72afef4891dee7b7241da`. The full pinned backend suite passes 96 tests. Frontend contract/type checks, eight deterministic tests, lint, and production build pass. A live loopback request for offset 2 / limit 2 returned two records, six observed candidates, next offset 4, `window_limit`, and `hardware_actions: false`.
+
+Research conclusion: bounded filesystem discovery prevents one listing request from scaling with an arbitrary local tree, but offset pagination over a changing directory is not snapshot isolation. Stable multi-request pages would require an immutable index, content-addressed catalog, or database snapshot; until such a component is justified, the interface must preserve the explicit live-window limitation.
+
 ## Organic meshes and Blender
 
 - [Blender MCP](https://github.com/ahujasid/blender-mcp) — Blender scene, mesh, material, and Python control through MCP.

@@ -205,6 +205,74 @@ main {
   font-size: 0.85rem;
 }
 
+.revision-listing-status {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: center;
+  margin-top: 1.5rem;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.revision-listing-status.listing-incomplete {
+  border-color: #6c4d15;
+  background: #211b10;
+}
+
+.revision-listing-status strong {
+  display: block;
+  margin-top: 0.35rem;
+}
+
+.revision-listing-status p:not(.eyebrow) {
+  margin: 0.45rem 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.revision-listing-status small {
+  display: block;
+  max-width: 74ch;
+  margin-top: 0.65rem;
+  color: #8e8a86;
+  line-height: 1.45;
+}
+
+.revision-listing-status .listing-reasons,
+.revision-listing-status .listing-error {
+  color: #ffd987;
+}
+
+.listing-pagination {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.listing-pagination button {
+  min-width: 5.5rem;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: #0d0d0f;
+  color: var(--white);
+  cursor: pointer;
+}
+
+.listing-pagination button:hover:not(:disabled),
+.listing-pagination button:focus-visible {
+  border-color: var(--red);
+  outline: none;
+}
+
+.listing-pagination button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
 .revision-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
@@ -1527,6 +1595,7 @@ main {
   .detail-header,
   .journey-layout,
   .claim-grid,
+  .revision-listing-status,
   .comparison-header,
   .comparison-revisions,
   .comparison-boundary {

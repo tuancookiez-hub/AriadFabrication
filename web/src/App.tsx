@@ -16,9 +16,13 @@ import type {
   Finding,
   RevisionComparison,
   RevisionDetail,
+  RevisionListResponse,
+  RevisionListWindow,
   RevisionSummary,
   Stage,
 } from './types'
+
+const REVISION_LIST_LIMIT = 100
 
 const stageNames: Record<string, string> = {
   brief: 'Brief',
@@ -155,8 +159,8 @@ export function ComparisonLauncher({ revisions }: { revisions: RevisionSummary[]
         <p className="eyebrow">Revision lens</p>
         <h3>Compare persisted evidence</h3>
         <p>
-          See normalized requirement and evidence changes without rerunning CAD, validators, or a
-          slicer.
+          Choose from this displayed page and compare normalized requirement and evidence changes
+          without rerunning CAD, validators, or a slicer.
         </p>
       </div>
       <label>
@@ -189,22 +193,107 @@ export function ComparisonLauncher({ revisions }: { revisions: RevisionSummary[]
   )
 }
 
+export function RevisionListingStatus({
+  window,
+  onOffsetChange,
+}: {
+  window: RevisionListWindow
+  onOffsetChange: (offset: number) => void
+}) {
+  const rangeLabel =
+    window.returned_count === 0
+      ? `No revisions returned from ${window.observed_candidate_count} observed candidates.`
+      : `Showing observed revisions ${window.offset + 1} to ${window.offset + window.returned_count} of ${window.observed_candidate_count}.`
+  const previousOffset = Math.max(0, window.offset - window.limit)
+  const reasonLabels: Record<RevisionListWindow['truncation_reasons'][number], string> = {
+    directory_entry_limit: 'directory-entry ceiling',
+    candidate_limit: 'candidate ceiling',
+    window_limit: 'page window',
+    filesystem_error: 'filesystem error',
+  }
+
+  return (
+    <section
+      className={`revision-listing-status${window.discovery_complete ? '' : ' listing-incomplete'}`}
+      aria-label="Revision discovery status"
+    >
+      <div role="status" aria-live="polite">
+        <p className="eyebrow">
+          {window.discovery_complete ? 'Bounded discovery complete' : 'Bounded discovery incomplete'}
+        </p>
+        <strong>{rangeLabel}</strong>
+        {window.discovery_complete ? (
+          <p>
+            Discovery examined {window.directory_entries_examined} directory entries within the
+            configured ceilings.
+          </p>
+        ) : (
+          <p>
+            Discovery stopped at a safety boundary after observing at least{' '}
+            {window.observed_candidate_count} candidate revisions; more may exist.
+          </p>
+        )}
+        {window.truncation_reasons.length > 0 ? (
+          <p className="listing-reasons">
+            Active limits:{' '}
+            {window.truncation_reasons.map((reason) => reasonLabels[reason]).join(', ')}.
+          </p>
+        ) : null}
+        {window.error ? <p className="listing-error">{window.error}</p> : null}
+        <small>{window.claim_boundary}</small>
+      </div>
+      <nav className="listing-pagination" aria-label="Observed revision pages">
+        <button
+          type="button"
+          disabled={window.offset === 0}
+          onClick={() => onOffsetChange(previousOffset)}
+        >
+          Previous
+        </button>
+        <button
+          type="button"
+          disabled={window.next_offset === null}
+          onClick={() => {
+            if (window.next_offset !== null) onOffsetChange(window.next_offset)
+          }}
+        >
+          Next
+        </button>
+      </nav>
+    </section>
+  )
+}
+
 function JourneyIndexPage() {
-  const [revisions, setRevisions] = useState<RevisionSummary[] | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [offset, setOffset] = useState(0)
+  const [load, setLoad] = useState<{
+    offset: number
+    listing: RevisionListResponse | null
+    error: string | null
+  }>({ offset: -1, listing: null, error: null })
 
   useEffect(() => {
     const controller = new AbortController()
-    listRevisions(controller.signal)
-      .then((result) => setRevisions(result.revisions))
+    listRevisions(offset, REVISION_LIST_LIMIT, controller.signal)
+      .then((result) => setLoad({ offset, listing: result, error: null }))
       .catch((reason: unknown) => {
         if (!controller.signal.aborted) {
-          setError(reason instanceof Error ? reason.message : 'Unknown API error')
+          setLoad({
+            offset,
+            listing: null,
+            error: reason instanceof Error ? reason.message : 'Unknown API error',
+          })
         }
       })
     return () => controller.abort()
-  }, [])
+  }, [offset])
 
+  const listing = load.offset === offset ? load.listing : null
+  const error = load.offset === offset ? load.error : null
+  const revisions = listing?.revisions ?? null
+  const emptyRoot =
+    listing?.window.discovery_complete === true &&
+    listing.window.observed_candidate_count === 0
   const availableRevisions =
     revisions?.filter((revision) => revision.availability === 'available') ?? []
 
@@ -233,8 +322,11 @@ function JourneyIndexPage() {
           </div>
         </div>
         {error ? <ErrorPanel error={error} /> : null}
-        {!error && revisions === null ? <Loading message="Reading persisted journeys…" /> : null}
-        {!error && revisions?.length === 0 ? (
+        {!error && listing === null ? <Loading message="Reading persisted journeys…" /> : null}
+        {!error && listing ? (
+          <RevisionListingStatus window={listing.window} onOffsetChange={setOffset} />
+        ) : null}
+        {!error && emptyRoot ? (
           <div className="state-panel">
             No journey records were found under the configured root. Generate the interface fixture
             or run the Golden Part pipeline.

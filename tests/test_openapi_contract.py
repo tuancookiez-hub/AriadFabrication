@@ -40,7 +40,7 @@ class OpenApiContractTests(unittest.TestCase):
         self.assertEqual(capabilities["properties"]["hardware_actions"]["const"], False)
 
         health = document["components"]["schemas"]["HealthResponse"]["properties"]
-        self.assertEqual(health["schema_version"]["const"], "1.2.2")
+        self.assertEqual(health["schema_version"]["const"], "1.3.0")
         self.assertEqual(health["service"]["const"], "ariad-interface-api")
         self.assertEqual(health["status"]["const"], "ok")
 
@@ -71,6 +71,7 @@ class OpenApiContractTests(unittest.TestCase):
             "RevisionDetailResponse",
             "RevisionComparisonResponse",
             "RevisionListResponse",
+            "RevisionListWindowView",
             "RevisionSummary",
             "RevisionView",
             "SourceView",
@@ -81,6 +82,36 @@ class OpenApiContractTests(unittest.TestCase):
             with self.subTest(model=model_name):
                 schema = schemas[model_name]
                 self.assertEqual(set(schema["required"]), set(schema["properties"]))
+
+    def test_revision_listing_contract_discloses_and_bounds_its_window(self):
+        document = generate_openapi_document()
+        operation = document["paths"]["/api/v1/revisions"]["get"]
+        parameters = {item["name"]: item for item in operation["parameters"]}
+
+        self.assertEqual(set(parameters), {"offset", "limit"})
+        self.assertEqual(parameters["offset"]["schema"]["default"], 0)
+        self.assertEqual(parameters["offset"]["schema"]["minimum"], 0)
+        self.assertEqual(parameters["offset"]["schema"]["maximum"], 500)
+        self.assertEqual(parameters["limit"]["schema"]["default"], 100)
+        self.assertEqual(parameters["limit"]["schema"]["minimum"], 1)
+        self.assertEqual(parameters["limit"]["schema"]["maximum"], 200)
+
+        window = document["components"]["schemas"]["RevisionListWindowView"]
+        self.assertEqual(set(window["required"]), set(window["properties"]))
+        self.assertEqual(window["properties"]["snapshot_consistent"]["const"], False)
+        self.assertEqual(
+            window["properties"]["ordering"]["const"],
+            "job_id_revision_id_ascending",
+        )
+        self.assertEqual(
+            set(window["properties"]["truncation_reasons"]["items"]["enum"]),
+            {
+                "directory_entry_limit",
+                "candidate_limit",
+                "window_limit",
+                "filesystem_error",
+            },
+        )
 
     def test_artifact_contract_is_binary_bounded_and_integrity_labelled(self):
         document = generate_openapi_document()

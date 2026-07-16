@@ -77,7 +77,7 @@ class JourneyRepositoryTests(unittest.TestCase):
         self.assertEqual(len(detail.stages[3].findings), 2)
         self.assertTrue(all(stage.evidence_mode == "fixture" for stage in detail.stages))
         self.assertFalse(detail.capabilities.hardware_actions)
-        self.assertEqual(detail.schema_version, "1.2.2")
+        self.assertEqual(detail.schema_version, "1.3.0")
         self.assertEqual(
             [report.report_kind for report in detail.inspection.reports],
             ["geometry", "printability", "gcode_preflight"],
@@ -105,6 +105,16 @@ class JourneyRepositoryTests(unittest.TestCase):
         ):
             listing = repository.list_revisions()
         self.assertEqual(len(listing.revisions), 6)
+        self.assertTrue(listing.window.discovery_complete)
+        self.assertFalse(listing.window.snapshot_consistent)
+        self.assertEqual(listing.window.ordering, "job_id_revision_id_ascending")
+        self.assertEqual(listing.window.observed_candidate_count, 6)
+        self.assertEqual(listing.window.returned_count, 6)
+        self.assertEqual(listing.window.observed_omitted_count, 0)
+        self.assertIsNone(listing.window.next_offset)
+        self.assertFalse(listing.window.truncation_reasons)
+        self.assertIn("not evidence", listing.window.claim_boundary)
+        self.assertIn("not a snapshot", listing.window.claim_boundary)
         primary = next(item for item in listing.revisions if item.revision_id == REVISION_ID)
         self.assertEqual(primary.availability, "available")
         self.assertIsNone(primary.parent_revision_id)
@@ -113,6 +123,78 @@ class JourneyRepositoryTests(unittest.TestCase):
             item for item in listing.revisions if item.revision_id == COMPARISON_REVISION_ID
         )
         self.assertEqual(child.parent_revision_id, REVISION_ID)
+
+    def test_revision_listing_pages_only_the_observed_bounded_window(self):
+        repository = JourneyRepository(FIXTURE_ROOT)
+        original_get_revision = repository._get_revision
+
+        with patch.object(
+            repository,
+            "_get_revision",
+            wraps=original_get_revision,
+        ) as get_revision:
+            listing = repository.list_revisions(offset=2, limit=2)
+
+        self.assertEqual(get_revision.call_count, 2)
+        self.assertEqual(len(listing.revisions), 2)
+        self.assertTrue(listing.window.discovery_complete)
+        self.assertEqual(listing.window.offset, 2)
+        self.assertEqual(listing.window.limit, 2)
+        self.assertEqual(listing.window.observed_candidate_count, 6)
+        self.assertEqual(listing.window.returned_count, 2)
+        self.assertEqual(listing.window.observed_omitted_count, 4)
+        self.assertEqual(listing.window.next_offset, 4)
+        self.assertEqual(listing.window.truncation_reasons, ["window_limit"])
+
+    def test_revision_discovery_reports_safety_ceiling_without_claiming_completeness(self):
+        repository = JourneyRepository(FIXTURE_ROOT)
+
+        with patch(
+            "ariad_fabrication.api.repository.MAX_REVISION_CANDIDATES",
+            2,
+        ):
+            listing = repository.list_revisions(limit=2)
+
+        self.assertFalse(listing.window.discovery_complete)
+        self.assertEqual(listing.window.observed_candidate_count, 2)
+        self.assertEqual(listing.window.max_candidates, 2)
+        self.assertIn("candidate_limit", listing.window.truncation_reasons)
+        self.assertIn("omitted revisions", listing.window.claim_boundary)
+
+    def test_revision_discovery_bounds_directory_entries(self):
+        repository = JourneyRepository(FIXTURE_ROOT)
+
+        with patch(
+            "ariad_fabrication.api.repository.MAX_REVISION_DISCOVERY_ENTRIES",
+            1,
+        ):
+            listing = repository.list_revisions()
+
+        self.assertFalse(listing.window.discovery_complete)
+        self.assertEqual(listing.window.directory_entries_examined, 1)
+        self.assertEqual(listing.window.max_directory_entries, 1)
+        self.assertIn("directory_entry_limit", listing.window.truncation_reasons)
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            missing = JourneyRepository(root / "missing").list_revisions()
+            self.assertTrue(missing.window.discovery_complete)
+            self.assertEqual(missing.window.observed_candidate_count, 0)
+
+            file_root = root / "not-a-directory"
+            file_root.write_text("not a run tree", encoding="utf-8")
+            not_directory = JourneyRepository(file_root).list_revisions()
+            self.assertFalse(not_directory.window.discovery_complete)
+            self.assertIn("filesystem_error", not_directory.window.truncation_reasons)
+
+        with patch(
+            "ariad_fabrication.api.repository.os.scandir",
+            side_effect=PermissionError("denied"),
+        ):
+            unreadable = JourneyRepository(FIXTURE_ROOT).list_revisions()
+        self.assertFalse(unreadable.window.discovery_complete)
+        self.assertIn("filesystem_error", unreadable.window.truncation_reasons)
+        self.assertIsNotNone(unreadable.window.error)
 
     def test_gate_fixtures_stop_at_their_persisted_boundary(self):
         repository = JourneyRepository(FIXTURE_ROOT)
@@ -438,11 +520,23 @@ class InterfaceHttpTests(unittest.TestCase):
         self.assertEqual(listing.status_code, 200)
         self.assertEqual(len(listing.json()["revisions"]), 6)
         self.assertEqual(listing.json()["revisions"][0]["source"]["kind"], "interface_fixture")
+        self.assertTrue(listing.json()["window"]["discovery_complete"])
+        self.assertEqual(listing.json()["window"]["observed_candidate_count"], 6)
+
+        page = self.client.get(
+            "/api/v1/revisions",
+            params={"offset": 2, "limit": 2},
+        )
+        self.assertEqual(page.status_code, 200)
+        self.assertEqual(len(page.json()["revisions"]), 2)
+        self.assertEqual(page.json()["window"]["offset"], 2)
+        self.assertEqual(page.json()["window"]["next_offset"], 4)
+        self.assertEqual(page.json()["window"]["truncation_reasons"], ["window_limit"])
 
         detail = self.client.get(f"/api/v1/revisions/{JOB_ID}/{REVISION_ID}")
         self.assertEqual(detail.status_code, 200)
         payload = detail.json()
-        self.assertEqual(payload["schema_version"], "1.2.2")
+        self.assertEqual(payload["schema_version"], "1.3.0")
         self.assertEqual(
             [stage["stage"] for stage in payload["stages"]],
             [item[0] for item in STAGES],
@@ -464,6 +558,22 @@ class InterfaceHttpTests(unittest.TestCase):
             "sha256-verified-snapshot",
         )
         self.assertEqual(artifact.headers["x-ariad-hardware-action"], "false")
+
+    def test_revision_list_query_bounds_fail_before_discovery(self):
+        for params in (
+            {"offset": -1},
+            {"offset": 501},
+            {"limit": 0},
+            {"limit": 201},
+        ):
+            with self.subTest(params=params):
+                with patch.object(
+                    self.client.app.state.repository,
+                    "_discover_revision_roots",
+                    side_effect=AssertionError("invalid queries must not reach discovery"),
+                ):
+                    response = self.client.get("/api/v1/revisions", params=params)
+                self.assertEqual(response.status_code, 422)
 
     def test_artifact_response_cannot_drift_after_repository_verification(self):
         with tempfile.TemporaryDirectory() as temporary:

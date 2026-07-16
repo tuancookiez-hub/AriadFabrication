@@ -320,7 +320,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.2.2";
+            schema_version: "1.3.0";
             /**
              * Service
              * @constant
@@ -574,7 +574,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.2.2";
+            schema_version: "1.3.0";
             /** Summaries */
             summaries: components["schemas"]["ComparisonAreaSummaryView"][];
             /** Total Change Count */
@@ -593,7 +593,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.2.2";
+            schema_version: "1.3.0";
             source: components["schemas"]["SourceView"];
             /** Stages */
             stages: components["schemas"]["StageView"][];
@@ -607,7 +607,47 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.2.2";
+            schema_version: "1.3.0";
+            window: components["schemas"]["RevisionListWindowView"];
+        };
+        /** RevisionListWindowView */
+        RevisionListWindowView: {
+            /** Claim Boundary */
+            claim_boundary: string;
+            /** Directory Entries Examined */
+            directory_entries_examined: number;
+            /** Discovery Complete */
+            discovery_complete: boolean;
+            /** Error */
+            error: string | null;
+            /** Limit */
+            limit: number;
+            /** Max Candidates */
+            max_candidates: number;
+            /** Max Directory Entries */
+            max_directory_entries: number;
+            /** Next Offset */
+            next_offset: number | null;
+            /** Observed Candidate Count */
+            observed_candidate_count: number;
+            /** Observed Omitted Count */
+            observed_omitted_count: number;
+            /** Offset */
+            offset: number;
+            /**
+             * Ordering
+             * @constant
+             */
+            ordering: "job_id_revision_id_ascending";
+            /** Returned Count */
+            returned_count: number;
+            /**
+             * Snapshot Consistent
+             * @constant
+             */
+            snapshot_consistent: false;
+            /** Truncation Reasons */
+            truncation_reasons: ("directory_entry_limit" | "candidate_limit" | "window_limit" | "filesystem_error")[];
         };
         /** RevisionSummary */
         RevisionSummary: {
@@ -824,7 +864,10 @@ export interface operations {
     };
     revisions_api_v1_revisions_get: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -838,6 +881,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RevisionListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

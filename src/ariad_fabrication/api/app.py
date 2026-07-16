@@ -6,7 +6,7 @@ import argparse
 from pathlib import Path
 from urllib.parse import quote
 
-from fastapi import FastAPI, HTTPException, Response
+from fastapi import FastAPI, HTTPException, Query, Response
 
 from .models import (
     ErrorResponse,
@@ -21,9 +21,12 @@ from .repository import (
     ArtifactIntegrityError,
     ArtifactNotFoundError,
     ArtifactTooLargeError,
+    DEFAULT_REVISION_LIST_LIMIT,
     InvalidRevisionError,
     JourneyRepository,
     MAX_ARTIFACT_DOWNLOAD_BYTES,
+    MAX_REVISION_LIST_LIMIT,
+    MAX_REVISION_LIST_OFFSET,
     RevisionNotFoundError,
 )
 
@@ -104,8 +107,15 @@ def create_app(runs_root: Path | str = Path("runs")) -> FastAPI:
         )
 
     @app.get("/api/v1/revisions", response_model=RevisionListResponse)
-    def revisions() -> RevisionListResponse:
-        return repository.list_revisions()
+    def revisions(
+        offset: int = Query(0, ge=0, le=MAX_REVISION_LIST_OFFSET),
+        limit: int = Query(
+            DEFAULT_REVISION_LIST_LIMIT,
+            ge=1,
+            le=MAX_REVISION_LIST_LIMIT,
+        ),
+    ) -> RevisionListResponse:
+        return repository.list_revisions(offset=offset, limit=limit)
 
     @app.get(
         "/api/v1/revision-comparison",

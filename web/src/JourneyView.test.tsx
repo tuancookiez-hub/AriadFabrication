@@ -1,10 +1,10 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
-import { JourneyView } from './App'
+import { JourneyView, RevisionListingStatus } from './App'
 import { EvidenceInspector } from './EvidenceInspector'
-import type { Artifact, Inspection, RevisionDetail } from './types'
+import type { Artifact, Inspection, RevisionDetail, RevisionListWindow } from './types'
 
 const reportArtifact: Artifact = {
   artifact_id: 'artifact_geometry_report',
@@ -22,7 +22,7 @@ const reportArtifact: Artifact = {
 }
 
 const detail: RevisionDetail = {
-  schema_version: '1.2.2',
+  schema_version: '1.3.0',
   capabilities: { read_only: true, hardware_actions: false },
   source: {
     kind: 'interface_fixture',
@@ -189,5 +189,53 @@ describe('JourneyView', () => {
     expect(screen.getByText('Inspection sources unavailable')).toBeInTheDocument()
     expect(screen.getByText(/recorded report checksum does not match/i)).toBeInTheDocument()
     expect(screen.queryByText('Passed')).not.toBeInTheDocument()
+  })
+})
+
+describe('RevisionListingStatus', () => {
+  it('discloses incomplete discovery and pages only within observed candidates', () => {
+    const window: RevisionListWindow = {
+      discovery_complete: false,
+      snapshot_consistent: false,
+      ordering: 'job_id_revision_id_ascending',
+      directory_entries_examined: 12,
+      observed_candidate_count: 6,
+      offset: 2,
+      limit: 2,
+      returned_count: 2,
+      observed_omitted_count: 4,
+      next_offset: 4,
+      truncation_reasons: ['candidate_limit', 'window_limit'],
+      max_directory_entries: 5_000,
+      max_candidates: 6,
+      error: null,
+      claim_boundary:
+        'Pages are not a snapshot. Incomplete discovery is not evidence that omitted revisions do not exist.',
+    }
+    const onOffsetChange = vi.fn()
+
+    const { rerender } = render(
+      <RevisionListingStatus window={window} onOffsetChange={onOffsetChange} />,
+    )
+
+    const listing = screen.getByLabelText('Revision discovery status')
+    expect(listing).toHaveTextContent('Bounded discovery incomplete')
+    expect(listing).toHaveTextContent('more may exist')
+    expect(listing).toHaveTextContent('candidate ceiling')
+    expect(listing).toHaveTextContent('not a snapshot')
+    expect(listing).toHaveTextContent('not evidence')
+    fireEvent.click(within(listing).getByRole('button', { name: 'Previous' }))
+    expect(onOffsetChange).toHaveBeenLastCalledWith(0)
+    fireEvent.click(within(listing).getByRole('button', { name: 'Next' }))
+    expect(onOffsetChange).toHaveBeenLastCalledWith(4)
+
+    rerender(
+      <RevisionListingStatus
+        window={{ ...window, offset: 500, returned_count: 0, next_offset: null }}
+        onOffsetChange={onOffsetChange}
+      />,
+    )
+    expect(listing).toHaveTextContent('No revisions returned from 6 observed candidates.')
+    expect(listing).not.toHaveTextContent('0 to 500')
   })
 })
