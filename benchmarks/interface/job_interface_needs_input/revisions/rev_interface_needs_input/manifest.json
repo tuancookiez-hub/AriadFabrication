@@ -1,0 +1,34 @@
+{
+  "approvals": [],
+  "artifacts": [],
+  "decisions": [],
+  "findings": [
+    {
+      "affected_geometry": null,
+      "code": "fixture.brief.missing_stake_diameter",
+      "created_at": "2026-07-16T08:00:00+00:00",
+      "data": {
+        "classification": "interface_fixture",
+        "scenario": "needs_input"
+      },
+      "evidence": "The fixture request deliberately omits the mating stake diameter.",
+      "evidence_mode": "fixture",
+      "finding_id": "finding_fixture_needs_input",
+      "job_id": "job_interface_needs_input",
+      "remediation": "Confirm the measured stake diameter and desired clearance.",
+      "resolution": null,
+      "resolved": false,
+      "revision_id": "rev_interface_needs_input",
+      "severity": "warning",
+      "stage_run_id": "run_fixture_needs_input_brief",
+      "title": "Critical dimension needs confirmation"
+    }
+  ],
+  "generated_at": "2026-07-16T08:00:00+00:00",
+  "job_id": "job_interface_needs_input",
+  "revision_id": "rev_interface_needs_input",
+  "schema_version": "1.0.0",
+  "stage_run_ids": [
+    "run_fixture_needs_input_brief"
+  ]
+}

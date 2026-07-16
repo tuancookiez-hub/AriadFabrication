@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0.0",
+  "benchmark_id": "opengrow_stake_electronics_clamp_v1",
+  "status": "frozen_for_m3",
+  "target_evidence_level": "R3",
+  "required_profile": {
+    "printer_profile_family_id": "generic_open_fdm_220",
+    "printer_profile_id": "generic_open_fdm_220_v1",
+    "material_type": "PETG",
+    "material_profile_id": "generic_petg_175_v1",
+    "process_profile_id": "golden_part_020_no_support_v1",
+    "orientation_id": "upright_source_z_centered_v1",
+    "nozzle_diameter_mm": 0.4,
+    "layer_height_mm": 0.2,
+    "infill_percent": 30.0,
+    "support_policy": "disabled"
+  },
+  "rules": {
+    "build_volume_margin_xy_mm": 5.0,
+    "build_volume_margin_z_mm": 5.0,
+    "minimum_wall_nozzle_multiple": 3.0,
+    "minimum_open_feature_nozzle_multiple": 2.0,
+    "maximum_layer_height_nozzle_ratio": 0.8,
+    "minimum_bed_contact_area_mm2": 100.0,
+    "maximum_support_free_overhang_degrees_from_vertical": 45.0,
+    "maximum_bounded_internal_bridge_span_mm": 5.0,
+    "minimum_elephant_foot_clearance_nozzle_multiple": 1.0,
+    "tessellation_linear_tolerance_mm": 0.02,
+    "tessellation_angular_tolerance_rad": 0.1
+  },
+  "risk_policy": {
+    "unknown_slicer_warning": "block_r4",
+    "floating_bridge_anchor_warning": "block_r4",
+    "low_bed_adhesion_warning": "allow_r4_with_warning",
+    "slicer_mesh_repair": "block_r4"
+  },
+  "policy_notes": [
+    "The 45 degree overhang threshold is Ariad's conservative baseline within Prusa's published 45 to 60 degree general guidance for conventional 0.4 mm desktop FDM setups.",
+    "The 5 mm bridge limit is a deliberately conservative Ariad benchmark threshold, not a universal PETG capability claim; PETG bridging is profile and cooling dependent.",
+    "Passing R3 reports geometry/profile risks only. It does not establish adhesion, dimensional accuracy, layer strength, stake fit, load capacity, or physical print success."
+  ],
+  "claim_boundary": "R3 means printability-assessed only for the exact oriented STEP and recorded generic profiles. The rules are deterministic digital screening and are not physical validation."
+}

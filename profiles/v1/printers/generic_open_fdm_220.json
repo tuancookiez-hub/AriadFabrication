@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0.0",
+  "profile_id": "generic_open_fdm_220_v1",
+  "profile_family_id": "generic_open_fdm_220",
+  "name": "Generic open FDM 220 mm analysis profile",
+  "status": "experimental_analysis_only",
+  "technology": "FFF",
+  "build_volume_mm": {
+    "x": 220.0,
+    "y": 220.0,
+    "z": 250.0
+  },
+  "bed_origin": "front_left_0_0",
+  "bed_shape_mm": [
+    [0.0, 0.0],
+    [220.0, 0.0],
+    [220.0, 220.0],
+    [0.0, 220.0]
+  ],
+  "nozzle_diameter_mm": 0.4,
+  "filament_diameter_mm": 1.75,
+  "extruder_count": 1,
+  "firmware_flavor": "marlin2",
+  "maximum_nozzle_temperature_c": 260,
+  "maximum_bed_temperature_c": 100,
+  "source": "Ariad-authored generic profile; not calibrated to physical hardware",
+  "claim_boundary": "This profile defines a disconnected analysis envelope. It must not be dispatched to a printer without machine-specific review and physical calibration."
+}

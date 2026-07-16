@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0.0",
+  "orientation_id": "upright_source_z_centered_v1",
+  "name": "Source Z-up, flat datum on bed, centered in XY",
+  "status": "experimental_analysis_only",
+  "source_up_axis": "Z",
+  "transform_4x4": [
+    [1.0, 0.0, 0.0, 0.0],
+    [0.0, 1.0, 0.0, 0.0],
+    [0.0, 0.0, 1.0, 0.0],
+    [0.0, 0.0, 0.0, 1.0]
+  ],
+  "placement": "center_xy",
+  "ensure_on_bed": true,
+  "claim_boundary": "Identity orientation and centering only; this record does not establish optimal layer direction or support behavior."
+}

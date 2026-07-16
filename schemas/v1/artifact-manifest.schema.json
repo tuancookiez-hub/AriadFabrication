@@ -1,0 +1,182 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ariad.local/schemas/v1/artifact-manifest.schema.json",
+  "title": "Ariad Artifact Manifest 1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "job_id",
+    "revision_id",
+    "generated_at",
+    "stage_run_ids",
+    "artifacts",
+    "findings",
+    "decisions",
+    "approvals"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "job_id": {"type": "string", "minLength": 1},
+    "revision_id": {"type": "string", "minLength": 1},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "stage_run_ids": {"$ref": "#/$defs/id_array"},
+    "artifacts": {"type": "array", "items": {"$ref": "#/$defs/artifact"}},
+    "findings": {"type": "array", "items": {"$ref": "#/$defs/finding"}},
+    "decisions": {"type": "array", "items": {"$ref": "#/$defs/decision"}},
+    "approvals": {"type": "array", "items": {"$ref": "#/$defs/approval"}}
+  },
+  "$defs": {
+    "id_array": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "nullable_id": {"type": ["string", "null"], "minLength": 1},
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_id",
+        "job_id",
+        "revision_id",
+        "stage_run_id",
+        "role",
+        "path",
+        "media_type",
+        "checksum_sha256",
+        "producer",
+        "producer_version",
+        "evidence_mode",
+        "parent_artifact_ids",
+        "size_bytes",
+        "created_at",
+        "metadata"
+      ],
+      "properties": {
+        "artifact_id": {"type": "string", "minLength": 1},
+        "job_id": {"type": "string", "minLength": 1},
+        "revision_id": {"type": "string", "minLength": 1},
+        "stage_run_id": {"type": "string", "minLength": 1},
+        "role": {"type": "string", "minLength": 1},
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!/)(?![A-Za-z]:)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+        },
+        "media_type": {"type": "string", "minLength": 1},
+        "checksum_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "producer": {"type": "string", "minLength": 1},
+        "producer_version": {"type": "string", "minLength": 1},
+        "evidence_mode": {"enum": ["real", "simulated", "fixture", "unavailable"]},
+        "parent_artifact_ids": {"$ref": "#/$defs/id_array"},
+        "size_bytes": {"type": ["integer", "null"], "minimum": 0},
+        "created_at": {"type": "string", "format": "date-time"},
+        "metadata": {"type": "object"}
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "finding_id",
+        "job_id",
+        "revision_id",
+        "stage_run_id",
+        "code",
+        "title",
+        "severity",
+        "evidence_mode",
+        "evidence",
+        "affected_geometry",
+        "remediation",
+        "resolved",
+        "resolution",
+        "created_at",
+        "data"
+      ],
+      "properties": {
+        "finding_id": {"type": "string", "minLength": 1},
+        "job_id": {"type": "string", "minLength": 1},
+        "revision_id": {"$ref": "#/$defs/nullable_id"},
+        "stage_run_id": {"type": "string", "minLength": 1},
+        "code": {"type": "string", "minLength": 1},
+        "title": {"type": "string", "minLength": 1},
+        "severity": {"enum": ["info", "warning", "error", "critical"]},
+        "evidence_mode": {"enum": ["real", "simulated", "fixture", "unavailable"]},
+        "evidence": {"type": "string", "minLength": 1},
+        "affected_geometry": {"type": ["string", "null"]},
+        "remediation": {"type": ["string", "null"]},
+        "resolved": {"type": "boolean"},
+        "resolution": {"type": ["string", "null"]},
+        "created_at": {"type": "string", "format": "date-time"},
+        "data": {"type": "object"}
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision_id",
+        "job_id",
+        "revision_id",
+        "stage_run_id",
+        "question",
+        "choice",
+        "rationale",
+        "actor",
+        "alternatives",
+        "created_at",
+        "data"
+      ],
+      "properties": {
+        "decision_id": {"type": "string", "minLength": 1},
+        "job_id": {"type": "string", "minLength": 1},
+        "revision_id": {"type": "string", "minLength": 1},
+        "stage_run_id": {"$ref": "#/$defs/nullable_id"},
+        "question": {"type": "string", "minLength": 1},
+        "choice": {"type": "string", "minLength": 1},
+        "rationale": {"type": "string", "minLength": 1},
+        "actor": {"enum": ["user", "model", "system"]},
+        "alternatives": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "created_at": {"type": "string", "format": "date-time"},
+        "data": {"type": "object"}
+      }
+    },
+    "approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "approval_id",
+        "job_id",
+        "revision_id",
+        "stage_run_id",
+        "boundary",
+        "status",
+        "requested_by",
+        "rationale",
+        "requested_at",
+        "decided_at",
+        "decided_by"
+      ],
+      "properties": {
+        "approval_id": {"type": "string", "minLength": 1},
+        "job_id": {"type": "string", "minLength": 1},
+        "revision_id": {"type": "string", "minLength": 1},
+        "stage_run_id": {"$ref": "#/$defs/nullable_id"},
+        "boundary": {"type": "string", "minLength": 1},
+        "status": {"enum": ["requested", "granted", "rejected", "revoked"]},
+        "requested_by": {"enum": ["user", "model", "system"]},
+        "rationale": {"type": "string"},
+        "requested_at": {"type": "string", "format": "date-time"},
+        "decided_at": {"type": ["string", "null"], "format": "date-time"},
+        "decided_by": {
+          "oneOf": [
+            {"enum": ["user", "model", "system"]},
+            {"type": "null"}
+          ]
+        }
+      }
+    }
+  }
+}

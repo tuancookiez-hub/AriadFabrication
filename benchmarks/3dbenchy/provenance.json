@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0.0",
+  "benchmark_id": "official_3dbenchy_single_part_v1",
+  "classification": "external_calibration_fixture",
+  "name": "3DBenchy",
+  "creator": "Daniel Noree for Creative Tools",
+  "source_repository": "https://github.com/CreativeTools/3DBenchy",
+  "source_commit": "b542785f9642ab39db8a778a0ccc934b3ebd829a",
+  "source_path": "Single-part/3DBenchy.stl",
+  "source_url": "https://raw.githubusercontent.com/CreativeTools/3DBenchy/b542785f9642ab39db8a778a0ccc934b3ebd829a/Single-part/3DBenchy.stl",
+  "retrieved_at": "2026-07-16T10:54:44.1899782+08:00",
+  "local_path": "3DBenchy.stl",
+  "file_format": "binary_stl",
+  "size_bytes": 11285384,
+  "binary_triangle_count": 225706,
+  "checksum_sha256": "6ab57f1c3f8e86bc3cbd302c6fa6270acf06277c6335454e922419c25d42e97e",
+  "license": "CC0-1.0",
+  "license_url": "https://www.3dbenchy.com/license/",
+  "official_reference_dimensions_mm": {
+    "x": 60.0,
+    "y": 31.0,
+    "z": 48.0
+  },
+  "official_generic_fff_settings": {
+    "scale": "1:1",
+    "nozzle_diameter_mm": 0.4,
+    "layer_height_mm": 0.2,
+    "infill_percent": 10,
+    "support_material": false,
+    "maximum_print_speed_mm_s": 50
+  },
+  "claim_boundary": "External calibration geometry only. A digital slice is not a physical printer calibration or proof that another model will print."
+}

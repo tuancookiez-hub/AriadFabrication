@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0.0",
+  "profile_id": "generic_pla_175_v1",
+  "name": "Generic PLA 1.75 mm analysis profile",
+  "status": "experimental_uncalibrated",
+  "material_type": "PLA",
+  "filament_diameter_mm": 1.75,
+  "density_g_cm3": 1.24,
+  "selected_nozzle_temperature_c": 210,
+  "allowed_nozzle_temperature_c": {
+    "minimum": 190,
+    "maximum": 230
+  },
+  "selected_bed_temperature_c": 60,
+  "allowed_bed_temperature_c": {
+    "minimum": 0,
+    "maximum": 70
+  },
+  "maximum_volumetric_speed_mm3_s": 8.0,
+  "fan_percent": {
+    "minimum": 35,
+    "maximum": 100
+  },
+  "source": "Ariad-authored conservative analysis values; no filament brand or batch is qualified",
+  "claim_boundary": "Selected temperatures are generic slicing inputs, not a calibrated recommendation for an unknown filament or printer."
+}

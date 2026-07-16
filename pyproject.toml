@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ariad-fabrication"
+version = "0.1.0"
+description = "Traceable natural-language-to-parametric-CAD fabrication pipeline"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115,<1",
+    "uvicorn>=0.34,<1",
+]
+
+[project.optional-dependencies]
+test = [
+    "httpx2>=2.7,<3",
+    "jsonschema>=4.23,<5",
+    "ruff>=0.15.21,<1",
+]
+cad = [
+    "cadquery==2.8.0",
+    "cadquery-ocp==7.9.3.1.1",
+]
+
+[project.scripts]
+ariad = "ariad_fabrication.cli:main"
+ariad-interface-api = "ariad_fabrication.api.app:main"
+ariad-interface-fixture = "ariad_fabrication.api.fixture:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100

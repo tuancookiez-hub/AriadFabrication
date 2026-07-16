@@ -1,0 +1,3 @@
+ARIAD INTERFACE FIXTURE
+This file exists only to test artifact presentation and checksum-verified download.
+It is fixture evidence, not a fabrication package or physical result.

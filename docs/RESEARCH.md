@@ -1,0 +1,144 @@
+# Research and references
+
+**Last reviewed:** 2026-07-16
+
+This is a curated reference index, not a list of dependencies or purchase recommendations. Prices, licenses, availability, APIs, and model capabilities can change; re-verify them before integration or spending money.
+
+## OpenAI application architecture
+
+- [Responses API migration guide](https://developers.openai.com/api/docs/guides/migrate-to-responses) — recommended application primitive for new tool-using projects.
+- [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs) — schema-constrained model output for proposed specifications.
+- [Function calling](https://developers.openai.com/api/docs/guides/function-calling) — model-to-tool contracts.
+- [Model catalog and pricing](https://developers.openai.com/api/docs/models) — re-check model selection and cost when M5 begins.
+
+Research conclusion: the model should create or revise structured intent and call tools. Deterministic workers continue to own geometry, validation, slicing, and hardware boundaries.
+
+## Functional CAD
+
+- [CadQuery installation guide](https://cadquery.readthedocs.io/en/stable/installation.html) — official Windows, Conda, pip, virtual-environment, and installation-test guidance.
+- [CadQuery 2.8.0 on PyPI](https://pypi.org/project/cadquery/) — release metadata, Python requirement, Apache-2.0 metadata, and package files.
+- [CadQuery documentation](https://cadquery.readthedocs.io/en/stable/) — Python parametric CAD with STEP, 3MF, STL, and glTF-related export paths.
+- [CadQuery repository](https://github.com/CadQuery/cadquery) — current source, installation constraints, and OCCT/OCP relationship.
+- [Open CASCADE Technology](https://dev.opencascade.org/doc/overview/html/index.html) — underlying C++ solid-modeling and CAD-exchange kernel.
+- [Zoo MCP](https://docs.zoo.dev/docs/developer-tools/mcp) and [KCL](https://docs.zoo.dev/docs/kcl) — text-parametric alternative to benchmark later; service and licensing terms require review.
+- [FreeCAD MCP](https://github.com/contextform/freecad-mcp) — emerging community integration to benchmark, not a committed dependency.
+- [AgentCAD](https://agentcad.dev/) — another agent/CAD workflow reference.
+
+M2 spike evidence on 2026-07-16: CadQuery 2.8.0 with cadquery-ocp 7.9.3.1.1 passed solid validity, STEP export, STL export, STEP re-import, solid-count, and exact-bound checks on CPython 3.11.15 / Windows AMD64. CadQuery also exposes a 3MF exporter in this environment; it does not expose direct GLB export. The isolated environment resolves 44 packages and occupies approximately 1.0 GiB, largely because CAD and visualization binaries are included.
+
+M2 completion evidence: the registered Golden Part source creates one valid solid; canonicalized STEP re-imports and passes 25 frozen OCCT checks; binary STL passes a closed two-manifold topology test; the 3MF package contains millimetre mesh geometry and required package entries; and the in-repository GLB writer produces a structurally valid glTF 2.0 preview from CadQuery tessellation. Repeated runs produce identical hashes for all ten design artifacts. The 3MF is geometry only, not yet a slicer project or R4 manufacturing package.
+
+Research conclusion: CadQuery is the first functional path because it is local, scriptable, parametric, and aligned with the existing Python code. It remains an optional dependency so contract-only development stays lightweight. STEP is the exact artifact and source for R2 measurement, STL is topology-checked compatibility output, 3MF is the current manufacturing-geometry carrier, and GLB is explicitly a tessellated preview. Provider benchmarks remain useful when expanding beyond the supported Golden Part recipe.
+
+## Browser geometry and toolpath inspection
+
+- [Three.js installation and addons](https://threejs.org/manual/en/installation.html) — official import pattern for Three.js, `GLTFLoader`, and `OrbitControls`.
+- [Three.js GLTFLoader](https://threejs.org/docs/pages/GLTFLoader.html) — glTF 2.0 loader behavior and explicit resource-disposal warning.
+- [Three.js WebGLRenderer](https://threejs.org/docs/pages/WebGLRenderer.html) — WebGL 2 renderer capabilities and lifecycle surface.
+- [React Three Fiber installation](https://r3f.docs.pmnd.rs/getting-started/installation) — reviewed React 19-compatible abstraction; not selected for the first single-viewport slice.
+- [`<model-viewer>` camera controls](https://modelviewer.dev/examples/stagingandcameras/) — reviewed accessible custom-element alternative; not selected because Ariad needs direct lifecycle, bounds, triangle, and evidence-control behavior without another rendering wrapper.
+
+M4-B evidence on 2026-07-16: direct Three.js 0.185.1 loads the actual 241,324-byte Golden Part GLB and reports finite geometry through the selected GLTF parser. A dedicated Web Worker parses the actual 5,182,593-byte, 250-layer PrusaSlicer G-code with more than 100,000 recorded linear moves. Live Vite-proxied reads preserve `evidence-mode: real` and `hardware-action: false`. Screenshot-level browser QA remains unavailable because of a local runner conflict outside the repository, so renderer compatibility and build evidence must not be described as completed visual QA.
+
+Research conclusion: direct Three.js is sufficient for the first bounded GLB viewport and avoids adding a second React renderer. Toolpath parsing remains project-owned because it must preserve Ariad's exact playback/simulation language and resource ceilings. Reconsider a higher-level library only if measured accessibility or lifecycle maintenance outweighs its additional dependency and abstraction cost.
+
+## Organic meshes and Blender
+
+- [Blender MCP](https://github.com/ahujasid/blender-mcp) — Blender scene, mesh, material, and Python control through MCP.
+- [Hunyuan3D 2.1](https://github.com/Tencent-Hunyuan/Hunyuan3D-2.1) — local image-to-mesh/PBR reference with substantial GPU requirements.
+- [Meshy API pricing](https://docs.meshy.ai/en/api/pricing) — re-check only if the organic lane begins.
+
+Research conclusion: Blender is valuable for inspection, cleanup, organic assets, and presentation. It is not the dimensional source of truth for the first functional parts.
+
+## Evaluation research
+
+- [MUSE: CAD generation evaluation](https://arxiv.org/abs/2605.28579)
+- [Text2CAD-Bench](https://arxiv.org/abs/2605.18430)
+
+Research conclusion: code generation, valid geometry, and engineering readiness are distinct evaluation layers. Ariad therefore measures feature correctness, manufacturability, revisions, and eventual physical outcomes separately.
+
+## Comparable systems and positioning
+
+This review compares public documentation and visible source structure. The projects were not installed, benchmarked, or physically exercised, so their stated capabilities are not treated as independently verified evidence.
+
+- [Kiln](https://github.com/codeofaxel/Kiln) — the closest stated full-lifecycle project: agent-facing model generation, mesh printability checks, PrusaSlicer/OrcaSlicer integration, G-code checks, printer adapters, monitoring, and recovery. Its public core is AGPL-3.0, so it is a benchmark and possible later adapter reference rather than an assumed dependency.
+- [AgentSCAD](https://github.com/Kevoyuan/AgentSCAD) — a persistent full-stack workspace that turns requests into editable OpenSCAD, STL and preview artifacts, deterministic mesh/manufacturing validation, repair attempts, parameters, and job history. Its documented primary path does not include a recorded real-slicer fabrication package.
+- [CADSmith](https://github.com/jabarkle/CADSmith) and its [paper](https://arxiv.org/abs/2603.26512) — the closest research overlap with Ariad's CAD core: planning, CadQuery generation, OCCT measurements, visual review, and iterative refinement over a 100-prompt benchmark.
+- [AgentsCAD](https://arxiv.org/abs/2607.02448) — the closest overlap with the planned R3 stage: it parses STEP, detects FDM overhang risks, and proposes geometry or orientation changes. It begins with existing geometry rather than owning the complete requirements-to-package chain.
+- [PartCAD](https://partcad.readthedocs.io/en/latest/features.html) — open-source product/package infrastructure with AI-generated OpenSCAD, CadQuery, and build123d source, assemblies, and repository-oriented lifecycle information.
+- [earthtojake/text-to-cad](https://github.com/earthtojake/text-to-cad) — agent skills and a local harness for source-controlled CAD, inspection, exports, robot descriptions, and geometry-aware revision workflows.
+- [Zoo MCP](https://docs.zoo.dev/docs/developer-tools/mcp) — a commercial editable-parametric CAD provider and agent integration that remains a possible future benchmark, not the default local path.
+
+Research conclusion: natural-language CAD and generic prompt-to-print orchestration are active, increasingly crowded areas. Ariad should not claim novelty from connecting those nouns. Its defensible product contract is the beginner-readable **Fabrication Journey** for functional B-rep parts: explicit intent, exact feature evidence, immutable revisions and checksums, profile-specific real-slicer evidence, and claim language that remains useful without owning or operating a printer.
+
+The exact phrase **Ariad Fabrication** did not surface as a CAD or 3D-printing product in the 2026-07-16 preliminary search. The bare name is used in unrelated fields, including [Ariad Group](https://www.ariadgroup.com/en), so a legal and domain review remains required before public commercial use.
+
+## Manufacturing formats and slicing
+
+- [3MF specification](https://3mf.io/spec/) — manufacturing package format; preferred over STL when supported.
+- [PrusaSlicer 2.9.6](https://github.com/prusa3d/PrusaSlicer/releases/tag/version_2.9.6) — selected first adapter; stable official release reviewed 2026-07-16, AGPL-3.0 repository license, dedicated Windows console executable, portable ZIP.
+- [PrusaSlicer CLI documentation](https://github.com/prusa3d/PrusaSlicer/wiki/Command-Line-Interface) — Windows uses `prusa-slicer-console.exe`; explicit profile files and command-line overrides are supported.
+- [OrcaSlicer 2.4.2](https://github.com/OrcaSlicer/OrcaSlicer/releases/tag/v2.4.2) — reviewed replaceable alternative with broad printer support and an official portable Windows build; not selected first because the package is larger and the initial CLI evidence was less mature.
+- [3DBenchy official download](https://www.3dbenchy.com/download/) and [license](https://www.3dbenchy.com/license/) — external calibration fixture; the official site states CC0 1.0 and asks comparisons to preserve the original STL.
+- [Moonraker](https://moonraker.readthedocs.io/) — Klipper API server for a later printer adapter.
+
+M3 compatibility evidence on 2026-07-16: the official portable PrusaSlicer 2.9.6 archive is 106,598,059 bytes and 261,683,165 bytes extracted. Its console inspected, repaired where reported, sliced, and exported profile-bearing 3MF projects for official 3DBenchy and Ariad's conventional warship. Both G-code files passed disconnected bounds, temperature, units/modes, tool, support-feature, layer-height, and forbidden-command preflight. Benchy retained a low-bed-adhesion warning; the warship retained a floating-bridge-anchor warning and is therefore not accepted as a clean support-free candidate.
+
+M3 Golden Part completion evidence on 2026-07-16: the same official console consumed Ariad's deterministic centered Z-up STEP through a snapshotted generic 220 mm printer / PETG / 0.20 mm / 30% infill / support-disabled profile. PrusaSlicer reported one manifold part, 1,826 facets, zero repairs, and no slicer warnings; produced 250 layers with an 82 minute 2 second estimate and 15.96 g estimated material; and emitted a profile-bearing 3MF plus 5,182,593-byte G-code file. Disconnected preflight passed all recorded checks. The complete immutable journey contains 36 checksummed artifacts and five unresolved physical warnings. These are local digital measurements, not print results.
+
+Research conclusion: begin with PrusaSlicer through a replaceable adapter and record exact executable/profile versions and checksums. Slicer success does not waive warnings or establish physical success. Keep OrcaSlicer as the next compatibility target, and do not bind the product to Moonraker because inexpensive or strictly open printers may use different control paths.
+
+## Printer watchlist — purchase deferred
+
+“Open source” must be audited at several layers: firmware, electronics, mechanical CAD, editable source, bill of materials, manufacturing data, license, offline operation, and repairability.
+
+- [Original Ender-3 source](https://github.com/Creality3DPrinting/Ender-3) — firmware plus mechanical, PCB, and wiring files; older hardware and more manual tuning.
+- [Ender-3 V3 series comparison](https://www.creality.com/compare/compare-ender-3-v3-series) — V3 SE and KE are inexpensive practical candidates; firmware availability does not by itself establish fully open hardware.
+- [Ender-3 V3 SE firmware](https://github.com/CrealityOfficial/Ender-3V3-SE)
+- [Ender-3 V3 KE Klipper source](https://github.com/CrealityOfficial/Ender-3_V3_KE_Klipper)
+- [Sovol SV06 ACE](https://www.sovol3d.com/products/sovol-sv06-ace) — practical Klipper candidate whose source/license completeness must be audited.
+- [Elegoo Neptune 4](https://us.elegoo.com/products/elegoo-neptune-4-fdm-3d-printer) — inexpensive Klipper-family candidate requiring openness and maintenance review.
+- [Original Prusa MINI hardware](https://github.com/prusa3d/Original-Prusa-MINI) — strong source-completeness reference but not the assumed purchase because of cost.
+- [Voron hardware guide](https://docs.vorondesign.com/hardware.html) — future open build path, not an initial beginner purchase.
+
+No printer is required through M6. Before M7, collect Malaysian landed prices, 230 V compatibility, local replacement-part availability, warranty/support, noise, ventilation requirements, and exact source licenses.
+
+## Materials and design guidance
+
+- [Prusa PETG guidance](https://help.prusa3d.com/article/petg_2059) - regular/first-layer temperatures, build-surface caution, cooling, bridging/overhang limitations, and functional-part context.
+
+- [Prusa material guide](https://help.prusa3d.com/filament-material-guide) — comparative FDM material behavior.
+- [Modeling with 3D printing in mind](https://help.prusa3d.com/article/modeling-with-3d-printing-in-mind_164135) — orientation, overhang, and feature-design guidance.
+
+The M3 generic PETG profile records 240 C for regular and first-layer nozzle temperature, 90 C regular / 85 C first-layer bed temperature, 1.27 g/cm3 density, 8 mm3/s maximum volumetric speed, and 30-50% fan. Temperature/cooling direction comes from the official PETG article; density, volumetric speed, and fan values are transcribed from the Generic PETG base preset shipped inside the exact pinned PrusaSlicer 2.9.6 portable release. The material guide's broader 215-270 C / 70-90 C PETG range remains bounded by the generic printer profile's 260 C hotend maximum. No value is a machine- or filament-specific calibration.
+
+The R3 overhang and bridge rules intentionally distinguish source guidance from Ariad policy. Prusa states conventional desktop FDM overhangs can generally fall in a 45-60 degree range and that short horizontal bridges may work, while its PETG page says PETG's bridging/overhang behavior is usually worse. Ariad therefore freezes the conservative 45 degree endpoint and a 5 mm bounded-hole span for this benchmark. The 5 mm value is an analysis threshold, not an externally established or physically measured PETG capability.
+
+Initial material direction:
+
+- PLA for easy concept prototypes.
+- PETG as the initial functional indoor/planting default.
+- TPU later for grips, tires, and compliant parts.
+- ASA, nylon, and filled materials only after ventilation, drying, nozzle, enclosure, and profile requirements are understood.
+
+## Health, safety, and food contact
+
+- [NIOSH additive manufacturing resources](https://www.cdc.gov/niosh/manufacturing/additive/index.html)
+- [NIOSH 3D-printing controls bulletin](https://www.cdc.gov/niosh/bulletin/2018/3d-printing.html)
+- [Prusa food-safe FDM guidance](https://help.prusa3d.com/article/food-safe-fdm-printing_112313)
+
+Research conclusion: day-one parts should avoid direct food contact. For edible-plant systems, keep printed mounts outside the fluid path and use certified reservoirs and tubing. A future food-related workflow should prefer printing a master for a certified food-safe mold rather than treating a general FDM printer as food-grade.
+
+## Research discipline
+
+For every later provider or purchase decision, record:
+
+1. The exact problem it solves.
+2. Current primary documentation.
+3. License and data-handling terms.
+4. Local/offline fallback.
+5. Cost under a representative workload.
+6. Benchmark evidence against the existing path.
+7. New failure modes and exit strategy.
+
+A tool is adopted because it improves measured project evidence, not because it produces the most impressive demo clip.

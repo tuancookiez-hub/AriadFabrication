@@ -1,0 +1,267 @@
+{
+  "approvals": [],
+  "artifacts": [],
+  "decisions": [],
+  "events": [
+    {
+      "data": {
+        "classification": "interface_fixture",
+        "scenario": "needs_input"
+      },
+      "event_id": "evt_fixture_needs_input_brief",
+      "event_type": "fixture_gate_stopped",
+      "job_id": "job_interface_needs_input",
+      "message": "Fixture Brief stopped because a critical mating dimension is missing",
+      "revision_id": "rev_interface_needs_input",
+      "sequence": 1,
+      "stage": "brief",
+      "stage_run_id": "run_fixture_needs_input_brief",
+      "status": "needs_input",
+      "timestamp": "2026-07-16T08:00:00+00:00"
+    }
+  ],
+  "findings": [
+    {
+      "affected_geometry": null,
+      "code": "fixture.brief.missing_stake_diameter",
+      "created_at": "2026-07-16T08:00:00+00:00",
+      "data": {
+        "classification": "interface_fixture",
+        "scenario": "needs_input"
+      },
+      "evidence": "The fixture request deliberately omits the mating stake diameter.",
+      "evidence_mode": "fixture",
+      "finding_id": "finding_fixture_needs_input",
+      "job_id": "job_interface_needs_input",
+      "remediation": "Confirm the measured stake diameter and desired clearance.",
+      "resolution": null,
+      "resolved": false,
+      "revision_id": "rev_interface_needs_input",
+      "severity": "warning",
+      "stage_run_id": "run_fixture_needs_input_brief",
+      "title": "Critical dimension needs confirmation"
+    }
+  ],
+  "job": {
+    "created_at": "2026-07-16T08:00:00+00:00",
+    "current_revision_id": "rev_interface_needs_input",
+    "job_id": "job_interface_needs_input",
+    "metadata": {
+      "classification": "interface_fixture",
+      "physical_validation": false,
+      "scenario": "needs_input"
+    },
+    "request": "Demonstrate the needs input interface gate with fixture data.",
+    "status": "needs_input",
+    "title": "Ariad gate fixture — needs input",
+    "updated_at": "2026-07-16T08:00:00+00:00"
+  },
+  "revisions": [
+    {
+      "created_at": "2026-07-16T08:00:00+00:00",
+      "job_id": "job_interface_needs_input",
+      "number": 1,
+      "parent_revision_id": null,
+      "reason": "Deterministic M4 needs_input fixture",
+      "revision_id": "rev_interface_needs_input",
+      "spec": {
+        "assembly_method": "Flex the split clamp over the stake, then attach the electronics plate or board with two M3 fasteners.",
+        "assumptions": [
+          "The 12 mm stake is sufficiently round and its actual diameter will be measured before physical qualification.",
+          "The 10 N load is a preliminary benchmark input and is not a statement of proven strength.",
+          "The 12 month lifetime is a design target and has not been physically qualified.",
+          "The first CAD revision will orient the stake axis parallel to Z and avoid generated supports.",
+          "Food contact, electrical enclosure certification, and outdoor UV lifetime are outside this benchmark."
+        ],
+        "bounding_box_mm": {
+          "height": 50.0,
+          "length": 30.0,
+          "width": 24.6
+        },
+        "datums": {
+          "A": "lower Z face",
+          "B": "stake bore axis",
+          "C": "electronics mounting face"
+        },
+        "environment": {
+          "food_contact": false,
+          "location": "sheltered growing area",
+          "max_temp_c": 45.0,
+          "min_temp_c": 5.0,
+          "moisture_exposure": true,
+          "uv_exposure": false
+        },
+        "expected_lifetime_months": 12,
+        "features": [
+          {
+            "dimensions_mm": {
+              "depth": 50.0,
+              "diameter": 12.6
+            },
+            "feature_id": "stake_bore",
+            "kind": "cylindrical_mating_bore",
+            "notes": "Axis is parallel to Z; nominal diametral clearance is 0.6 mm over a 12 mm stake.",
+            "quantity": 1,
+            "required": true,
+            "tolerance_mm": 0.2
+          },
+          {
+            "dimensions_mm": {
+              "thickness": 4.0
+            },
+            "feature_id": "clamp_wall",
+            "kind": "minimum_radial_wall",
+            "notes": "Minimum wall surrounding the stake bore before transition geometry.",
+            "quantity": 1,
+            "required": true,
+            "tolerance_mm": 0.2
+          },
+          {
+            "dimensions_mm": {
+              "height": 50.0,
+              "radial_depth": 4.0,
+              "width": 3.0
+            },
+            "feature_id": "split_gap",
+            "kind": "clamp_relief_gap",
+            "notes": "Open radial split allows compliant installation onto the stake.",
+            "quantity": 1,
+            "required": true,
+            "tolerance_mm": 0.2
+          },
+          {
+            "dimensions_mm": {
+              "height": 50.0,
+              "thickness": 4.0,
+              "width": 30.0
+            },
+            "feature_id": "mounting_plate",
+            "kind": "flat_electronics_mounting_interface",
+            "notes": "Flat plate is integrated tangentially with the clamp body.",
+            "quantity": 1,
+            "required": true,
+            "tolerance_mm": 0.2
+          },
+          {
+            "dimensions_mm": {
+              "center_spacing": 26.0,
+              "diameter": 3.4
+            },
+            "feature_id": "m3_mounting_holes",
+            "kind": "through_hole",
+            "notes": "Hole axes are parallel to Y and centers are separated along Z.",
+            "quantity": 2,
+            "required": true,
+            "tolerance_mm": 0.2
+          },
+          {
+            "dimensions_mm": {
+              "depth": 4.0,
+              "diameter": 4.0
+            },
+            "feature_id": "cable_channel",
+            "kind": "cable_routing_hole",
+            "notes": "Separate routing feature through the mounting plate.",
+            "quantity": 1,
+            "required": true,
+            "tolerance_mm": 0.2
+          },
+          {
+            "dimensions_mm": {
+              "radius": 2.0
+            },
+            "feature_id": "transition_fillets",
+            "kind": "stress_relief_fillet",
+            "notes": "Blend the mounting plate into the clamp body.",
+            "quantity": 2,
+            "required": true,
+            "tolerance_mm": 0.2
+          }
+        ],
+        "infill_pct": 30,
+        "load_cases": [
+          {
+            "description": "Static lateral load applied at the mounting plate as an initial design input, not a verified capacity claim.",
+            "direction": "radial from the stake axis toward the mounting plate",
+            "force_n": 10.0,
+            "name": "Preliminary radial service load"
+          }
+        ],
+        "manufacturing_process": "FDM",
+        "material": "PETG",
+        "mating_requirements": [
+          {
+            "clearance_mm": 0.6,
+            "component": "Nominal 12 mm cylindrical plant stake",
+            "interface": "Slip-on split cylindrical clamp",
+            "nominal_dimensions_mm": {
+              "diameter": 12.0
+            },
+            "notes": "Clearance is diametral and remains an initial digital benchmark target until measured physically."
+          }
+        ],
+        "name": "OpenGrow gate fixture — needs input",
+        "notes": "Deterministic needs_input interface fixture. No stage establishes fabrication evidence.",
+        "part_type": "split_stake_electronics_clamp",
+        "preferred_orientation": "Stake axis parallel to build Z with the integrated mounting plate contributing bed contact.",
+        "printer_constraints": {
+          "build_volume_mm": {
+            "height": 250.0,
+            "length": 220.0,
+            "width": 220.0
+          },
+          "layer_height_mm": 0.2,
+          "nozzle_diameter_mm": 0.4,
+          "profile_id": "generic_open_fdm_220"
+        },
+        "purpose": "Attach a small sensor or controller plate to a nominal 12 mm plant stake in a sheltered growing environment.",
+        "safety_class": "general",
+        "schema_version": "1.0.0",
+        "source": "benchmarks/interface (fixture; not manufacturing evidence)",
+        "status": "confirmed",
+        "support_policy": "avoid",
+        "surface_requirements": [
+          "Stake bore and mounting holes must contain no generated support contact.",
+          "The electronics mounting face must be planar in the CAD model."
+        ],
+        "tolerance_mm": 0.2,
+        "units": "mm",
+        "unresolved_questions": []
+      },
+      "stage_run_ids": [
+        "run_fixture_needs_input_brief"
+      ]
+    }
+  ],
+  "schema_version": "1.0.0",
+  "stage_runs": [
+    {
+      "approval_ids": [],
+      "artifact_ids": [],
+      "attempt": 1,
+      "completed_at": null,
+      "decision_ids": [],
+      "error_message": "Stake diameter is required before the specification can reach R0.",
+      "event_ids": [
+        "evt_fixture_needs_input_brief"
+      ],
+      "evidence_level": null,
+      "evidence_mode": "fixture",
+      "finding_ids": [
+        "finding_fixture_needs_input"
+      ],
+      "input_artifact_ids": [],
+      "job_id": "job_interface_needs_input",
+      "revision_id": "rev_interface_needs_input",
+      "stage": "brief",
+      "stage_run_id": "run_fixture_needs_input_brief",
+      "started_at": "2026-07-16T08:00:00+00:00",
+      "status": "needs_input",
+      "summary": "Fixture Brief stopped because a critical mating dimension is missing",
+      "tool": {
+        "name": "ariad_interface_fixture",
+        "version": "1.0.0"
+      }
+    }
+  ]
+}

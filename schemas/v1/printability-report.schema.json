@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ariad.local/schemas/v1/printability-report.schema.json",
+  "title": "Ariad Printability Report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "classification",
+    "benchmark_id",
+    "status",
+    "passed",
+    "evidence_level",
+    "checks",
+    "warnings",
+    "measurements",
+    "profile_ids",
+    "source_geometry",
+    "oriented_geometry",
+    "tool_versions",
+    "policy",
+    "claim_boundary"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "classification": {"const": "deterministic_profile_specific_printability_assessment"},
+    "benchmark_id": {"type": "string", "minLength": 1},
+    "status": {"enum": ["passed", "passed_with_warnings", "failed"]},
+    "passed": {"type": "boolean"},
+    "evidence_level": {"type": ["string", "null"], "enum": ["R3", null]},
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "check_id",
+          "category",
+          "description",
+          "passed",
+          "actual",
+          "requirement",
+          "remediation"
+        ],
+        "properties": {
+          "check_id": {"type": "string", "minLength": 1},
+          "category": {"type": "string", "minLength": 1},
+          "description": {"type": "string", "minLength": 1},
+          "passed": {"type": "boolean"},
+          "actual": {},
+          "requirement": {},
+          "remediation": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "title", "evidence", "physical_resolution"],
+        "properties": {
+          "code": {"type": "string", "minLength": 1},
+          "title": {"type": "string", "minLength": 1},
+          "evidence": {"type": "string", "minLength": 1},
+          "physical_resolution": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "measurements": {"type": "object"},
+    "profile_ids": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["printer", "printer_family", "material", "process", "orientation"],
+      "properties": {
+        "printer": {"type": "string", "minLength": 1},
+        "printer_family": {"type": "string", "minLength": 1},
+        "material": {"type": "string", "minLength": 1},
+        "process": {"type": "string", "minLength": 1},
+        "orientation": {"type": "string", "minLength": 1}
+      }
+    },
+    "source_geometry": {"$ref": "#/$defs/artifact"},
+    "oriented_geometry": {
+      "allOf": [
+        {"$ref": "#/$defs/artifact"},
+        {
+          "type": "object",
+          "required": ["materialization"],
+          "properties": {
+            "materialization": {"type": "string", "minLength": 1}
+          }
+        }
+      ]
+    },
+    "tool_versions": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {"type": "string", "minLength": 1}
+    },
+    "policy": {
+      "type": "object",
+      "required": ["status", "rules", "risk_policy", "policy_notes"],
+      "properties": {
+        "status": {"type": "string", "minLength": 1},
+        "rules": {"type": "object", "minProperties": 1},
+        "risk_policy": {"type": "object", "minProperties": 1},
+        "policy_notes": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "claim_boundary": {"type": "string", "minLength": 1}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"passed": {"const": true}}, "required": ["passed"]},
+      "then": {
+        "properties": {
+          "evidence_level": {"const": "R3"},
+          "status": {"enum": ["passed", "passed_with_warnings"]}
+        }
+      },
+      "else": {
+        "properties": {
+          "evidence_level": {"type": "null"},
+          "status": {"const": "failed"}
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "artifact": {
+      "type": "object",
+      "required": ["filename", "checksum_sha256", "size_bytes"],
+      "properties": {
+        "filename": {"type": "string", "minLength": 1},
+        "checksum_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "size_bytes": {"type": "integer", "minimum": 1}
+      }
+    }
+  }
+}

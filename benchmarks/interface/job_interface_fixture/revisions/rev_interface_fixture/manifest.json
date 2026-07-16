@@ -1,0 +1,77 @@
+{
+  "approvals": [],
+  "artifacts": [
+    {
+      "artifact_id": "art_fixture_note",
+      "checksum_sha256": "7e554f332b4d825518fb978ef721b6f2ed64bd1f0a8143c035c4c957b8ebeab5",
+      "created_at": "2026-07-16T08:00:00+00:00",
+      "evidence_mode": "fixture",
+      "job_id": "job_interface_fixture",
+      "media_type": "text/plain",
+      "metadata": {
+        "classification": "interface_fixture"
+      },
+      "parent_artifact_ids": [],
+      "path": "notes/interface-fixture.txt",
+      "producer": "ariad_interface_fixture_generator",
+      "producer_version": "1.0.0",
+      "revision_id": "rev_interface_fixture",
+      "role": "interface_fixture_note",
+      "size_bytes": 178,
+      "stage_run_id": "run_fixture_fabrication_package"
+    }
+  ],
+  "decisions": [],
+  "findings": [
+    {
+      "affected_geometry": null,
+      "code": "fixture.generic_profile_uncalibrated",
+      "created_at": "2026-07-16T08:00:00+00:00",
+      "data": {
+        "classification": "interface_fixture"
+      },
+      "evidence": "The displayed profile is fixture data and is not calibrated to hardware.",
+      "evidence_mode": "fixture",
+      "finding_id": "finding_fixture_generic_profile",
+      "job_id": "job_interface_fixture",
+      "remediation": "Use a real recorded profile and physical measurements before R6.",
+      "resolution": null,
+      "resolved": false,
+      "revision_id": "rev_interface_fixture",
+      "severity": "warning",
+      "stage_run_id": "run_fixture_printability_validation",
+      "title": "Fixture profile is not calibrated"
+    },
+    {
+      "affected_geometry": null,
+      "code": "fixture.physical_result_unavailable",
+      "created_at": "2026-07-16T08:00:00+00:00",
+      "data": {
+        "classification": "interface_fixture"
+      },
+      "evidence": "No printer, material batch, photograph, or measurement belongs to this fixture.",
+      "evidence_mode": "fixture",
+      "finding_id": "finding_fixture_physical_unknowns",
+      "job_id": "job_interface_fixture",
+      "remediation": "Record an actual print and measurements in a separate R6 revision.",
+      "resolution": null,
+      "resolved": false,
+      "revision_id": "rev_interface_fixture",
+      "severity": "warning",
+      "stage_run_id": "run_fixture_printability_validation",
+      "title": "Physical behavior remains unknown"
+    }
+  ],
+  "generated_at": "2026-07-16T08:00:00+00:00",
+  "job_id": "job_interface_fixture",
+  "revision_id": "rev_interface_fixture",
+  "schema_version": "1.0.0",
+  "stage_run_ids": [
+    "run_fixture_brief",
+    "run_fixture_design",
+    "run_fixture_geometry_validation",
+    "run_fixture_printability_validation",
+    "run_fixture_slicing",
+    "run_fixture_fabrication_package"
+  ]
+}

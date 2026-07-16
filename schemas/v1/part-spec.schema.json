@@ -1,0 +1,226 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ariad.local/schemas/v1/part-spec.schema.json",
+  "title": "Ariad PartSpec 1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "name",
+    "purpose",
+    "part_type",
+    "bounding_box_mm",
+    "material",
+    "units",
+    "manufacturing_process",
+    "tolerance_mm",
+    "infill_pct",
+    "support_policy",
+    "safety_class",
+    "features",
+    "mating_requirements",
+    "load_cases",
+    "environment",
+    "printer_constraints",
+    "datums",
+    "assembly_method",
+    "expected_lifetime_months",
+    "preferred_orientation",
+    "surface_requirements",
+    "assumptions",
+    "unresolved_questions",
+    "notes",
+    "source"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "status": {"enum": ["draft", "confirmed"]},
+    "name": {"type": "string", "minLength": 1},
+    "purpose": {"type": "string", "minLength": 1},
+    "part_type": {"type": "string", "minLength": 1},
+    "bounding_box_mm": {"$ref": "#/$defs/bounding_box"},
+    "material": {"type": "string", "minLength": 1},
+    "units": {"const": "mm"},
+    "manufacturing_process": {"type": "string", "minLength": 1},
+    "tolerance_mm": {
+      "oneOf": [
+        {"type": "number", "exclusiveMinimum": 0},
+        {"type": "null"}
+      ]
+    },
+    "infill_pct": {"type": "integer", "minimum": 0, "maximum": 100},
+    "support_policy": {"enum": ["avoid", "allowed", "required", "unknown"]},
+    "safety_class": {"enum": ["general", "caution", "safety_critical"]},
+    "features": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/feature"}
+    },
+    "mating_requirements": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/mating_requirement"}
+    },
+    "load_cases": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/load_case"}
+    },
+    "environment": {"$ref": "#/$defs/environment"},
+    "printer_constraints": {
+      "oneOf": [
+        {"$ref": "#/$defs/printer_constraints"},
+        {"type": "null"}
+      ]
+    },
+    "datums": {
+      "type": "object",
+      "additionalProperties": {"type": "string", "minLength": 1}
+    },
+    "assembly_method": {"type": ["string", "null"], "minLength": 1},
+    "expected_lifetime_months": {
+      "type": ["integer", "null"],
+      "minimum": 1
+    },
+    "preferred_orientation": {"type": ["string", "null"], "minLength": 1},
+    "surface_requirements": {"$ref": "#/$defs/text_array"},
+    "assumptions": {"$ref": "#/$defs/text_array"},
+    "unresolved_questions": {"$ref": "#/$defs/text_array"},
+    "notes": {"type": "string"},
+    "source": {"type": "string", "minLength": 1}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "confirmed"}}},
+      "then": {
+        "properties": {
+          "material": {"not": {"enum": ["UNKNOWN", "UNSPECIFIED"]}},
+          "tolerance_mm": {"type": "number", "exclusiveMinimum": 0},
+          "support_policy": {"enum": ["avoid", "allowed", "required"]},
+          "unresolved_questions": {"maxItems": 0}
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "positive_number": {"type": "number", "exclusiveMinimum": 0},
+    "nullable_positive_number": {
+      "oneOf": [
+        {"$ref": "#/$defs/positive_number"},
+        {"type": "null"}
+      ]
+    },
+    "text_array": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "bounding_box": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["length", "width", "height"],
+      "properties": {
+        "length": {"$ref": "#/$defs/positive_number"},
+        "width": {"$ref": "#/$defs/positive_number"},
+        "height": {"$ref": "#/$defs/positive_number"}
+      }
+    },
+    "feature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "feature_id",
+        "kind",
+        "quantity",
+        "dimensions_mm",
+        "tolerance_mm",
+        "required",
+        "notes"
+      ],
+      "properties": {
+        "feature_id": {"type": "string", "minLength": 1},
+        "kind": {"type": "string", "minLength": 1},
+        "quantity": {"type": "integer", "minimum": 1},
+        "dimensions_mm": {
+          "type": "object",
+          "additionalProperties": {"$ref": "#/$defs/positive_number"}
+        },
+        "tolerance_mm": {"$ref": "#/$defs/nullable_positive_number"},
+        "required": {"type": "boolean"},
+        "notes": {"type": "string"}
+      }
+    },
+    "mating_requirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "component",
+        "interface",
+        "nominal_dimensions_mm",
+        "clearance_mm",
+        "notes"
+      ],
+      "properties": {
+        "component": {"type": "string", "minLength": 1},
+        "interface": {"type": "string", "minLength": 1},
+        "nominal_dimensions_mm": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {"$ref": "#/$defs/positive_number"}
+        },
+        "clearance_mm": {"type": "number", "minimum": 0},
+        "notes": {"type": "string"}
+      }
+    },
+    "load_case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "description", "force_n", "direction"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "description": {"type": "string", "minLength": 1},
+        "force_n": {
+          "oneOf": [
+            {"type": "number", "minimum": 0},
+            {"type": "null"}
+          ]
+        },
+        "direction": {"type": "string", "minLength": 1}
+      }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "location",
+        "moisture_exposure",
+        "uv_exposure",
+        "min_temp_c",
+        "max_temp_c",
+        "food_contact"
+      ],
+      "properties": {
+        "location": {"type": "string", "minLength": 1},
+        "moisture_exposure": {"type": "boolean"},
+        "uv_exposure": {"type": "boolean"},
+        "min_temp_c": {"type": ["number", "null"]},
+        "max_temp_c": {"type": ["number", "null"]},
+        "food_contact": {"type": "boolean"}
+      }
+    },
+    "printer_constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile_id",
+        "build_volume_mm",
+        "nozzle_diameter_mm",
+        "layer_height_mm"
+      ],
+      "properties": {
+        "profile_id": {"type": "string", "minLength": 1},
+        "build_volume_mm": {"$ref": "#/$defs/bounding_box"},
+        "nozzle_diameter_mm": {"$ref": "#/$defs/positive_number"},
+        "layer_height_mm": {"$ref": "#/$defs/nullable_positive_number"}
+      }
+    }
+  }
+}

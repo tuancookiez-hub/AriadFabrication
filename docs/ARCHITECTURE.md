@@ -1,0 +1,243 @@
+# Architecture
+
+## Architectural goal
+
+Keep the user experience, orchestration, CAD execution, deterministic verification, slicing, and optional hardware integration separated by versioned contracts. The system must remain useful without a printer or paid 3D-generation provider.
+
+## Target system
+
+```mermaid
+flowchart TD
+    UI["React/TypeScript Fabrication Journey"]
+    API["Python application API"]
+    ORCH["Revision and stage orchestrator"]
+    AI["OpenAI structured intake and planning"]
+    CAD["Sandboxed CadQuery/OCCT worker"]
+    VAL["Geometry and printability validators"]
+    SLICE["Real slicer adapter"]
+    STORE["Artifact store and job metadata"]
+    PRINT["Optional printer or print-service adapter"]
+
+    UI --> API
+    API --> ORCH
+    ORCH --> AI
+    ORCH --> CAD
+    CAD --> VAL
+    VAL --> SLICE
+    ORCH <--> STORE
+    CAD --> STORE
+    VAL --> STORE
+    SLICE --> STORE
+    ORCH -. "Explicit approval later" .-> PRINT
+```
+
+The first implementation remains a modular monolith: one Python application with isolated worker boundaries and a separate browser frontend. Separate network services are introduced only when deployment or safety requires them.
+
+## Fabrication lifecycle
+
+| Stage | Purpose | Required exit evidence |
+|---|---|---|
+| Brief | Turn the request into an explicit specification | Valid schema; assumptions and unresolved questions recorded; user confirmation where material |
+| Design | Create editable parametric geometry | Source executes; valid solid exported; expected features exist |
+| Geometry validation | Measure the produced body | Kernel validity, dimensions, topology, wall and clearance findings |
+| Printability validation | Evaluate a proposed manufacturing orientation | Bed fit, wall/nozzle rules, overhangs, supports, holes, material/profile compatibility |
+| Slicing | Produce a manufacturing toolpath with a real slicer | Slicer exit success, profile provenance, layer/toolpath summary, G-code preflight |
+| Fabrication package | Collect reproducible artifacts and evidence | Complete manifest, reports, source, geometry, preview, slicer project, and checksums |
+| Manufacturing | Optional physical handoff and observation | Explicit approval, adapter-specific safety checks, telemetry, and physical result record |
+
+A failed validation creates a finding and a new design revision. It does not mutate or erase the prior revision.
+
+## Stage state model
+
+A stage may be:
+
+- `waiting`
+- `running`
+- `needs_input`
+- `passed`
+- `passed_with_warnings`
+- `failed`
+- `cancelled`
+- `superseded`
+
+Progress reports concrete events rather than invented percentages. Examples include `spec_validated`, `cad_kernel_completed`, `step_exported`, `wall_check_completed`, and `slicer_completed`.
+
+## Core records
+
+### Job
+
+The durable user goal and its revision history.
+
+### Revision
+
+An immutable attempt derived from a confirmed specification and parent revision. Changes produce a new revision with a reason and a diff.
+
+### PartSpec
+
+The versioned manufacturing intent. It includes:
+
+- Purpose and part family.
+- Units, dimensions, datums, tolerances, and critical features.
+- Mating components and clearances.
+- Loads, force directions, environment, and expected lifetime.
+- Material and process preferences.
+- Printer envelope, nozzle, orientation, support, and surface constraints.
+- Fasteners, inserts, purchased components, and assembly method.
+- Safety class, assumptions, unresolved questions, and provenance.
+
+### StageRun and StageEvent
+
+`StageRun` stores the state, attempts, timing, tool identity, findings, and artifact references. `StageEvent` is the append-only stream used by the Fabrication Journey.
+
+### Artifact
+
+An immutable file plus media type, role, checksum, producer, version, and lineage.
+
+### Finding
+
+A deterministic or model-assisted observation with severity, evidence, affected geometry, remediation, and resolution state.
+
+### Decision and Approval
+
+A recorded choice and its rationale. An approval is required before a consequential boundary such as accepting unresolved risk or dispatching physical hardware.
+
+## Artifact contract
+
+Each revision receives its own directory:
+
+```text
+runs/<job-id>/revisions/<revision-id>/
+|-- request.txt
+|-- cad_request.json
+|-- cad_result.json
+|-- cad_worker.stdout.log
+|-- cad_worker.stderr.log
+|-- design/
+|   |-- part_spec.json
+|   |-- expected.json
+|   |-- parameters.json
+|   |-- design.py
+|   |-- part.step
+|   |-- part.3mf
+|   |-- preview.glb
+|   |-- compatibility.stl
+|   |-- geometry_validation.json
+|   `-- cad_environment.json
+|-- profiles/
+|   |-- printer.json
+|   |-- material.json
+|   |-- process.json
+|   |-- orientation.json
+|   |-- prusaslicer.ini
+|   `-- bundle.json
+|-- printability/
+|   |-- policy.json
+|   |-- oriented.step
+|   `-- report.json
+|-- slicing/
+|   |-- slicer_installation.json
+|   |-- model_info.*.log
+|   |-- project.*.log
+|   |-- slice.*.log
+|   |-- slicer_project.3mf
+|   |-- toolpath.gcode
+|   |-- gcode_preflight.json
+|   `-- slice_report.json
+|-- fabrication/
+|   `-- package.json
+|-- journey.json
+`-- manifest.json
+```
+
+This is the implemented M3 package. Design artifacts remain unchanged when later stages materialize orientation, snapshot profiles, assess R3, slice, preflight, and package the revision. `journey.json` and `manifest.json` are generated package indexes rather than entries in their own manifest, avoiding self-referential checksums.
+
+An artifact is absent when its stage did not complete. Placeholder artifacts must identify themselves as fixtures and must never be mixed with production evidence.
+
+## Simulation and visualization
+
+The interface distinguishes:
+
+1. **Workflow replay:** stage events, revisions, decisions, and artifacts.
+2. **Design inspection:** dimensions, cross-sections, feature highlights, and revision differences.
+3. **Manufacturing simulation:** real G-code layer/toolhead playback with slicer estimates.
+4. **Engineering simulation:** later FEA/thermal/fluid analysis with explicit assumptions and an experimental evidence label.
+5. **Physical observation:** printer telemetry, photographs, measurements, and failures.
+
+Toolpath playback is not structural or thermal proof.
+
+## Technology direction
+
+| Concern | Initial choice | Notes |
+|---|---|---|
+| Domain and workers | Python 3.11 | Matches the existing package and CadQuery ecosystem |
+| CAD | CadQuery backed by OCCT | Functional lane; source is a first-class artifact |
+| API | FastAPI on the existing Python domain | M4-A implements a loopback-only, read-only filesystem boundary; job execution and streaming remain later |
+| Browser interface | Vite + React + TypeScript | M4-A implements job/revision and stage evidence views; Three.js/React Three Fiber remains the next inspection lane |
+| Model integration | OpenAI Responses API with strict structured output and function tools | Model output cannot bypass deterministic gates |
+| Slicing | Adapter over PrusaSlicer and/or OrcaSlicer CLI | Profiles and tool versions are recorded |
+| Metadata | SQLite initially | Filesystem stores large artifacts; migration path remains open |
+| Optional control plane | Go later if justified | Suitable for a printer-side agent or deployment service, not required for CAD |
+
+Dependencies are not considered installed merely because they appear in this target table.
+
+## Provider boundaries
+
+- `IntentProvider`: request and context to proposed `PartSpec` plus clarification questions.
+- `CadProvider`: confirmed `PartSpec` to editable source and exact geometry.
+- `GeometryValidator`: geometry and specification to deterministic findings.
+- `PrintabilityValidator`: oriented geometry, material, and printer profile to findings.
+- `SlicerProvider`: geometry plus versioned profiles to slicer project and G-code.
+- `PrinterAdapter`: approved package to adapter-specific preflight, upload, start, and telemetry.
+
+Each provider must have a deterministic fixture for tests and must report whether it is real, simulated, or unavailable.
+
+## Security and safety boundaries
+
+- Generated CAD code runs with time, memory, filesystem, process, and network restrictions.
+- API keys stay on the server and are never embedded in browser assets or artifacts.
+- Untrusted mesh/CAD inputs receive size and complexity limits.
+- Final G-code comes only from an approved slicer adapter.
+- Printer adapters default to disconnected and read-only.
+- Remote start is disabled until explicit safety requirements are implemented and approved.
+- A simulated adapter cannot claim that a person replaced filament, cleared an obstruction, or made any other physical intervention.
+
+## Current implementation mapping
+
+M3 implements one complete printer-independent Golden Part path through R4, and M4-A/M4-B expose its persisted records through a read-only application slice:
+
+- `domain/spec.py` implements immutable `PartSpec` 1.0.0 and design-readiness rules.
+- `domain/journey.py` implements jobs, immutable revisions and records, append-only events, artifact lineage, and manifests.
+- `domain/lifecycle.py` implements and tests the accepted seven-stage transition model.
+- `orchestrator.py` executes the Brief gate and labels a complete confirmed result R0.
+- `schemas/v1/` contains the PartSpec, StageEvent, ArtifactManifest, PrintabilityReport, and printer-independent FabricationPackage JSON Schemas.
+- `benchmarks/golden_part/` freezes the first exact specification and R2 measurement targets.
+- `benchmarks/golden_part/printability_expected.json` freezes the R3 profile selection, deterministic rules, warning dispositions, and claim boundary.
+- `benchmarks/3dbenchy/` preserves the official checksum-pinned CC0 calibration fixture and provenance without treating it as functional-CAD qualification.
+- `profiles/v1/` contains versioned printer, material, process, orientation, and PrusaSlicer configuration artifacts.
+- `cad/contracts.py` defines immutable, versioned worker request, result, and artifact descriptors without importing CadQuery.
+- `cad/runner.py` invokes a separate process with a timeout, environment allowlist, confined paths, immutable run files, artifact checksum verification, and quarantine on integrity failure.
+- `cad/worker.py` accepts only the registered hand-authored Golden Part provider, publishes atomically, and records exact tool versions and honest boundary limitations.
+- `cad/golden_part_design.py` is the standalone editable parametric source copied into every successful revision.
+- `cad/validation.py` queries the re-imported STEP through OCCT and evaluates 25 frozen feature, clearance, and dimensional checks.
+- `cad/stl.py`, `cad/glb.py`, and `cad/canonical.py` verify compatibility topology, write/inspect the browser preview, and remove volatile exporter metadata used in reproducibility hashes.
+- `cad/pipeline.py` advances the Golden Part journey through Design R1 and Geometry Validation R2, records 15 artifacts and lineage edges, and persists the journey and manifest.
+- `slicing/profiles.py` validates the four profile contracts against the exact PrusaSlicer INI so metadata cannot drift silently from executable settings.
+- `slicing/printability.py` materializes a centered Z-up STEP and applies exact profile, volume, bed-contact, wall/feature, layer, overhang, bounded-bridge, support, orientation, and first-layer-clearance checks without importing CadQuery into the lightweight path.
+- `slicing/prusaslicer.py` invokes one approved local PrusaSlicer executable, records model repairs and warnings, and exports a real profile-bearing 3MF project plus G-code without hardware access.
+- `slicing/gcode.py` parses real G-code and applies disconnected profile-specific checks for units, modes, bounds, temperatures, tools, support features, layer height, and forbidden commands.
+- `slicing/pipeline.py` advances the same revision through R3, R4 slicing, and package completeness; snapshots all profiles; records every command/log/checksum/lineage edge; and fails closed under the frozen repair/warning policy.
+- `api/repository.py` loads revision-scoped journeys, optional manifests and packages, groups records only through persisted IDs, confines artifact paths, and verifies size/checksum before download.
+- `api/app.py` exposes loopback-only health, revision-list, revision-detail, and artifact routes while advertising `hardware_actions: false` in every application contract.
+- `api/fixture.py` deterministically generates the committed `benchmarks/interface/` family. Every stage is labelled `fixture`; complete, `needs_input`, failed Geometry, failed Printability, and incomplete Package journeys stop at their persisted gate.
+- `web/` contains the Vite React/TypeScript client, shipment-style timeline, warning and claim presentation, artifact links, fixture boundary, reduced-motion behavior, bounded Three.js GLB inspection, worker-owned G-code layer playback, real-artifact integration tests, lint/type checks, and production build.
+- `.github/workflows/ci.yml` defines lightweight backend and frontend checks. The approximately 1 GiB CAD/slicer environment remains a separate full verification path.
+- `experiments/slicer_benchmark/` compares official 3DBenchy and the conventional warship under the same real slicer/profile while earning no Golden Part evidence.
+- `model_gen.py` creates a cuboid STL fixture.
+- `mesh_validate.py` performs basic ASCII STL checks.
+- `slicer.py` writes demonstration perimeter G-code.
+- `gcode_validate.py` checks basic bounds and temperatures.
+- `klipper_api.py` is a simulator.
+
+The older fixture CAD, slicer, and printer modules are not connected to the evidence-gated Golden Part path and do not advance its evidence level. Only `slicing/prusaslicer.py` through `slicing/pipeline.py` can provide the current R4 slicer evidence, and that path has no printer adapter or hardware action.
+
+The M2 worker is an isolation boundary for registered repository source, not a hardened sandbox for arbitrary generated Python. Network denial, enforceable memory/process limits, and stronger OS-level confinement remain mandatory before any untrusted CAD code can execute.

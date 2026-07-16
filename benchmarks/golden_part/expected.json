@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0.0",
+  "benchmark_id": "opengrow_stake_electronics_clamp_v1",
+  "status": "frozen_for_m2",
+  "target_evidence_level": "R2",
+  "coordinate_system": {
+    "units": "mm",
+    "x_axis": "across the mounting plate width",
+    "y_axis": "from the stake axis toward the mounting plate",
+    "z_axis": "parallel to the stake axis from the lower face upward"
+  },
+  "expected_counts": {
+    "solid_bodies": 1,
+    "cylindrical_mating_bores": 1,
+    "m3_through_holes": 2,
+    "cable_routing_features": 1,
+    "flat_mounting_interfaces": 1,
+    "transition_fillets": 2
+  },
+  "expected_measurements_mm": {
+    "design_envelope": {"x": 30.0, "y": 24.6, "z": 50.0},
+    "stake_nominal_diameter": 12.0,
+    "stake_bore_diameter": 12.6,
+    "stake_diametral_clearance": 0.6,
+    "minimum_clamp_wall": 4.0,
+    "split_gap_width": 3.0,
+    "mounting_plate_width": 30.0,
+    "mounting_plate_thickness": 4.0,
+    "mounting_plate_height": 50.0,
+    "m3_hole_diameter": 3.4,
+    "m3_hole_center_spacing_z": 26.0,
+    "m3_hole_center_z_values": [12.0, 38.0],
+    "cable_channel_diameter": 4.0,
+    "cable_channel_center_x": 8.0,
+    "cable_channel_center_z": 25.0,
+    "transition_fillet_radius": 2.0
+  },
+  "default_dimensional_tolerance_mm": 0.2,
+  "required_process_checks": {
+    "material": "PETG",
+    "manufacturing_process": "FDM",
+    "support_policy": "avoid",
+    "printer_profile_id": "generic_open_fdm_220",
+    "nozzle_diameter_mm": 0.4,
+    "layer_height_mm": 0.2,
+    "fits_build_volume": true
+  },
+  "claim_boundary": "These are digital acceptance targets. They do not establish strength, fit on an unmeasured stake, print success, food safety, or outdoor lifetime."
+}

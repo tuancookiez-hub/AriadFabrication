@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0.0",
+  "design_id": "ariad_floating_air_warship_concept_v1",
+  "units": "mm",
+  "hull_length_mm": 190.0,
+  "hull_half_width_mm": 45.0,
+  "hull_half_height_mm": 19.0,
+  "nacelle_offset_y_mm": 58.0,
+  "nacelle_radius_mm": 14.0,
+  "nacelle_length_mm": 150.0,
+  "deck_z_mm": 20.0,
+  "linear_tolerance_mm": 0.3,
+  "angular_tolerance_rad": 0.18
+}
