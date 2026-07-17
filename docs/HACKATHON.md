@@ -50,6 +50,9 @@ documented PrusaSlicer 2.9.6 portable toolchain for the full R4 path.
 uv sync --extra test --extra cad
 pnpm --dir web install --frozen-lockfile
 
+# One-command fixture demo (hardware remains disabled)
+.\scripts\start_demo.ps1
+
 # Terminal 1: read-only local API over existing evidence
 .\.venv\Scripts\ariad-interface-api.exe --runs-root runs
 
@@ -89,9 +92,11 @@ Enter two contrasting prompts:
 1. “Design a weather-resistant enclosure for a soil sensor.”
 2. “Create a decorative floating air warship.”
 
-Show the functional-CAD and organic-mesh routes. State that those providers are
-not yet connected. Then select the registered Golden Part demo. Do not imply
-either free-form prompt generated the benchmark.
+Show that both ideas are captured and that GPT-5.6 is explicitly unavailable
+when no API credential is configured. Point to the intended functional-CAD and
+organic-mesh lanes in the capability panel, but do not claim the model selected
+either route. Then open the existing registered Golden Part evidence from the
+Journey page. Do not imply either free-form prompt generated the benchmark.
 
 ### 0:45–1:35 — Fabrication Journey
 
@@ -134,7 +139,7 @@ developer-tool installation/testing instructions.
 
 | Requirement | Evidence | State |
 |---|---|---|
-| Working project | Real R2/R4 benchmark plus read-only React evidence explorer | Partial: browser intake/run remains incomplete |
+| Working project | Real R2/R4 benchmark plus React intake/evidence explorer | Partial: intake works; browser execution remains locked |
 | Category | Developer Tools | Ready |
 | Project description | Draft above | Draft |
 | Public demo under 3 minutes | Script above | Not recorded |
@@ -145,7 +150,7 @@ developer-tool installation/testing instructions.
 | Codex contribution explanation | Description and demo script | Draft |
 | GPT-5.6 working use | Structured intent provider | Blocked by missing API credential |
 | `/feedback` session ID | Submission form field | Missing; do not substitute a thread ID without verification |
-| Judge test path without rebuild | Local fixture path and intended packaged demo | Partial |
+| Judge test path without rebuild | `scripts/start_demo.ps1` with fixture evidence | Ready on documented Windows environment; clean-machine audit pending |
 
 ## Claims allowed in the submission
 
@@ -175,4 +180,3 @@ developer-tool installation/testing instructions.
 4. Select a repository license or configure private judge access.
 5. Record/upload the demo, obtain the verified `/feedback` session ID, and enter
    repository/video URLs in Devpost.
-
