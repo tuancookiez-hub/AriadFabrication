@@ -469,6 +469,18 @@ This file records accepted project-level decisions. Change an accepted decision 
 
 **Consequence:** Both registered digital targets now have real supervised execution paths. The remaining pre-HTTP work is OS filesystem/network isolation and transactional coordination between the execution store, persisted Journey snapshots, and event projection.
 
+### D-039 - Coordinate registered execution with persisted Journey evidence
+
+**Status:** Accepted as implemented evidence on 2026-07-17.
+
+**Decision:** Run at most the control store's oldest queued immutable R2/R4 plan through an internal service. The service owns one fenced lease, shared execution deadline, and cancellation token; reuses the sealed CAD and slicer adapters; and binds the generated job/revision identity exactly once. A control event may claim a persisted snapshot only after the Journey and manifest files exist, remain under a 16 MiB ceiling, match the bound job/revision and reported status, pass the committed manifest schema, and have their bytes hashed. A filesystem snapshot is written before its SQLite projection, so a projection failure retains inspectable partial evidence rather than creating an event for absent bytes.
+
+**Evidence:** Service tests prove successful identity/event projection, missing-evidence failure, and propagation of an active cancellation request to the shared token. The pinned CAD/slicer environment passes all 197 backend tests, including the real sealed R2 and R4 integrations. The regenerated CAD runtime manifest binds the new coordinator source.
+
+**Limitation:** Filesystem plus SQLite publication is ordered and recoverable, not a distributed atomic transaction. The service is internal and has no HTTP, SSE, browser, network, or hardware surface. Exact-import enforcement does not isolate approved native code from host files or sockets.
+
+**Consequence:** Store/Journey coordination is no longer a pre-HTTP blocker. Enforceable filesystem isolation and network denial remain mandatory before browser mutation; authenticated same-origin POST/cancel/SSE contracts come after that boundary.
+
 ## Deferred decisions
 
 These require later evidence and should not be decided through preference alone:

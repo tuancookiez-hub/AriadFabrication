@@ -105,6 +105,13 @@ from .slicer_adapter import (
     SEALED_SLICER_ADAPTER_VERSION,
     SealedPrusaSlicerAdapter,
 )
+from .service import (
+    ExecutionCallbacks,
+    GoldenPartPlanExecutor,
+    PersistedJourneyEvidence,
+    RegisteredExecutionService,
+    RegisteredPlanExecutor,
+)
 
 __all__ = [
     "AdmissionDecision",
@@ -119,6 +126,7 @@ __all__ = [
     "ExecutionEvent",
     "ExecutionEventType",
     "ExecutionControlStore",
+    "ExecutionCallbacks",
     "ExecutionDeadline",
     "ExecutionFailure",
     "ExecutionFailureCode",
@@ -137,6 +145,7 @@ __all__ = [
     "FABRICATION_PIPELINE_VERSION",
     "GOLDEN_PART_BENCHMARK_ID",
     "GOLDEN_PART_PROVIDER_ID",
+    "GoldenPartPlanExecutor",
     "HostRuntimeSnapshot",
     "IMPORT_BOUNDARY_VERSION",
     "ImportAllowlist",
@@ -149,12 +158,15 @@ __all__ = [
     "PolicyCapabilityReport",
     "PolicyControl",
     "PolicyUnavailableError",
+    "PersistedJourneyEvidence",
     "ProcessSupervisorError",
     "ProcessTerminationReason",
     "R4ProfileSnapshot",
     "SEALED_CAD_ADAPTER_VERSION",
     "SEALED_SLICER_ADAPTER_VERSION",
     "RegisteredAdmissionResult",
+    "RegisteredExecutionService",
+    "RegisteredPlanExecutor",
     "RegisteredTargetAdmission",
     "ResolvedTarget",
     "RunnerPolicy",
