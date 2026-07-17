@@ -10,12 +10,14 @@ import {
 import type { LocalCodexStatus } from './types'
 
 type Message = { id: string; role: 'user' | 'assistant'; text: string }
+type ToolActivity = { id: string; name: string; state: 'running' | 'completed' | 'failed' }
 
 export function CodexChatPage() {
   const [status, setStatus] = useState<LocalCodexStatus | null>(null)
   const [sessionToken, setSessionToken] = useState<string | null>(null)
   const [prompt, setPrompt] = useState('')
   const [messages, setMessages] = useState<Message[]>([])
+  const [toolActivity, setToolActivity] = useState<ToolActivity[]>([])
   const [activeTurn, setActiveTurn] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const sequence = useRef(0)
@@ -46,6 +48,17 @@ export function CodexChatPage() {
         const result = await getCodexEvents(sequence.current, sessionToken!, controller.signal)
         sequence.current = result.next_sequence
         for (const event of result.events) {
+          if (event.tool_name && ['tool_started', 'tool_completed', 'tool_failed'].includes(event.event_type)) {
+            const id = `${event.turn_id}-${event.tool_name}`
+            const state = event.event_type === 'tool_started'
+              ? 'running'
+              : event.event_type === 'tool_completed' ? 'completed' : 'failed'
+            setToolActivity((current) => {
+              const existing = current.findIndex((item) => item.id === id)
+              if (existing < 0) return [...current, { id, name: event.tool_name!, state }]
+              return current.map((item, index) => index === existing ? { ...item, state } : item)
+            })
+          }
           if (event.event_type === 'assistant_text_delta') {
             setMessages((current) => {
               const existing = current.findIndex((item) => item.id === event.turn_id)
@@ -110,8 +123,8 @@ export function CodexChatPage() {
         <p className="eyebrow">Local Codex fabrication agent</p>
         <h1 data-route-heading tabIndex={-1}>Talk through what you want to make.</h1>
         <p>
-          This first connection is conversational and read-only. Codex has no Ariad fabrication
-          tools yet and cannot generate CAD, run validation, slice, or contact hardware.
+          Codex can capture an idea and inspect Ariad evidence through three read-only tools. It
+          still cannot generate CAD, run validation, slice, mutate evidence, or contact hardware.
         </p>
       </section>
       <section className="chat-layout">
@@ -136,6 +149,12 @@ export function CodexChatPage() {
                 <p>{message.text}</p>
               </article>
             ))}
+            {toolActivity.map((activity) => (
+              <article className={`tool-activity tool-activity-${activity.state}`} key={activity.id}>
+                <span aria-hidden="true">{activity.state === 'completed' ? '✓' : activity.state === 'failed' ? '!' : '…'}</span>
+                <div><strong>{activity.name}</strong><small>{activity.state}</small></div>
+              </article>
+            ))}
           </div>
           {error ? <div className="chat-error" role="alert">{error}</div> : null}
           <form className="chat-composer" onSubmit={submit}>
@@ -150,7 +169,7 @@ export function CodexChatPage() {
               value={prompt}
             />
             <div>
-              <small>Local session · read-only · zero fabrication tools</small>
+              <small>Local session · 3 read-only tools · no execution authority</small>
               {activeTurn ? (
                 <button className="stop-action" onClick={cancel} type="button">Stop Codex</button>
               ) : (
@@ -161,10 +180,10 @@ export function CodexChatPage() {
         </div>
         <aside className="chat-boundary">
           <p className="eyebrow">Authority right now</p>
-          <h2>Conversation only</h2>
+          <h2>Read-only assistance</h2>
           <dl>
             <div><dt>GPT model</dt><dd>{status?.conversation_available ? 'Local Codex default' : 'Unavailable'}</dd></div>
-            <div><dt>Ariad tools</dt><dd>0 registered</dd></div>
+            <div><dt>Ariad tools</dt><dd>3 read-only</dd></div>
             <div><dt>Workspace</dt><dd>Read-only and empty</dd></div>
             <div><dt>Hardware</dt><dd>Disconnected</dd></div>
           </dl>

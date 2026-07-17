@@ -505,6 +505,18 @@ This file records accepted project-level decisions. Change an accepted decision 
 
 **Consequence:** Remove Hermes from current product language rather than presenting a second general agent. Existing Python orchestration remains Ariad's workflow engine. The architecture can be integrated incrementally without rewriting the sealed R2/R4 pipeline or React evidence explorer.
 
+### D-042 - Register only bounded read-only Ariad tools with local Codex
+
+**Status:** Accepted as implemented evidence on 2026-07-18.
+
+**Decision:** Register the versioned `ariad` app-server namespace with exactly three functions: `capture_idea`, `list_evidence`, and `read_evidence`. Preserve the durable catalog names as `ariad.capture_idea`, `ariad.list_evidence`, and `ariad.read_evidence` while adapting the dot-free inner names required by the experimental dynamic-tool transport. Validate closed arguments again at dispatch, cap serialized output at 256 KiB, hide unexpected exception details, expose only tool name and lifecycle to the browser, and keep every mutating or hardware-capable tool unregistered.
+
+**Evidence:** Contract tests prove exact registration, immutable schemas, unknown/widened/wrong-type rejection, stateless capture claims, bounded evidence listing, and checksum-validated fixture reading. API 1.12.0 and generated TypeScript carry namespaced tool lifecycle events; React displays running/completed/failed cards. A real locally authenticated Codex CLI 0.144.5 / GPT-5.6 Sol turn invoked `ariad.capture_idea`, consumed the bounded result, described it as planning-only and unpersisted, emitted a terminal answer, and left the read-only conversation workspace empty.
+
+**Limitation:** Codex app-server dynamic tools are experimental and require explicit experimental capability negotiation. Idea capture does not persist a project. Evidence tools replay only already validated records. This decision provides no authority to generate CAD, run the registered lane, slice, contact hardware, or claim physical evidence.
+
+**Consequence:** The user-facing agent can now ground conversation in Ariad's real intake and evidence boundaries. The next authority increase requires an explicit confirmation/persistence design; arbitrary CAD remains blocked on enforceable isolation.
+
 ## Deferred decisions
 
 These require later evidence and should not be decided through preference alone:

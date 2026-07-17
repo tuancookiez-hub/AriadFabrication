@@ -22,8 +22,8 @@ from ..intake import CapabilityLane, RouteStatus
 from ..local_codex import LocalCodexStatus
 
 
-InterfaceApiVersion = Literal["1.11.0"]
-INTERFACE_API_VERSION: InterfaceApiVersion = "1.11.0"
+InterfaceApiVersion = Literal["1.12.0"]
+INTERFACE_API_VERSION: InterfaceApiVersion = "1.12.0"
 Timestamp = Annotated[str, Field(json_schema_extra={"format": "date-time"})]
 
 
@@ -107,17 +107,18 @@ class ConversationTurnResponse(ApiModel):
     schema_version: InterfaceApiVersion
     turn_id: str
     accepted: Literal[True]
-    tools_registered: Literal[0]
+    tools_registered: Literal[3]
     workspace_mutation_enabled: Literal[False]
     hardware_actions: Literal[False]
 
 
 class ConversationEventView(ApiModel):
-    contract_version: Literal["1.0.0"]
+    contract_version: Literal["1.1.0"]
     sequence: int
     event_type: ConversationEventType
     turn_id: str
     text: str
+    tool_name: str | None
 
 
 class ConversationEventsResponse(ApiModel):
@@ -125,7 +126,7 @@ class ConversationEventsResponse(ApiModel):
     events: list[ConversationEventView]
     active_turn_id: str | None
     next_sequence: int
-    tools_registered: Literal[0]
+    tools_registered: Literal[3]
     workspace_mutation_enabled: Literal[False]
     hardware_actions: Literal[False]
 

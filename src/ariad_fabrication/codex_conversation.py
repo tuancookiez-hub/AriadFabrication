@@ -1,7 +1,7 @@
 """Persistent read-only local Codex conversation boundary.
 
-The adapter intentionally registers no Ariad tools. It exposes only curated
-assistant-text and lifecycle events while keeping raw app-server messages,
+The adapter registers only bounded read-only Ariad tools. It exposes curated
+assistant-text, tool activity, and lifecycle events while keeping raw app-server messages,
 reasoning, account metadata, and host details inside the process boundary.
 """
 
@@ -15,16 +15,17 @@ from pathlib import Path
 from queue import Empty, Queue
 import subprocess
 from threading import Event, Lock, Thread
-from typing import Any, Mapping, TextIO
+from typing import Any, Callable, Mapping, TextIO
 
 from .local_codex import MAX_CODEX_LINE_BYTES, _codex_environment
 
 
-CONVERSATION_CONTRACT_VERSION = "1.0.0"
+CONVERSATION_CONTRACT_VERSION = "1.1.0"
 MAX_CONVERSATION_PROMPT_BYTES = 16 * 1024
 MAX_CONVERSATION_EVENTS = 1_000
 MAX_EVENT_TEXT_CHARS = 4_096
 MAX_TURN_SECONDS = 120.0
+ToolExecutor = Callable[[str, Mapping[str, Any]], str]
 
 
 class ConversationEventType(str, Enum):
@@ -33,6 +34,9 @@ class ConversationEventType(str, Enum):
     TURN_COMPLETED = "turn_completed"
     TURN_FAILED = "turn_failed"
     TURN_CANCELLED = "turn_cancelled"
+    TOOL_STARTED = "tool_started"
+    TOOL_COMPLETED = "tool_completed"
+    TOOL_FAILED = "tool_failed"
 
 
 @dataclass(frozen=True)
@@ -41,6 +45,7 @@ class ConversationEvent:
     event_type: ConversationEventType
     turn_id: str
     text: str = ""
+    tool_name: str | None = None
     contract_version: str = CONVERSATION_CONTRACT_VERSION
 
     def __post_init__(self) -> None:
@@ -53,6 +58,10 @@ class ConversationEvent:
             raise ValueError("conversation turn_id is invalid")
         if len(self.text) > MAX_EVENT_TEXT_CHARS:
             raise ValueError("conversation event text is too long")
+        if self.tool_name is not None and (
+            not self.tool_name.startswith("ariad.") or len(self.tool_name) > 96
+        ):
+            raise ValueError("conversation tool name is invalid")
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -61,6 +70,7 @@ class ConversationEvent:
             "event_type": self.event_type.value,
             "turn_id": self.turn_id,
             "text": self.text,
+            "tool_name": self.tool_name,
         }
 
 
@@ -76,6 +86,16 @@ def curate_codex_notification(message: Mapping[str, Any]) -> tuple[str, str, str
         delta = params.get("delta")
         if isinstance(turn_id, str) and isinstance(delta, str):
             return ConversationEventType.ASSISTANT_TEXT_DELTA.value, turn_id, delta
+        return None
+    if method == "item/completed":
+        item = params.get("item")
+        if (
+            isinstance(turn_id, str)
+            and isinstance(item, Mapping)
+            and item.get("type") == "agentMessage"
+            and item.get("phase") == "final_answer"
+        ):
+            return ConversationEventType.TURN_COMPLETED.value, turn_id, ""
         return None
     if method != "turn/completed":
         return None
@@ -93,7 +113,15 @@ def curate_codex_notification(message: Mapping[str, Any]) -> tuple[str, str, str
 class LocalCodexConversation:
     """Own one ephemeral Codex thread with at most one active turn."""
 
-    def __init__(self, executable: Path, workspace: Path, *, timeout_seconds: float = 30.0):
+    def __init__(
+        self,
+        executable: Path,
+        workspace: Path,
+        *,
+        tool_specs: tuple[Mapping[str, Any], ...] = (),
+        tool_executor: ToolExecutor | None = None,
+        timeout_seconds: float = 30.0,
+    ):
         self.executable = executable.expanduser().resolve()
         self.workspace = workspace.expanduser().resolve()
         if not self.executable.is_file() or self.executable.suffix.lower() != ".exe":
@@ -105,6 +133,10 @@ class LocalCodexConversation:
         if not 1.0 <= timeout_seconds <= 60.0:
             raise ValueError("conversation request timeout must be between 1 and 60 seconds")
         self.timeout_seconds = timeout_seconds
+        if bool(tool_specs) != (tool_executor is not None):
+            raise ValueError("tool specs and executor must be configured together")
+        self._tool_specs = tuple(dict(item) for item in tool_specs)
+        self._tool_executor = tool_executor
         self._write_lock = Lock()
         self._state_lock = Lock()
         self._responses: dict[int, Queue[object]] = {}
@@ -162,6 +194,9 @@ class LocalCodexConversation:
                 if not isinstance(message, Mapping):
                     continue
                 request_id = message.get("id")
+                if isinstance(request_id, int) and message.get("method") == "item/tool/call":
+                    self._handle_tool_call(request_id, message.get("params"))
+                    continue
                 if isinstance(request_id, int):
                     with self._state_lock:
                         waiter = self._responses.get(request_id)
@@ -180,15 +215,65 @@ class LocalCodexConversation:
         for waiter in waiters:
             waiter.put(error)
 
-    def _append_event(self, event_type: str, turn_id: str, text: str) -> None:
+    def _handle_tool_call(self, request_id: int, params: object) -> None:
+        if not isinstance(params, Mapping):
+            self._respond_tool(request_id, False, "Ariad refused malformed tool parameters.")
+            return
+        tool = params.get("tool")
+        namespace = params.get("namespace")
+        turn_id = params.get("turnId")
+        arguments = params.get("arguments")
+        if (
+            not isinstance(tool, str)
+            or not isinstance(turn_id, str)
+            or not isinstance(arguments, Mapping)
+            or self._tool_executor is None
+            or namespace != "ariad"
+        ):
+            self._respond_tool(request_id, False, "Ariad refused an unavailable tool call.")
+            return
+        qualified_tool = f"ariad.{tool}"
+        self._append_event(ConversationEventType.TOOL_STARTED.value, turn_id, "", qualified_tool)
+        try:
+            output = self._tool_executor(qualified_tool, arguments)
+        except Exception:  # tool boundary never returns internal exception details
+            self._append_event(ConversationEventType.TOOL_FAILED.value, turn_id, "", qualified_tool)
+            self._respond_tool(request_id, False, "Ariad tool execution failed safely.")
+            return
+        self._append_event(ConversationEventType.TOOL_COMPLETED.value, turn_id, "", qualified_tool)
+        self._respond_tool(request_id, True, output)
+
+    def _respond_tool(self, request_id: int, success: bool, text: str) -> None:
+        message = {
+            "id": request_id,
+            "result": {
+                "success": success,
+                "contentItems": [{"type": "inputText", "text": text}],
+            },
+        }
+        with self._write_lock:
+            self._stdin.write(json.dumps(message, separators=(",", ":")) + "\n")
+            self._stdin.flush()
+
+    def _append_event(
+        self, event_type: str, turn_id: str, text: str, tool_name: str | None = None
+    ) -> None:
         if len(text) > MAX_EVENT_TEXT_CHARS:
             text = text[:MAX_EVENT_TEXT_CHARS]
         with self._state_lock:
+            terminal = event_type in {
+                ConversationEventType.TURN_COMPLETED.value,
+                ConversationEventType.TURN_FAILED.value,
+                ConversationEventType.TURN_CANCELLED.value,
+            }
+            if terminal and self._active_turn_id != turn_id:
+                return
             event = ConversationEvent(
                 sequence=self._next_sequence,
                 event_type=ConversationEventType(event_type),
                 turn_id=turn_id,
                 text=text,
+                tool_name=tool_name,
             )
             self._events.append(event)
             self._next_sequence += 1
@@ -242,7 +327,8 @@ class LocalCodexConversation:
                     "name": "ariad_fabrication",
                     "title": "Ariad Fabrication",
                     "version": CONVERSATION_CONTRACT_VERSION,
-                }
+                },
+                "capabilities": {"experimentalApi": bool(self._tool_specs)},
             },
         )
         self._notify("initialized")
@@ -253,10 +339,12 @@ class LocalCodexConversation:
                 "sandbox": "read-only",
                 "approvalPolicy": "never",
                 "ephemeral": True,
+                "dynamicTools": list(self._tool_specs),
                 "baseInstructions": (
                     "You are the conversational fabrication agent inside Ariad. "
-                    "This thread has no Ariad fabrication tools yet. Reply directly and do not "
-                    "use shell commands, files, web search, MCP, skills, or external context. "
+                    "Use only the registered Ariad read-only tools when they provide relevant "
+                    "intake or evidence. Do not use shell commands, files, web search, MCP, "
+                    "skills, or external context. "
                     "Never claim CAD generation, validation, slicing, printing, or physical proof."
                 ),
             },

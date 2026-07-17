@@ -24,6 +24,30 @@ class CodexConversationContractTests(unittest.TestCase):
         self.assertEqual(delta, ("assistant_text_delta", "turn_1", "Hello"))
         self.assertEqual(completed, ("turn_completed", "turn_1", ""))
 
+        final_message = curate_codex_notification(
+            {
+                "method": "item/completed",
+                "params": {
+                    "turnId": "turn_1",
+                    "item": {"type": "agentMessage", "phase": "final_answer", "text": "Done"},
+                },
+            }
+        )
+        self.assertEqual(final_message, ("turn_completed", "turn_1", ""))
+
+    def test_interim_agent_message_does_not_complete_the_turn(self):
+        self.assertIsNone(
+            curate_codex_notification(
+                {
+                    "method": "item/completed",
+                    "params": {
+                        "turnId": "turn_1",
+                        "item": {"type": "agentMessage", "phase": "commentary", "text": "Working"},
+                    },
+                }
+            )
+        )
+
     def test_reasoning_commands_files_and_raw_errors_are_not_exposed(self):
         for method in (
             "item/reasoning/delta",
@@ -62,10 +86,26 @@ class CodexConversationContractTests(unittest.TestCase):
         event = ConversationEvent(1, ConversationEventType.TURN_STARTED, "turn_1")
         self.assertEqual(
             set(event.to_dict()),
-            {"contract_version", "sequence", "event_type", "turn_id", "text"},
+            {"contract_version", "sequence", "event_type", "turn_id", "text", "tool_name"},
         )
         with self.assertRaises(ValueError):
             ConversationEvent(0, ConversationEventType.TURN_STARTED, "turn_1")
+
+    def test_tool_activity_is_namespaced_and_contains_no_arguments_or_results(self):
+        event = ConversationEvent(
+            1,
+            ConversationEventType.TOOL_COMPLETED,
+            "turn_1",
+            tool_name="ariad.read_evidence",
+        )
+        self.assertEqual(event.to_dict()["tool_name"], "ariad.read_evidence")
+        with self.assertRaises(ValueError):
+            ConversationEvent(
+                2,
+                ConversationEventType.TOOL_STARTED,
+                "turn_1",
+                tool_name="shell",
+            )
 
 
 if __name__ == "__main__":

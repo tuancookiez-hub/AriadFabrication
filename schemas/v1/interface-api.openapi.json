@@ -185,7 +185,7 @@
             "type": "boolean"
           },
           "schema_version": {
-            "const": "1.11.0",
+            "const": "1.12.0",
             "title": "Schema Version",
             "type": "string"
           },
@@ -609,7 +609,7 @@
             "type": "boolean"
           },
           "schema_version": {
-            "const": "1.11.0",
+            "const": "1.12.0",
             "title": "Schema Version",
             "type": "string"
           }
@@ -628,7 +628,10 @@
           "assistant_text_delta",
           "turn_completed",
           "turn_failed",
-          "turn_cancelled"
+          "turn_cancelled",
+          "tool_started",
+          "tool_completed",
+          "tool_failed"
         ],
         "title": "ConversationEventType",
         "type": "string"
@@ -637,7 +640,7 @@
         "additionalProperties": false,
         "properties": {
           "contract_version": {
-            "const": "1.0.0",
+            "const": "1.1.0",
             "title": "Contract Version",
             "type": "string"
           },
@@ -652,6 +655,17 @@
             "title": "Text",
             "type": "string"
           },
+          "tool_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tool Name"
+          },
           "turn_id": {
             "title": "Turn Id",
             "type": "string"
@@ -662,7 +676,8 @@
           "sequence",
           "event_type",
           "turn_id",
-          "text"
+          "text",
+          "tool_name"
         ],
         "title": "ConversationEventView",
         "type": "object"
@@ -698,12 +713,12 @@
             "type": "integer"
           },
           "schema_version": {
-            "const": "1.11.0",
+            "const": "1.12.0",
             "title": "Schema Version",
             "type": "string"
           },
           "tools_registered": {
-            "const": 0,
+            "const": 3,
             "title": "Tools Registered",
             "type": "integer"
           },
@@ -755,12 +770,12 @@
             "type": "boolean"
           },
           "schema_version": {
-            "const": "1.11.0",
+            "const": "1.12.0",
             "title": "Schema Version",
             "type": "string"
           },
           "tools_registered": {
-            "const": 0,
+            "const": 3,
             "title": "Tools Registered",
             "type": "integer"
           },
@@ -1245,7 +1260,7 @@
             "$ref": "#/components/schemas/CapabilitiesView"
           },
           "schema_version": {
-            "const": "1.11.0",
+            "const": "1.12.0",
             "title": "Schema Version",
             "type": "string"
           },
@@ -1887,7 +1902,7 @@
             "$ref": "#/components/schemas/CapabilityRouteView"
           },
           "schema_version": {
-            "const": "1.11.0",
+            "const": "1.12.0",
             "title": "Schema Version",
             "type": "string"
           }
@@ -2069,7 +2084,7 @@
             "type": "string"
           },
           "schema_version": {
-            "const": "1.11.0",
+            "const": "1.12.0",
             "title": "Schema Version",
             "type": "string"
           },
@@ -2237,7 +2252,7 @@
             "type": "integer"
           },
           "schema_version": {
-            "const": "1.11.0",
+            "const": "1.12.0",
             "title": "Schema Version",
             "type": "string"
           },
@@ -2304,7 +2319,7 @@
             "$ref": "#/components/schemas/RevisionView"
           },
           "schema_version": {
-            "const": "1.11.0",
+            "const": "1.12.0",
             "title": "Schema Version",
             "type": "string"
           },
@@ -2347,7 +2362,7 @@
             "type": "array"
           },
           "schema_version": {
-            "const": "1.11.0",
+            "const": "1.12.0",
             "title": "Schema Version",
             "type": "string"
           },
@@ -2938,7 +2953,7 @@
     "description": "This API replays persisted records and can classify a bounded idea without persisting or executing it. It cannot upload G-code, select a printer, heat hardware, move hardware, or start manufacturing.",
     "summary": "Persisted evidence replay and stateless idea intake.",
     "title": "Ariad Fabrication Journey API",
-    "version": "1.11.0"
+    "version": "1.12.0"
   },
   "openapi": "3.1.0",
   "paths": {

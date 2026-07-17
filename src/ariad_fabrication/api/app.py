@@ -14,6 +14,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Query, Response
 from ..codex_conversation import LocalCodexConversation
 from ..intake import CapabilityLane, CurrentCapabilityRouter, IntentProposal, PromptIntake
 from ..local_codex import LocalCodexSnapshot, LocalCodexStatus, probe_local_codex
+from .agent_tool_runtime import ReadOnlyAgentToolRuntime
 
 from .models import (
     BrowserSessionResponse,
@@ -117,6 +118,7 @@ def create_app(
         openapi_url=None,
     )
     app.state.repository = repository
+    app.state.agent_tool_runtime = ReadOnlyAgentToolRuntime(repository)
     app.state.codex_executable = codex_executable
     app.state.codex_snapshot = None
     app.state.codex_probe_lock = Lock()
@@ -167,7 +169,13 @@ def create_app(
                 conversation = app.state.codex_conversation
                 if conversation is None:
                     try:
-                        conversation = LocalCodexConversation(executable, workspace)
+                        runtime: ReadOnlyAgentToolRuntime = app.state.agent_tool_runtime
+                        conversation = LocalCodexConversation(
+                            executable,
+                            workspace,
+                            tool_specs=runtime.tool_specs,
+                            tool_executor=runtime.execute,
+                        )
                     except (OSError, RuntimeError, ValueError) as exc:
                         raise HTTPException(
                             status_code=503,
@@ -229,7 +237,7 @@ def create_app(
             schema_version=INTERFACE_API_VERSION,
             turn_id=turn_id,
             accepted=True,
-            tools_registered=0,
+            tools_registered=3,
             workspace_mutation_enabled=False,
             hardware_actions=False,
         )
@@ -247,7 +255,7 @@ def create_app(
             events=[event.to_dict() for event in events],
             active_turn_id=conversation.active_turn_id,
             next_sequence=next_sequence,
-            tools_registered=0,
+            tools_registered=3,
             workspace_mutation_enabled=False,
             hardware_actions=False,
         )

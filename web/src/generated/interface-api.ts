@@ -272,7 +272,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.11.0";
+            schema_version: "1.12.0";
             /** Session Token */
             session_token: string;
         };
@@ -432,7 +432,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.11.0";
+            schema_version: "1.12.0";
         };
         /** ConversationEventsResponse */
         ConversationEventsResponse: {
@@ -451,12 +451,12 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.11.0";
+            schema_version: "1.12.0";
             /**
              * Tools Registered
              * @constant
              */
-            tools_registered: 0;
+            tools_registered: 3;
             /**
              * Workspace Mutation Enabled
              * @constant
@@ -467,19 +467,21 @@ export interface components {
          * ConversationEventType
          * @enum {string}
          */
-        ConversationEventType: "turn_started" | "assistant_text_delta" | "turn_completed" | "turn_failed" | "turn_cancelled";
+        ConversationEventType: "turn_started" | "assistant_text_delta" | "turn_completed" | "turn_failed" | "turn_cancelled" | "tool_started" | "tool_completed" | "tool_failed";
         /** ConversationEventView */
         ConversationEventView: {
             /**
              * Contract Version
              * @constant
              */
-            contract_version: "1.0.0";
+            contract_version: "1.1.0";
             event_type: components["schemas"]["ConversationEventType"];
             /** Sequence */
             sequence: number;
             /** Text */
             text: string;
+            /** Tool Name */
+            tool_name: string | null;
             /** Turn Id */
             turn_id: string;
         };
@@ -504,12 +506,12 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.11.0";
+            schema_version: "1.12.0";
             /**
              * Tools Registered
              * @constant
              */
-            tools_registered: 0;
+            tools_registered: 3;
             /** Turn Id */
             turn_id: string;
             /**
@@ -681,7 +683,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.11.0";
+            schema_version: "1.12.0";
             /**
              * Service
              * @constant
@@ -914,7 +916,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.11.0";
+            schema_version: "1.12.0";
         };
         /** IntentProviderView */
         IntentProviderView: {
@@ -1004,7 +1006,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.11.0";
+            schema_version: "1.12.0";
             status: components["schemas"]["LocalCodexStatus"];
             /**
              * Tools Registered
@@ -1072,7 +1074,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.11.0";
+            schema_version: "1.12.0";
             /** Summaries */
             summaries: components["schemas"]["ComparisonAreaSummaryView"][];
             /** Total Change Count */
@@ -1091,7 +1093,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.11.0";
+            schema_version: "1.12.0";
             source: components["schemas"]["SourceView"];
             /** Stages */
             stages: components["schemas"]["StageView"][];
@@ -1105,7 +1107,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.11.0";
+            schema_version: "1.12.0";
             window: components["schemas"]["RevisionListWindowView"];
         };
         /** RevisionListWindowView */

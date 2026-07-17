@@ -1972,6 +1972,12 @@ main {
 .chat-message { max-width: 82%; margin-bottom: 1rem; padding: .85rem 1rem; border-radius: 12px; background: #f2ece4; }
 .chat-message-user { margin-left: auto; background: #211d1d; color: #fff; }
 .chat-message p { margin: .3rem 0 0; white-space: pre-wrap; line-height: 1.55; }
+.tool-activity { display: flex; align-items: center; gap: .75rem; max-width: 520px; margin: .65rem 0; padding: .7rem .85rem; border: 1px solid #d8d0c5; border-radius: 10px; background: #faf6ef; }
+.tool-activity > span { display: grid; place-items: center; width: 1.6rem; height: 1.6rem; border-radius: 50%; background: #e8dfd3; color: #6a6158; font-weight: 800; }
+.tool-activity div, .tool-activity small { display: block; }
+.tool-activity small { margin-top: .12rem; color: #716961; text-transform: capitalize; }
+.tool-activity-completed > span { background: #dcecdf; color: #23643a; }
+.tool-activity-failed > span { background: #f6dddd; color: #8f1f1f; }
 .chat-error { margin: 0 1.25rem 1rem; padding: .75rem 1rem; border: 1px solid #e2a6a6; border-radius: 8px; background: #fff0f0; color: #8f1f1f; }
 .chat-composer { padding: 1.25rem; border-top: 1px solid #e6dfd6; }
 .chat-composer label { display: block; margin-bottom: .5rem; font-weight: 750; }
