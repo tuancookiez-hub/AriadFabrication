@@ -1,13 +1,18 @@
 import unittest
+import json
 
 from ariad_fabrication.intake import (
     CapabilityLane,
     CurrentCapabilityRouter,
     EvidenceMode,
     IntentProposal,
+    INTENT_PROPOSAL_JSON_SCHEMA,
+    MAX_INTENT_PROPOSAL_BYTES,
     MAX_PROMPT_BYTES,
     PromptIntake,
     RouteStatus,
+    decode_intent_proposal,
+    openai_intent_text_format,
 )
 
 
@@ -105,6 +110,57 @@ class CapabilityRouterTests(unittest.TestCase):
                 summary="Idea",
                 questions=tuple(f"Question {index}" for index in range(13)),
             )
+
+
+class StrictIntentProposalTests(unittest.TestCase):
+    def value(self):
+        return {
+            "lane": "functional_parametric_cad",
+            "summary": "A fitted enclosure",
+            "questions": ["What board dimensions must it fit?"],
+            "assumptions": [],
+            "benchmark_id": None,
+            "part_spec": None,
+        }
+
+    def test_schema_is_closed_and_decoder_returns_only_a_model_proposal(self):
+        self.assertFalse(INTENT_PROPOSAL_JSON_SCHEMA["additionalProperties"])
+        self.assertEqual(
+            set(INTENT_PROPOSAL_JSON_SCHEMA["required"]),
+            set(INTENT_PROPOSAL_JSON_SCHEMA["properties"]),
+        )
+        proposal = decode_intent_proposal(json.dumps(self.value()))
+        self.assertEqual(proposal.lane, CapabilityLane.FUNCTIONAL_PARAMETRIC_CAD)
+        self.assertEqual(proposal.evidence_mode, EvidenceMode.MODEL_PROPOSAL)
+        self.assertIsNone(proposal.part_spec)
+        text_format = openai_intent_text_format()
+        self.assertEqual(text_format["type"], "json_schema")
+        self.assertTrue(text_format["strict"])
+        self.assertEqual(text_format["schema"], dict(INTENT_PROPOSAL_JSON_SCHEMA))
+        text_format["schema"]["additionalProperties"] = True
+        self.assertFalse(INTENT_PROPOSAL_JSON_SCHEMA["additionalProperties"])
+
+    def test_unknown_duplicate_nonfinite_and_model_authored_spec_fail_closed(self):
+        extra = self.value() | {"execute": True}
+        with self.assertRaisesRegex(ValueError, "fields do not match schema"):
+            decode_intent_proposal(json.dumps(extra))
+        with self.assertRaisesRegex(ValueError, "duplicate key"):
+            decode_intent_proposal(
+                '{"lane":"planning_only","lane":"unsupported","summary":"x",'
+                '"questions":[],"assumptions":[],"benchmark_id":null,"part_spec":null}'
+            )
+        nonfinite = json.dumps(self.value()).replace('"part_spec": null', '"part_spec": NaN')
+        with self.assertRaisesRegex(ValueError, "non-finite"):
+            decode_intent_proposal(nonfinite)
+        authored = self.value() | {"part_spec": {"name": "invented"}}
+        with self.assertRaisesRegex(ValueError, "not accepted"):
+            decode_intent_proposal(json.dumps(authored))
+
+    def test_size_and_utf8_bounds_apply_before_semantic_parsing(self):
+        with self.assertRaisesRegex(ValueError, "UTF-8 bytes"):
+            decode_intent_proposal(b" " * (MAX_INTENT_PROPOSAL_BYTES + 1))
+        with self.assertRaisesRegex(ValueError, "valid UTF-8 JSON"):
+            decode_intent_proposal(b"\xff")
 
 
 if __name__ == "__main__":

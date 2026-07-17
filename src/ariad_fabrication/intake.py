@@ -8,8 +8,10 @@ can honestly do today.  It never launches CAD, slicing, network, or hardware.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from copy import deepcopy
 from enum import Enum
 from hashlib import sha256
+import json
 from types import MappingProxyType
 from typing import Any, Mapping, Sequence
 from uuid import uuid4
@@ -25,6 +27,7 @@ MAX_QUESTIONS = 12
 MAX_QUESTION_CHARS = 256
 MAX_ASSUMPTIONS = 12
 MAX_ASSUMPTION_CHARS = 256
+MAX_INTENT_PROPOSAL_BYTES = 16 * 1024
 
 
 class CapabilityLane(str, Enum):
@@ -46,6 +49,40 @@ class EvidenceMode(str, Enum):
     REAL = "real"
     MODEL_PROPOSAL = "model_proposal"
     UNAVAILABLE = "unavailable"
+
+
+INTENT_PROPOSAL_JSON_SCHEMA: Mapping[str, Any] = MappingProxyType(
+    {
+        "type": "object",
+        "additionalProperties": False,
+        "required": [
+            "lane",
+            "summary",
+            "questions",
+            "assumptions",
+            "benchmark_id",
+            "part_spec",
+        ],
+        "properties": {
+            "lane": {"type": "string", "enum": [item.value for item in CapabilityLane]},
+            "summary": {"type": "string", "minLength": 1, "maxLength": MAX_SUMMARY_CHARS},
+            "questions": {
+                "type": "array",
+                "maxItems": MAX_QUESTIONS,
+                "items": {"type": "string", "minLength": 1, "maxLength": MAX_QUESTION_CHARS},
+            },
+            "assumptions": {
+                "type": "array",
+                "maxItems": MAX_ASSUMPTIONS,
+                "items": {"type": "string", "minLength": 1, "maxLength": MAX_ASSUMPTION_CHARS},
+            },
+            "benchmark_id": {"type": ["string", "null"], "maxLength": 128},
+            # Classification and clarification only. A separately versioned PartSpec
+            # schema is required before model-authored specifications can cross here.
+            "part_spec": {"type": "null"},
+        },
+    }
+)
 
 
 def _text(value: Any, name: str, *, maximum: int) -> str:
@@ -74,6 +111,78 @@ def _text_items(
     if len(set(result)) != len(result):
         raise ValueError(f"{name} cannot contain duplicates")
     return result
+
+
+def _unique_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"intent proposal contains duplicate key {key!r}")
+        result[key] = value
+    return result
+
+
+def decode_intent_proposal(raw: str | bytes) -> "IntentProposal":
+    """Decode one bounded strict Structured Output into an untrusted proposal.
+
+    This function performs no network call and grants no execution capability.
+    It is the local acceptance boundary for a future GPT-5.6 Responses provider.
+    """
+
+    if isinstance(raw, str):
+        encoded = raw.encode("utf-8")
+    elif isinstance(raw, bytes):
+        encoded = raw
+    else:
+        raise ValueError("intent proposal must be UTF-8 JSON text")
+    if len(encoded) > MAX_INTENT_PROPOSAL_BYTES:
+        raise ValueError(
+            f"intent proposal cannot exceed {MAX_INTENT_PROPOSAL_BYTES} UTF-8 bytes"
+        )
+    try:
+        text = encoded.decode("utf-8")
+        value = json.loads(
+            text,
+            object_pairs_hook=_unique_object,
+            parse_constant=lambda item: (_ for _ in ()).throw(
+                ValueError(f"intent proposal contains non-finite value {item}")
+            ),
+        )
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError("intent proposal must be valid UTF-8 JSON") from exc
+    if not isinstance(value, dict):
+        raise ValueError("intent proposal must be an object")
+    required = set(INTENT_PROPOSAL_JSON_SCHEMA["required"])
+    if set(value) != required:
+        missing = sorted(required - set(value))
+        extra = sorted(set(value) - required)
+        raise ValueError(f"intent proposal fields do not match schema; missing={missing}, extra={extra}")
+    if value["part_spec"] is not None:
+        raise ValueError("model-authored part_spec is not accepted by this provider boundary")
+    if value["benchmark_id"] is not None and not isinstance(value["benchmark_id"], str):
+        raise ValueError("benchmark_id must be a string or null")
+    try:
+        return IntentProposal(
+            lane=CapabilityLane(value["lane"]),
+            summary=value["summary"],
+            questions=value["questions"],
+            assumptions=value["assumptions"],
+            benchmark_id=value["benchmark_id"],
+            part_spec=None,
+        )
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"intent proposal violates the strict contract: {exc}") from exc
+
+
+def openai_intent_text_format() -> dict[str, Any]:
+    """Return a fresh Responses API ``text.format`` strict-schema value."""
+
+    return {
+        "type": "json_schema",
+        "name": "ariad_intent_proposal_v1",
+        "strict": True,
+        "schema": deepcopy(dict(INTENT_PROPOSAL_JSON_SCHEMA)),
+    }
 
 
 @dataclass(frozen=True)
@@ -328,8 +437,12 @@ __all__ = [
     "CurrentCapabilityRouter",
     "EvidenceMode",
     "INTAKE_SCHEMA_VERSION",
+    "INTENT_PROPOSAL_JSON_SCHEMA",
     "IntentProposal",
+    "MAX_INTENT_PROPOSAL_BYTES",
     "MAX_PROMPT_BYTES",
     "PromptIntake",
     "RouteStatus",
+    "decode_intent_proposal",
+    "openai_intent_text_format",
 ]
