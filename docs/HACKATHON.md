@@ -53,6 +53,10 @@ pnpm --dir web install --frozen-lockfile
 # One-command fixture demo (hardware remains disabled)
 .\scripts\start_demo.ps1
 
+# Optional: show sanitized local Codex authentication status. Pass the native
+# codex.exe from the installed Codex package, never auth.json or a token.
+.\scripts\start_demo.ps1 -CodexBin "C:\path\to\codex.exe"
+
 # Terminal 1: read-only local API over existing evidence
 .\.venv\Scripts\ariad-interface-api.exe --runs-root runs
 

@@ -6,7 +6,8 @@ param(
     [ValidateRange(1, 65535)]
     [int]$ApiPort = 8000,
     [ValidateRange(1, 65535)]
-    [int]$WebPort = 5173
+    [int]$WebPort = 5173,
+    [System.IO.FileInfo]$CodexBin
 )
 
 $ErrorActionPreference = "Stop"
@@ -34,6 +35,12 @@ $apiArguments = @(
     "--host", $HostAddress,
     "--port", [string]$ApiPort
 )
+if ($null -ne $CodexBin) {
+    if (-not $CodexBin.Exists -or $CodexBin.Extension -ne ".exe") {
+        throw "CodexBin must be an existing native codex.exe path."
+    }
+    $apiArguments += @("--codex-bin", $CodexBin.FullName)
+}
 $apiProcess = Start-Process -FilePath $api -ArgumentList $apiArguments -WorkingDirectory $root -PassThru -WindowStyle Hidden
 
 try {
@@ -58,6 +65,7 @@ try {
     Write-Host "Ariad demo: http://${HostAddress}:${WebPort}"
     Write-Host "Evidence root: $runsRoot"
     Write-Host "Hardware actions: disabled"
+    Write-Host "Codex probe: $(if ($null -eq $CodexBin) { 'not configured' } else { 'configured' })"
     & pnpm --dir $web dev --host $HostAddress --port $WebPort
 } finally {
     if (-not $apiProcess.HasExited) {

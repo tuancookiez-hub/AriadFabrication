@@ -1,4 +1,10 @@
-import type { IntakeResponse, RevisionComparison, RevisionDetail, RevisionListResponse } from './types'
+import type {
+  IntakeResponse,
+  LocalCodexStatus,
+  RevisionComparison,
+  RevisionDetail,
+  RevisionListResponse,
+} from './types'
 
 const apiRoot = (import.meta.env.VITE_ARIAD_API_ROOT ?? '').replace(/\/$/, '')
 
@@ -42,6 +48,10 @@ export function captureIdea(prompt: string, signal?: AbortSignal): Promise<Intak
     method: 'POST',
     body: JSON.stringify({ prompt }),
   })
+}
+
+export function getLocalCodexStatus(signal?: AbortSignal): Promise<LocalCodexStatus> {
+  return requestJson('/api/v1/codex/status', signal)
 }
 
 export function listRevisions(

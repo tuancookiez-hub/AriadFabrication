@@ -11,7 +11,7 @@ import {
 } from 'react-router-dom'
 
 import logoUrl from '../../assets/ariad-fabrication-official-logo.jpg'
-import { getRevision, getRevisionComparison, listRevisions } from './api'
+import { getLocalCodexStatus, getRevision, getRevisionComparison, listRevisions } from './api'
 import { ArtifactInspector } from './ArtifactInspector'
 import { ComparisonView } from './ComparisonView'
 import { NewIdeaPage } from './NewIdeaPage'
@@ -23,6 +23,7 @@ import type {
   RevisionListWindow,
   RevisionSummary,
   Stage,
+  LocalCodexStatus,
 } from './types'
 
 const REVISION_LIST_LIMIT = 100
@@ -78,9 +79,17 @@ function AppShell({
   children: React.ReactNode
   pageTitle: string
 }) {
+  const [codex, setCodex] = useState<LocalCodexStatus | null>(null)
+
   useEffect(() => {
     document.title = pageDocumentTitle(pageTitle)
   }, [pageTitle])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    getLocalCodexStatus(controller.signal).then(setCodex).catch(() => setCodex(null))
+    return () => controller.abort()
+  }, [])
 
   return (
     <div className="app-shell">
@@ -103,14 +112,21 @@ function AppShell({
         </nav>
         <div className="sidebar-status">
           <span className="status-avatar" aria-hidden="true">A</span>
-          <span><strong>Codex</strong><small><i /> Local connection not configured</small></span>
+          <span>
+            <strong>Codex</strong>
+            <small>
+              <i /> {codex?.status === 'ready' ? 'Local agent ready' : 'Local connection unavailable'}
+            </small>
+          </span>
         </div>
       </aside>
       <div className="workspace-shell">
         <header className="topbar">
           <div className="project-context"><small>Project</small><strong>Fabrication Journey</strong></div>
           <div className="topbar-actions">
-            <div className="system-pill"><i /> Evidence system nominal</div>
+            <div className={`system-pill codex-${codex?.status ?? 'checking'}`}>
+              <i /> {codex?.status === 'ready' ? 'Codex authenticated locally' : 'Codex disconnected'}
+            </div>
             <Link className="new-project-button" to="/new">+ New idea</Link>
         <div className="boundary-pill">
           Read-only · hardware disconnected

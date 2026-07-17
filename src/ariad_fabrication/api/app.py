@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+from threading import Lock
 from urllib.parse import quote
 
 from fastapi import FastAPI, HTTPException, Query, Response
 
 from ..intake import CapabilityLane, CurrentCapabilityRouter, IntentProposal, PromptIntake
+from ..local_codex import LocalCodexSnapshot, LocalCodexStatus, probe_local_codex
 
 from .models import (
     ErrorResponse,
@@ -16,6 +18,7 @@ from .models import (
     HealthResponse,
     IntakeRequest,
     IntakeResponse,
+    LocalCodexStatusResponse,
     RevisionComparisonResponse,
     RevisionDetailResponse,
     RevisionListResponse,
@@ -85,7 +88,11 @@ _ARTIFACT_RESPONSES = {
 }
 
 
-def create_app(runs_root: Path | str = Path("runs")) -> FastAPI:
+def create_app(
+    runs_root: Path | str = Path("runs"),
+    *,
+    codex_executable: Path | None = None,
+) -> FastAPI:
     repository = JourneyRepository(runs_root)
     app = FastAPI(
         title="Ariad Fabrication Journey API",
@@ -101,6 +108,9 @@ def create_app(runs_root: Path | str = Path("runs")) -> FastAPI:
         openapi_url=None,
     )
     app.state.repository = repository
+    app.state.codex_executable = codex_executable
+    app.state.codex_snapshot = None
+    app.state.codex_probe_lock = Lock()
 
     @app.get("/api/v1/health", response_model=HealthResponse)
     def health() -> HealthResponse:
@@ -109,6 +119,30 @@ def create_app(runs_root: Path | str = Path("runs")) -> FastAPI:
             service="ariad-interface-api",
             status="ok",
             capabilities=read_only_capabilities(),
+        )
+
+    @app.get("/api/v1/codex/status", response_model=LocalCodexStatusResponse)
+    def codex_status() -> LocalCodexStatusResponse:
+        snapshot: LocalCodexSnapshot | None = app.state.codex_snapshot
+        if snapshot is None:
+            with app.state.codex_probe_lock:
+                snapshot = app.state.codex_snapshot
+                if snapshot is None:
+                    configured: Path | None = app.state.codex_executable
+                    snapshot = (
+                        probe_local_codex(configured)
+                        if configured is not None
+                        else LocalCodexSnapshot(
+                            status=LocalCodexStatus.UNAVAILABLE,
+                            cli_version=None,
+                            authentication=None,
+                            reason="No trusted local Codex executable is configured.",
+                        )
+                    )
+                    app.state.codex_snapshot = snapshot
+        return LocalCodexStatusResponse(
+            schema_version=INTERFACE_API_VERSION,
+            **snapshot.to_dict(),
         )
 
     @app.post(
@@ -241,12 +275,22 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--runs-root", type=Path, default=Path("runs"))
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8000)
+    parser.add_argument(
+        "--codex-bin",
+        type=Path,
+        default=None,
+        help="Explicit native codex.exe used only for the bounded local account probe.",
+    )
     args = parser.parse_args(argv)
     if args.host not in {"127.0.0.1", "localhost", "::1"}:
         parser.error("the M4 API is local-only and may bind only to a loopback host")
     import uvicorn
 
-    uvicorn.run(create_app(args.runs_root), host=args.host, port=args.port)
+    uvicorn.run(
+        create_app(args.runs_root, codex_executable=args.codex_bin),
+        host=args.host,
+        port=args.port,
+    )
 
 
 if __name__ == "__main__":

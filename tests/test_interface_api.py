@@ -77,7 +77,7 @@ class JourneyRepositoryTests(unittest.TestCase):
         self.assertEqual(len(detail.stages[3].findings), 2)
         self.assertTrue(all(stage.evidence_mode == "fixture" for stage in detail.stages))
         self.assertFalse(detail.capabilities.hardware_actions)
-        self.assertEqual(detail.schema_version, "1.8.0")
+        self.assertEqual(detail.schema_version, "1.9.0")
         self.assertEqual(
             [report.report_kind for report in detail.inspection.reports],
             ["geometry", "printability", "gcode_preflight"],
@@ -1048,6 +1048,20 @@ class InterfaceHttpTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(response.json()["capabilities"]["hardware_actions"])
 
+    def test_codex_status_is_sanitized_and_does_not_start_work(self):
+        response = self.client.get("/api/v1/codex/status")
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["schema_version"], "1.9.0")
+        self.assertEqual(payload["status"], "unavailable")
+        self.assertIsNone(payload["authentication"])
+        self.assertEqual(payload["tools_registered"], 0)
+        self.assertFalse(payload["conversation_started"])
+        self.assertFalse(payload["workspace_mutated"])
+        self.assertFalse(payload["hardware_actions"])
+        self.assertNotIn("email", str(payload).lower())
+        self.assertNotIn("access_token", str(payload).lower())
+
     def test_stateless_intake_accepts_an_idea_without_model_or_execution(self):
         response = self.client.post(
             "/api/v1/intake",
@@ -1055,7 +1069,7 @@ class InterfaceHttpTests(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 200)
         payload = response.json()
-        self.assertEqual(payload["schema_version"], "1.8.0")
+        self.assertEqual(payload["schema_version"], "1.9.0")
         self.assertEqual(payload["intake"]["prompt"], "Create a decorative floating air warship ✨")
         self.assertEqual(len(payload["intake"]["prompt_sha256"]), 64)
         self.assertFalse(payload["provider"]["configured"])
@@ -1106,7 +1120,7 @@ class InterfaceHttpTests(unittest.TestCase):
         detail = self.client.get(f"/api/v1/revisions/{JOB_ID}/{REVISION_ID}")
         self.assertEqual(detail.status_code, 200)
         payload = detail.json()
-        self.assertEqual(payload["schema_version"], "1.8.0")
+        self.assertEqual(payload["schema_version"], "1.9.0")
         self.assertEqual(
             [stage["stage"] for stage in payload["stages"]],
             [item[0] for item in STAGES],

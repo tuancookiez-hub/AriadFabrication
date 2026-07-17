@@ -4,6 +4,23 @@
  */
 
 export interface paths {
+    "/api/v1/codex/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Codex Status */
+        get: operations["codex_status_api_v1_codex_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -477,7 +494,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.8.0";
+            schema_version: "1.9.0";
             /**
              * Service
              * @constant
@@ -710,7 +727,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.8.0";
+            schema_version: "1.9.0";
         };
         /** IntentProviderView */
         IntentProviderView: {
@@ -767,6 +784,51 @@ export interface components {
             updated_at: string;
         };
         /**
+         * LocalCodexStatus
+         * @enum {string}
+         */
+        LocalCodexStatus: "ready" | "unauthenticated" | "unavailable" | "error";
+        /** LocalCodexStatusResponse */
+        LocalCodexStatusResponse: {
+            /** Authentication */
+            authentication: ("chatgpt" | "api_key" | "other") | null;
+            /** Cli Version */
+            cli_version: string | null;
+            /**
+             * Contract Version
+             * @constant
+             */
+            contract_version: "1.0.0";
+            /**
+             * Conversation Started
+             * @constant
+             */
+            conversation_started: false;
+            /**
+             * Hardware Actions
+             * @constant
+             */
+            hardware_actions: false;
+            /** Reason */
+            reason: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "1.9.0";
+            status: components["schemas"]["LocalCodexStatus"];
+            /**
+             * Tools Registered
+             * @constant
+             */
+            tools_registered: 0;
+            /**
+             * Workspace Mutated
+             * @constant
+             */
+            workspace_mutated: false;
+        };
+        /**
          * PackageStatus
          * @enum {string}
          */
@@ -821,7 +883,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.8.0";
+            schema_version: "1.9.0";
             /** Summaries */
             summaries: components["schemas"]["ComparisonAreaSummaryView"][];
             /** Total Change Count */
@@ -840,7 +902,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.8.0";
+            schema_version: "1.9.0";
             source: components["schemas"]["SourceView"];
             /** Stages */
             stages: components["schemas"]["StageView"][];
@@ -854,7 +916,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.8.0";
+            schema_version: "1.9.0";
             window: components["schemas"]["RevisionListWindowView"];
         };
         /** RevisionListWindowView */
@@ -1035,6 +1097,26 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    codex_status_api_v1_codex_status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LocalCodexStatusResponse"];
+                };
+            };
+        };
+    };
     health_api_v1_health_get: {
         parameters: {
             query?: never;
