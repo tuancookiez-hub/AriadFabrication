@@ -164,6 +164,16 @@ This review compares public documentation and visible source structure. The proj
 
 Research conclusion: natural-language CAD and generic prompt-to-print orchestration are active, increasingly crowded areas. Ariad should not claim novelty from connecting those nouns. Its defensible product contract is the beginner-readable **Fabrication Journey** for functional B-rep parts: explicit intent, exact feature evidence, immutable revisions and checksums, profile-specific real-slicer evidence, and claim language that remains useful without owning or operating a printer.
 
+## 2026-07-17 execution, model, and submission update
+
+- [Microsoft AppContainer isolation](https://learn.microsoft.com/en-us/windows/win32/secauthz/appcontainer-isolation) describes default-deny process, file, credential, device, and network isolation for AppContainer processes.
+- [Microsoft Create Process in Sandbox](https://learn.microsoft.com/en-us/windows/win32/secauthz/createprocessinsandbox) documents `Experimental_CreateProcessInSandbox`, AppContainer-backed filesystem grants, and default-denied network capability. The API is explicitly experimental and requires a FlatBuffer conforming to `SandboxSpec.fbs`; the schema/header are not publicly supplied by the page.
+- [OpenAI GPT-5.6 model guidance](https://developers.openai.com/api/docs/guides/model-guidance?model=gpt-5.6) identifies `gpt-5.6-sol` as the explicit flagship target, recommends Responses for reasoning/tool workflows, requires intentional reasoning effort, and advises lean prompts with explicit ambiguity and approval boundaries.
+- [OpenAI Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs) recommends schema-constrained `text.format` over JSON mode when supported.
+- [OpenAI Build Week](https://openai.devpost.com/) requires a working project, category, description, public demo shorter than three minutes, judge-accessible repository with setup guidance, explanation of Codex and GPT-5.6 use, and a `/feedback` Codex session ID.
+
+Research conclusion: do not infer an unpublished security FlatBuffer or call the experimental sandbox production-ready. Browser-triggered native execution stays locked unless a supported, tested OS boundary is available. Continue with a local-only registered runner and an honest universal intake/router. GPT-5.6 should produce a strict non-evidentiary intent proposal; Ariad policy, CAD, validators, slicer, and persisted evidence—not model confidence—determine every downstream capability and claim.
+
 The exact phrase **Ariad Fabrication** did not surface as a CAD or 3D-printing product in the 2026-07-16 preliminary search. The bare name is used in unrelated fields, including [Ariad Group](https://www.ariadgroup.com/en), so a legal and domain review remains required before public commercial use.
 
 ## Manufacturing formats and slicing

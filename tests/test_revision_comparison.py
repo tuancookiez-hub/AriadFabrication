@@ -164,7 +164,7 @@ class RevisionComparisonHttpTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         payload = response.json()
-        self.assertEqual(payload["schema_version"], "1.7.0")
+        self.assertEqual(payload["schema_version"], "1.8.0")
         self.assertEqual(payload["relationship"], "parent_to_child")
         self.assertEqual(payload["total_change_count"], 12)
         self.assertTrue(payload["capabilities"]["read_only"])

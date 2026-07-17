@@ -14,6 +14,7 @@ import logoUrl from '../../assets/ariad-fabrication-official-logo.jpg'
 import { getRevision, getRevisionComparison, listRevisions } from './api'
 import { ArtifactInspector } from './ArtifactInspector'
 import { ComparisonView } from './ComparisonView'
+import { NewIdeaPage } from './NewIdeaPage'
 import type {
   Finding,
   RevisionComparison,
@@ -91,7 +92,8 @@ function AppShell({
           <img src={logoUrl} alt="Ariad Fabrication" />
         </Link>
         <nav className="primary-navigation" aria-label="Primary navigation">
-          <Link className="nav-item nav-item-active" to="/" aria-current="page"><span aria-hidden="true">⌁</span> Journey</Link>
+          <Link className="nav-item nav-item-active" to="/"><span aria-hidden="true">◇</span> Journey</Link>
+          <Link className="nav-item" to="/new"><span aria-hidden="true">＋</span> New idea</Link>
           <span className="nav-item nav-item-disabled"><span aria-hidden="true">▤</span> Projects</span>
           <span className="nav-item nav-item-disabled"><span aria-hidden="true">◇</span> Parts library</span>
           <span className="nav-item nav-item-disabled"><span aria-hidden="true">▱</span> Printers</span>
@@ -109,6 +111,7 @@ function AppShell({
           <div className="project-context"><small>Project</small><strong>Fabrication Journey</strong></div>
           <div className="topbar-actions">
             <div className="system-pill"><i /> Evidence system nominal</div>
+            <Link className="new-project-button" to="/new">+ New idea</Link>
         <div className="boundary-pill">
           Read-only · hardware disconnected
         </div>
@@ -678,6 +681,7 @@ const router = createBrowserRouter([
     ),
     children: [
       { path: '/', element: <JourneyIndexPage /> },
+      { path: '/new', element: <AppShell pageTitle="New fabrication idea"><NewIdeaPage /></AppShell> },
       { path: '/jobs/:jobId/revisions/:revisionId', element: <JourneyDetailPage /> },
       {
         path: '/compare/:baseJobId/:baseRevisionId/:candidateJobId/:candidateRevisionId',

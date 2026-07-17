@@ -21,6 +21,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/intake": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Capture Intake
+         * @description Capture one idea without persistence, model inference, or execution.
+         */
+        post: operations["capture_intake_api_v1_intake_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/revision-comparison": {
         parameters: {
             query?: never;
@@ -163,6 +183,56 @@ export interface components {
              * @constant
              */
             read_only: true;
+        };
+        /**
+         * CapabilityLane
+         * @enum {string}
+         */
+        CapabilityLane: "registered_benchmark" | "functional_parametric_cad" | "organic_mesh" | "planning_only" | "unsupported";
+        /** CapabilityRouteView */
+        CapabilityRouteView: {
+            /** Assumptions */
+            assumptions: string[];
+            /** Available Targets */
+            available_targets: string[];
+            /**
+             * Evidence Mode
+             * @enum {string}
+             */
+            evidence_mode: "model_proposal" | "unavailable";
+            /**
+             * Hardware Actions
+             * @constant
+             */
+            hardware_actions: false;
+            /** Intake Id */
+            intake_id: string;
+            lane: components["schemas"]["CapabilityLane"];
+            /** Metadata */
+            metadata: {
+                [key: string]: unknown;
+            };
+            /** Part Spec */
+            part_spec: null;
+            /**
+             * Physical Validation
+             * @constant
+             */
+            physical_validation: false;
+            /** Prompt Sha256 */
+            prompt_sha256: string;
+            /** Questions */
+            questions: string[];
+            /** Reason */
+            reason: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "1.0.0";
+            status: components["schemas"]["RouteStatus"];
+            /** Summary */
+            summary: string;
         };
         /** ComparisonAreaSummaryView */
         ComparisonAreaSummaryView: {
@@ -407,7 +477,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.7.0";
+            schema_version: "1.8.0";
             /**
              * Service
              * @constant
@@ -595,6 +665,78 @@ export interface components {
             /** Unavailable */
             unavailable: components["schemas"]["InspectionUnavailableView"][];
         };
+        /** IntakeRecordView */
+        IntakeRecordView: {
+            /**
+             * Hardware Actions
+             * @constant
+             */
+            hardware_actions: false;
+            /** Intake Id */
+            intake_id: string;
+            /** Prompt */
+            prompt: string;
+            /** Prompt Sha256 */
+            prompt_sha256: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "1.0.0";
+        };
+        /** IntakeRequest */
+        IntakeRequest: {
+            /** Prompt */
+            prompt: string;
+        };
+        /** IntakeResponse */
+        IntakeResponse: {
+            /** Claim Boundary */
+            claim_boundary: string;
+            /**
+             * Executed
+             * @constant
+             */
+            executed: false;
+            intake: components["schemas"]["IntakeRecordView"];
+            /**
+             * Persisted
+             * @constant
+             */
+            persisted: false;
+            provider: components["schemas"]["IntentProviderView"];
+            route: components["schemas"]["CapabilityRouteView"];
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "1.8.0";
+        };
+        /** IntentProviderView */
+        IntentProviderView: {
+            /**
+             * Configured
+             * @constant
+             */
+            configured: false;
+            /**
+             * Evidence Mode
+             * @constant
+             */
+            evidence_mode: "unavailable";
+            /**
+             * Model
+             * @constant
+             */
+            model: "gpt-5.6-sol";
+            /**
+             * Provider Id
+             * @constant
+             */
+            provider_id: "openai_gpt_5_6_intent";
+            /** Reason */
+            reason: string;
+        };
         /**
          * JobStatus
          * @enum {string}
@@ -679,7 +821,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.7.0";
+            schema_version: "1.8.0";
             /** Summaries */
             summaries: components["schemas"]["ComparisonAreaSummaryView"][];
             /** Total Change Count */
@@ -698,7 +840,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.7.0";
+            schema_version: "1.8.0";
             source: components["schemas"]["SourceView"];
             /** Stages */
             stages: components["schemas"]["StageView"][];
@@ -712,7 +854,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.7.0";
+            schema_version: "1.8.0";
             window: components["schemas"]["RevisionListWindowView"];
         };
         /** RevisionListWindowView */
@@ -805,6 +947,11 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /**
+         * RouteStatus
+         * @enum {string}
+         */
+        RouteStatus: "demo_available" | "needs_input" | "provider_unavailable" | "unsupported";
         /** SourceView */
         SourceView: {
             /**
@@ -904,6 +1051,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HealthResponse"];
+                };
+            };
+        };
+    };
+    capture_intake_api_v1_intake_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IntakeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntakeResponse"];
+                };
+            };
+            /** @description The prompt is empty or exceeds the bounded intake contract. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };

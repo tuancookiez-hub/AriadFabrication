@@ -1,4 +1,4 @@
-import type { RevisionComparison, RevisionDetail, RevisionListResponse } from './types'
+import type { IntakeResponse, RevisionComparison, RevisionDetail, RevisionListResponse } from './types'
 
 const apiRoot = (import.meta.env.VITE_ARIAD_API_ROOT ?? '').replace(/\/$/, '')
 
@@ -11,9 +11,17 @@ export class ApiError extends Error {
   }
 }
 
-async function requestJson<T>(path: string, signal?: AbortSignal): Promise<T> {
+async function requestJson<T>(
+  path: string,
+  signal?: AbortSignal,
+  init: Pick<RequestInit, 'method' | 'body'> = {},
+): Promise<T> {
   const response = await fetch(`${apiRoot}${path}`, {
-    headers: { Accept: 'application/json' },
+    ...init,
+    headers: {
+      Accept: 'application/json',
+      ...(init.body ? { 'Content-Type': 'application/json' } : {}),
+    },
     signal,
   })
   if (!response.ok) {
@@ -27,6 +35,13 @@ async function requestJson<T>(path: string, signal?: AbortSignal): Promise<T> {
     throw new ApiError(message, response.status)
   }
   return (await response.json()) as T
+}
+
+export function captureIdea(prompt: string, signal?: AbortSignal): Promise<IntakeResponse> {
+  return requestJson('/api/v1/intake', signal, {
+    method: 'POST',
+    body: JSON.stringify({ prompt }),
+  })
 }
 
 export function listRevisions(

@@ -77,7 +77,7 @@ class JourneyRepositoryTests(unittest.TestCase):
         self.assertEqual(len(detail.stages[3].findings), 2)
         self.assertTrue(all(stage.evidence_mode == "fixture" for stage in detail.stages))
         self.assertFalse(detail.capabilities.hardware_actions)
-        self.assertEqual(detail.schema_version, "1.7.0")
+        self.assertEqual(detail.schema_version, "1.8.0")
         self.assertEqual(
             [report.report_kind for report in detail.inspection.reports],
             ["geometry", "printability", "gcode_preflight"],
@@ -1048,6 +1048,37 @@ class InterfaceHttpTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(response.json()["capabilities"]["hardware_actions"])
 
+    def test_stateless_intake_accepts_an_idea_without_model_or_execution(self):
+        response = self.client.post(
+            "/api/v1/intake",
+            json={"prompt": "Create a decorative floating air warship ✨"},
+        )
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["schema_version"], "1.8.0")
+        self.assertEqual(payload["intake"]["prompt"], "Create a decorative floating air warship ✨")
+        self.assertEqual(len(payload["intake"]["prompt_sha256"]), 64)
+        self.assertFalse(payload["provider"]["configured"])
+        self.assertEqual(payload["provider"]["model"], "gpt-5.6-sol")
+        self.assertEqual(payload["route"]["status"], "needs_input")
+        self.assertEqual(payload["route"]["available_targets"], [])
+        self.assertFalse(payload["persisted"])
+        self.assertFalse(payload["executed"])
+        self.assertFalse(payload["route"]["hardware_actions"])
+        self.assertFalse(payload["route"]["physical_validation"])
+
+    def test_stateless_intake_bounds_utf8_bytes_and_forbids_extra_fields(self):
+        oversized = self.client.post(
+            "/api/v1/intake",
+            json={"prompt": "é" * 8193},
+        )
+        self.assertEqual(oversized.status_code, 422)
+        extra = self.client.post(
+            "/api/v1/intake",
+            json={"prompt": "Make a bracket", "execute": True},
+        )
+        self.assertEqual(extra.status_code, 422)
+
     def test_runtime_surface_has_no_docs_schema_or_mutation_routes(self):
         for path in ("/docs", "/redoc", "/openapi.json"):
             with self.subTest(path=path):
@@ -1075,7 +1106,7 @@ class InterfaceHttpTests(unittest.TestCase):
         detail = self.client.get(f"/api/v1/revisions/{JOB_ID}/{REVISION_ID}")
         self.assertEqual(detail.status_code, 200)
         payload = detail.json()
-        self.assertEqual(payload["schema_version"], "1.7.0")
+        self.assertEqual(payload["schema_version"], "1.8.0")
         self.assertEqual(
             [stage["stage"] for stage in payload["stages"]],
             [item[0] for item in STAGES],

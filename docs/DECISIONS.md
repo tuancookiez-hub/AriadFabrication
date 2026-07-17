@@ -481,6 +481,18 @@ This file records accepted project-level decisions. Change an accepted decision 
 
 **Consequence:** Store/Journey coordination is no longer a pre-HTTP blocker. Enforceable filesystem isolation and network denial remain mandatory before browser mutation; authenticated same-origin POST/cancel/SSE contracts come after that boundary.
 
+### D-040 - Accept broad prompts without pretending broad execution
+
+**Status:** Accepted as implemented foundation on 2026-07-17.
+
+**Decision:** Separate universal prompt capture, semantic intent proposal, capability policy, and execution admission. Intake accepts any bounded non-empty UTF-8 fabrication idea and records its digest with literal-false hardware behavior. A semantic provider may propose the registered benchmark, functional parametric CAD, organic mesh, planning-only, or unsupported lane, plus questions, assumptions, and a draft PartSpec. That proposal remains `model_proposal` evidence and cannot choose commands, paths, providers, profiles, or hardware.
+
+**Current capability boundary:** Only the exact `opengrow_stake_electronics_clamp_v1` benchmark may expose the closed `golden_part_r2` and `golden_part_r4` demo targets. The route must disclose that running the benchmark does not mean the user's free-form prompt became CAD. General functional CAD is `needs_input` or `provider_unavailable`; organic mesh is `provider_unavailable`; unsupported requests remain unsupported. Every route fixes hardware and physical-validation claims false.
+
+**Evidence:** Routing tests cover arbitrary Unicode prompt capture, UTF-8 byte ceilings, exact benchmark allowlisting, invented benchmark rejection, unresolved functional requirements, provider-unavailable functional and organic lanes, planning-only and unsupported states, bounded proposal fields, and rejection of a semantic proposal that claims real evidence.
+
+**Consequence:** Ariad's entry point can honestly begin with “describe anything” without changing the execution allowlist. A future GPT-5.6 provider supplies schema-constrained intent proposals only; capability policy and deterministic evidence gates remain authoritative.
+
 ## Deferred decisions
 
 These require later evidence and should not be decided through preference alone:

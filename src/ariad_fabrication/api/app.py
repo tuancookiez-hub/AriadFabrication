@@ -8,10 +8,14 @@ from urllib.parse import quote
 
 from fastapi import FastAPI, HTTPException, Query, Response
 
+from ..intake import CapabilityLane, CurrentCapabilityRouter, IntentProposal, PromptIntake
+
 from .models import (
     ErrorResponse,
     INTERFACE_API_VERSION,
     HealthResponse,
+    IntakeRequest,
+    IntakeResponse,
     RevisionComparisonResponse,
     RevisionDetailResponse,
     RevisionListResponse,
@@ -85,10 +89,11 @@ def create_app(runs_root: Path | str = Path("runs")) -> FastAPI:
     repository = JourneyRepository(runs_root)
     app = FastAPI(
         title="Ariad Fabrication Journey API",
-        summary="Read-only access to persisted fabrication evidence.",
+        summary="Persisted evidence replay and stateless idea intake.",
         description=(
-            "This API replays persisted records. It cannot upload G-code, select a printer, "
-            "heat hardware, move hardware, or start manufacturing."
+            "This API replays persisted records and can classify a bounded idea without "
+            "persisting or executing it. It cannot upload G-code, select a printer, heat "
+            "hardware, move hardware, or start manufacturing."
         ),
         version=INTERFACE_API_VERSION,
         docs_url=None,
@@ -104,6 +109,51 @@ def create_app(runs_root: Path | str = Path("runs")) -> FastAPI:
             service="ariad-interface-api",
             status="ok",
             capabilities=read_only_capabilities(),
+        )
+
+    @app.post(
+        "/api/v1/intake",
+        response_model=IntakeResponse,
+        responses={
+            422: {
+                "model": ErrorResponse,
+                "description": "The prompt is empty or exceeds the bounded intake contract.",
+            }
+        },
+    )
+    def capture_intake(request: IntakeRequest) -> IntakeResponse:
+        """Capture one idea without persistence, model inference, or execution."""
+
+        try:
+            intake = PromptIntake(request.prompt)
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        summary = " ".join(intake.prompt.split())[:512]
+        proposal = IntentProposal(
+            lane=CapabilityLane.PLANNING_ONLY,
+            summary=summary,
+            questions=(
+                "Configure the GPT-5.6 intent provider to classify this idea and propose requirements.",
+            ),
+        )
+        route = CurrentCapabilityRouter().route(intake, proposal)
+        return IntakeResponse(
+            schema_version=INTERFACE_API_VERSION,
+            intake=intake.to_dict(),
+            provider={
+                "provider_id": "openai_gpt_5_6_intent",
+                "model": "gpt-5.6-sol",
+                "configured": False,
+                "evidence_mode": "unavailable",
+                "reason": "No OpenAI API credential is configured for this local service.",
+            },
+            route=route.to_dict(),
+            persisted=False,
+            executed=False,
+            claim_boundary=(
+                "Intent captured only. No model inference, CAD generation, validation, slicing, "
+                "hardware action, or physical validation occurred."
+            ),
         )
 
     @app.get("/api/v1/revisions", response_model=RevisionListResponse)

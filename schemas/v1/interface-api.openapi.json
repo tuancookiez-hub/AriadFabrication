@@ -192,6 +192,117 @@
         "title": "CapabilitiesView",
         "type": "object"
       },
+      "CapabilityLane": {
+        "enum": [
+          "registered_benchmark",
+          "functional_parametric_cad",
+          "organic_mesh",
+          "planning_only",
+          "unsupported"
+        ],
+        "title": "CapabilityLane",
+        "type": "string"
+      },
+      "CapabilityRouteView": {
+        "additionalProperties": false,
+        "properties": {
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "available_targets": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Available Targets",
+            "type": "array"
+          },
+          "evidence_mode": {
+            "enum": [
+              "model_proposal",
+              "unavailable"
+            ],
+            "title": "Evidence Mode",
+            "type": "string"
+          },
+          "hardware_actions": {
+            "const": false,
+            "title": "Hardware Actions",
+            "type": "boolean"
+          },
+          "intake_id": {
+            "title": "Intake Id",
+            "type": "string"
+          },
+          "lane": {
+            "$ref": "#/components/schemas/CapabilityLane"
+          },
+          "metadata": {
+            "additionalProperties": true,
+            "title": "Metadata",
+            "type": "object"
+          },
+          "part_spec": {
+            "title": "Part Spec",
+            "type": "null"
+          },
+          "physical_validation": {
+            "const": false,
+            "title": "Physical Validation",
+            "type": "boolean"
+          },
+          "prompt_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Prompt Sha256",
+            "type": "string"
+          },
+          "questions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Questions",
+            "type": "array"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RouteStatus"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "intake_id",
+          "prompt_sha256",
+          "lane",
+          "status",
+          "summary",
+          "reason",
+          "questions",
+          "assumptions",
+          "part_spec",
+          "available_targets",
+          "evidence_mode",
+          "hardware_actions",
+          "physical_validation",
+          "metadata"
+        ],
+        "title": "CapabilityRouteView",
+        "type": "object"
+      },
       "ComparisonAreaSummaryView": {
         "additionalProperties": false,
         "properties": {
@@ -911,7 +1022,7 @@
             "$ref": "#/components/schemas/CapabilitiesView"
           },
           "schema_version": {
-            "const": "1.7.0",
+            "const": "1.8.0",
             "title": "Schema Version",
             "type": "string"
           },
@@ -1473,6 +1584,141 @@
         "title": "InspectionView",
         "type": "object"
       },
+      "IntakeRecordView": {
+        "additionalProperties": false,
+        "properties": {
+          "hardware_actions": {
+            "const": false,
+            "title": "Hardware Actions",
+            "type": "boolean"
+          },
+          "intake_id": {
+            "title": "Intake Id",
+            "type": "string"
+          },
+          "prompt": {
+            "title": "Prompt",
+            "type": "string"
+          },
+          "prompt_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Prompt Sha256",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "intake_id",
+          "prompt",
+          "prompt_sha256",
+          "hardware_actions"
+        ],
+        "title": "IntakeRecordView",
+        "type": "object"
+      },
+      "IntakeRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "prompt": {
+            "maxLength": 16384,
+            "minLength": 1,
+            "title": "Prompt",
+            "type": "string"
+          }
+        },
+        "required": [
+          "prompt"
+        ],
+        "title": "IntakeRequest",
+        "type": "object"
+      },
+      "IntakeResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "claim_boundary": {
+            "title": "Claim Boundary",
+            "type": "string"
+          },
+          "executed": {
+            "const": false,
+            "title": "Executed",
+            "type": "boolean"
+          },
+          "intake": {
+            "$ref": "#/components/schemas/IntakeRecordView"
+          },
+          "persisted": {
+            "const": false,
+            "title": "Persisted",
+            "type": "boolean"
+          },
+          "provider": {
+            "$ref": "#/components/schemas/IntentProviderView"
+          },
+          "route": {
+            "$ref": "#/components/schemas/CapabilityRouteView"
+          },
+          "schema_version": {
+            "const": "1.8.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "intake",
+          "provider",
+          "route",
+          "persisted",
+          "executed",
+          "claim_boundary"
+        ],
+        "title": "IntakeResponse",
+        "type": "object"
+      },
+      "IntentProviderView": {
+        "additionalProperties": false,
+        "properties": {
+          "configured": {
+            "const": false,
+            "title": "Configured",
+            "type": "boolean"
+          },
+          "evidence_mode": {
+            "const": "unavailable",
+            "title": "Evidence Mode",
+            "type": "string"
+          },
+          "model": {
+            "const": "gpt-5.6-sol",
+            "title": "Model",
+            "type": "string"
+          },
+          "provider_id": {
+            "const": "openai_gpt_5_6_intent",
+            "title": "Provider Id",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "provider_id",
+          "model",
+          "configured",
+          "evidence_mode",
+          "reason"
+        ],
+        "title": "IntentProviderView",
+        "type": "object"
+      },
       "JobStatus": {
         "enum": [
           "active",
@@ -1669,7 +1915,7 @@
             "type": "integer"
           },
           "schema_version": {
-            "const": "1.7.0",
+            "const": "1.8.0",
             "title": "Schema Version",
             "type": "string"
           },
@@ -1736,7 +1982,7 @@
             "$ref": "#/components/schemas/RevisionView"
           },
           "schema_version": {
-            "const": "1.7.0",
+            "const": "1.8.0",
             "title": "Schema Version",
             "type": "string"
           },
@@ -1779,7 +2025,7 @@
             "type": "array"
           },
           "schema_version": {
-            "const": "1.7.0",
+            "const": "1.8.0",
             "title": "Schema Version",
             "type": "string"
           },
@@ -2107,6 +2353,16 @@
         "title": "RevisionView",
         "type": "object"
       },
+      "RouteStatus": {
+        "enum": [
+          "demo_available",
+          "needs_input",
+          "provider_unavailable",
+          "unsupported"
+        ],
+        "title": "RouteStatus",
+        "type": "string"
+      },
       "SourceView": {
         "additionalProperties": false,
         "properties": {
@@ -2357,10 +2613,10 @@
     }
   },
   "info": {
-    "description": "This API replays persisted records. It cannot upload G-code, select a printer, heat hardware, move hardware, or start manufacturing.",
-    "summary": "Read-only access to persisted fabrication evidence.",
+    "description": "This API replays persisted records and can classify a bounded idea without persisting or executing it. It cannot upload G-code, select a printer, heat hardware, move hardware, or start manufacturing.",
+    "summary": "Persisted evidence replay and stateless idea intake.",
     "title": "Ariad Fabrication Journey API",
-    "version": "1.7.0"
+    "version": "1.8.0"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -2380,6 +2636,45 @@
           }
         },
         "summary": "Health"
+      }
+    },
+    "/api/v1/intake": {
+      "post": {
+        "description": "Capture one idea without persistence, model inference, or execution.",
+        "operationId": "capture_intake_api_v1_intake_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IntakeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntakeResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The prompt is empty or exceeds the bounded intake contract."
+          }
+        },
+        "summary": "Capture Intake"
       }
     },
     "/api/v1/revision-comparison": {

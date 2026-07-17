@@ -1,4 +1,4 @@
-"""Versioned read models exposed to the M4 browser interface."""
+"""Versioned evidence-replay and stateless-intake models for the M4 interface."""
 
 from __future__ import annotations
 
@@ -17,10 +17,11 @@ from ..domain import (
     JobStatus,
     StageStatus,
 )
+from ..intake import CapabilityLane, RouteStatus
 
 
-InterfaceApiVersion = Literal["1.7.0"]
-INTERFACE_API_VERSION: InterfaceApiVersion = "1.7.0"
+InterfaceApiVersion = Literal["1.8.0"]
+INTERFACE_API_VERSION: InterfaceApiVersion = "1.8.0"
 Timestamp = Annotated[str, Field(json_schema_extra={"format": "date-time"})]
 
 
@@ -73,6 +74,54 @@ class HealthResponse(ApiModel):
 
 class ErrorResponse(ApiModel):
     detail: str
+
+
+class IntakeRequest(ApiModel):
+    prompt: str = Field(min_length=1, max_length=16_384)
+
+
+class IntakeRecordView(ApiModel):
+    schema_version: Literal["1.0.0"]
+    intake_id: str
+    prompt: str
+    prompt_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    hardware_actions: Literal[False]
+
+
+class IntentProviderView(ApiModel):
+    provider_id: Literal["openai_gpt_5_6_intent"]
+    model: Literal["gpt-5.6-sol"]
+    configured: Literal[False]
+    evidence_mode: Literal["unavailable"]
+    reason: str
+
+
+class CapabilityRouteView(ApiModel):
+    schema_version: Literal["1.0.0"]
+    intake_id: str
+    prompt_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    lane: CapabilityLane
+    status: RouteStatus
+    summary: str
+    reason: str
+    questions: list[str]
+    assumptions: list[str]
+    part_spec: None
+    available_targets: list[str]
+    evidence_mode: Literal["model_proposal", "unavailable"]
+    hardware_actions: Literal[False]
+    physical_validation: Literal[False]
+    metadata: dict[str, Any]
+
+
+class IntakeResponse(ApiModel):
+    schema_version: InterfaceApiVersion
+    intake: IntakeRecordView
+    provider: IntentProviderView
+    route: CapabilityRouteView
+    persisted: Literal[False]
+    executed: Literal[False]
+    claim_boundary: str
 
 
 class ToolView(ApiModel):

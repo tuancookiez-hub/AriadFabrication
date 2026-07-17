@@ -20,27 +20,29 @@ class OpenApiContractTests(unittest.TestCase):
         check_openapi_snapshot(SNAPSHOT)
         self.assertEqual(SNAPSHOT.read_bytes(), canonical_openapi_bytes())
 
-    def test_schema_exposes_only_the_read_contract(self):
+    def test_schema_exposes_only_bounded_read_and_stateless_intake_contracts(self):
         document = generate_openapi_document()
         self.assertEqual(
             set(document["paths"]),
             {
                 "/api/v1/health",
+                "/api/v1/intake",
                 "/api/v1/revision-comparison",
                 "/api/v1/revisions",
                 "/api/v1/revisions/{job_id}/{revision_id}",
                 "/api/v1/revisions/{job_id}/{revision_id}/artifacts/{artifact_id}",
             },
         )
-        for path in document["paths"].values():
-            self.assertEqual(set(path) - {"parameters"}, {"get"})
+        for route, path in document["paths"].items():
+            expected_methods = {"post"} if route == "/api/v1/intake" else {"get"}
+            self.assertEqual(set(path) - {"parameters"}, expected_methods)
 
         capabilities = document["components"]["schemas"]["CapabilitiesView"]
         self.assertEqual(capabilities["properties"]["read_only"]["const"], True)
         self.assertEqual(capabilities["properties"]["hardware_actions"]["const"], False)
 
         health = document["components"]["schemas"]["HealthResponse"]["properties"]
-        self.assertEqual(health["schema_version"]["const"], "1.7.0")
+        self.assertEqual(health["schema_version"]["const"], "1.8.0")
         self.assertEqual(health["service"]["const"], "ariad-interface-api")
         self.assertEqual(health["status"]["const"], "ok")
 
