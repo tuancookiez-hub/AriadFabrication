@@ -103,7 +103,7 @@ function AppShell({
         </nav>
         <div className="sidebar-status">
           <span className="status-avatar" aria-hidden="true">A</span>
-          <span><strong>Ariad</strong><small><i /> Local orchestrator</small></span>
+          <span><strong>Codex</strong><small><i /> Local connection not configured</small></span>
         </div>
       </aside>
       <div className="workspace-shell">

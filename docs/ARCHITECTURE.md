@@ -8,19 +8,19 @@ Keep the user experience, orchestration, CAD execution, deterministic verificati
 
 ```mermaid
 flowchart TD
-    UI["React/TypeScript Fabrication Journey"]
-    API["Python application API"]
-    ORCH["Revision and stage orchestrator"]
-    AI["OpenAI structured intake and planning"]
+    UI["React/TypeScript conversation and Fabrication Journey"]
+    CODEX["Locally authenticated Codex agent"]
+    TOOLS["Versioned Ariad tool boundary"]
+    ORCH["Ariad revision and stage workflow"]
     CAD["Sandboxed CadQuery/OCCT worker"]
     VAL["Geometry and printability validators"]
     SLICE["Real slicer adapter"]
     STORE["Artifact store and job metadata"]
     PRINT["Optional printer or print-service adapter"]
 
-    UI --> API
-    API --> ORCH
-    ORCH --> AI
+    UI <--> CODEX
+    CODEX --> TOOLS
+    TOOLS --> ORCH
     ORCH --> CAD
     CAD --> VAL
     VAL --> SLICE
@@ -31,7 +31,7 @@ flowchart TD
     ORCH -. "Explicit approval later" .-> PRINT
 ```
 
-The first implementation remains a modular monolith: one Python application with isolated worker boundaries and a separate browser frontend. Separate network services are introduced only when deployment or safety requires them.
+The first implementation remains local-first: the browser is Ariad's visual workspace, a server-side Codex SDK/app-server adapter uses the operator's existing local Codex authentication, and versioned Ariad tools are the only fabrication authority the agent receives. The browser never reads Codex credentials. The Python workflow, isolated workers, evidence store, and separate browser frontend remain modular boundaries; separate network services are introduced only when deployment or safety requires them.
 
 ## Fabrication lifecycle
 
@@ -218,6 +218,7 @@ M3 implements one complete printer-independent Golden Part path through R4, M4-A
 - `fabrication_contracts.py` owns the dependency-light ordered 19-role production-package contract shared by the R4 writer and read-boundary validator.
 - `orchestrator.py` executes the Brief gate and labels a complete confirmed result R0.
 - `intake.py` captures any bounded non-empty UTF-8 fabrication prompt, publishes the closed strict Structured Output schema for GPT-5.6 classification, decodes bounded UTF-8 JSON with duplicate/non-finite/unknown-field rejection, and applies capability policy to the resulting untrusted semantic proposal. The first provider boundary cannot author a PartSpec. Only the exact registered benchmark can expose R2/R4 demo targets; functional CAD, organic mesh, planning, and unsupported routes remain non-executable until matching providers and gates exist.
+- `agent_tools.py` publishes the versioned Codex-to-Ariad capability catalog. Only stateless intake and bounded evidence reads are currently registerable with Codex. Registered execution, cancellation, and generated CAD submission remain visible but unavailable with explicit blockers; every descriptor has a closed input schema and literal-false hardware authority.
 - `schemas/v1/` contains 22 allowlisted persisted contracts: 19 evidence contracts for PartSpec, StageEvent, ArtifactManifest, printer-independent FabricationPackage, the explicitly non-evidentiary interface-package fixture, and production/interface-fixture report/profile roles; plus three no-hardware execution request, record, and event contracts. The canonical interface OpenAPI contract is stored beside them but is not a persisted-instance schema.
 - `benchmarks/golden_part/` freezes the first exact specification and R2 measurement targets.
 - `benchmarks/golden_part/printability_expected.json` freezes the R3 profile selection, deterministic rules, warning dispositions, and claim boundary.

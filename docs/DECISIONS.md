@@ -493,6 +493,18 @@ This file records accepted project-level decisions. Change an accepted decision 
 
 **Consequence:** Ariad's entry point can honestly begin with “describe anything” without changing the execution allowlist. A future GPT-5.6 provider supplies schema-constrained intent proposals only; capability policy and deterministic evidence gates remain authoritative.
 
+### D-041 - Make local Codex the conversational fabrication agent
+
+**Status:** Accepted by the project owner on 2026-07-17. This supersedes the proposed user-facing Hermes-agent story, but does not replace Ariad's deterministic orchestration, evidence, or safety boundaries.
+
+**Decision:** The user talks to a locally authenticated Codex agent through Ariad's React interface. Ariad is the product and supervised fabrication system: it exposes versioned, closed tools; controls workflow state; executes CAD and slicer adapters; verifies evidence; and owns every downstream claim. Codex may converse, request Ariad tools, and propose editable CAD revisions, but it cannot skip gates, declare its own geometry or printability success, write trusted production G-code, contact hardware, or receive unrestricted access to the Ariad repository or host.
+
+**Integration boundary:** Prefer the supported Codex SDK/app-server protocol over scraping terminal output from `codex exec`. The local backend may use the operator's existing Codex authentication; browser code must never read, copy, return, log, or persist Codex credentials. Another operator or judge must authenticate their own installation. Fixture evidence remains available without Codex authentication.
+
+**Current tool authority:** Version 1.0.0 exposes only stateless idea capture and bounded evidence reads. Registered execution and cancellation remain internal; generated CAD submission remains blocked. A tool is not registered with Codex until its implementation, authentication, isolation, cancellation, and evidence gates pass. Hardware authority is always false.
+
+**Consequence:** Remove Hermes from current product language rather than presenting a second general agent. Existing Python orchestration remains Ariad's workflow engine. The architecture can be integrated incrementally without rewriting the sealed R2/R4 pipeline or React evidence explorer.
+
 ## Deferred decisions
 
 These require later evidence and should not be decided through preference alone:

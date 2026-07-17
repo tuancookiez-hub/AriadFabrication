@@ -6,7 +6,7 @@
 
 ## Immediate objective
 
-Complete the remaining OS isolation boundary before exposing mutation. The registered R2/R4 lane now combines launch-time target re-verification, exact-path/SHA-256 Python imports, command-shell suppression, Windows Job supervision, D-036 workspace monitoring, forced four-thread PrusaSlicer commands, persisted Golden Part R2/R4 pipelines, and an internal lease/cancellation/evidence coordinator. Browser-triggered execution remains unavailable until filesystem isolation, network denial, and authenticated HTTP/SSE publication are proved.
+Integrate the operator's locally authenticated Codex as Ariad's conversational fabrication agent without widening execution authority. Ariad now owns a versioned capability catalog: only stateless intake and bounded evidence reads may be registered initially. The registered R2/R4 lane remains internal, and browser/Codex-triggered execution remains unavailable until filesystem isolation, network denial, local authentication, and event publication are proved.
 
 ## M4-A through M4-P implemented
 
@@ -64,11 +64,11 @@ Complete the remaining OS isolation boundary before exposing mutation. The regis
 
 ## Next actions
 
-1. Establish enforceable filesystem isolation and network denial for the registered native CAD/slicer lane, or keep browser mutation locked and explicitly demo the verified internal runner as a local-only capability.
-2. Add remaining service-level crash, timeout, resource-exhaustion, persistence-failure, and recovery tests around the now-coordinated store/Journey path.
-3. Version POST/cancel/SSE contracts and local same-origin/anti-CSRF authentication only after the OS boundary passes; add a browser Run control last.
-4. Perform visual browser and assistive-technology QA once the local in-app browser runtime conflict is resolved; do not change the unrelated user-level Node configuration.
-5. Evaluate deferred visual libraries only after the control plane is reliable and against accessibility, maintenance, bundle size, overlap, license, and removal criteria.
+1. Add a server-side Codex SDK/app-server adapter that detects local availability and authentication without exposing credentials; initially register only the three safe Ariad tools.
+2. Add bounded conversation/thread/event contracts and a disconnected/available state to the local API and React interface before permitting any mutation.
+3. Establish enforceable filesystem isolation and network denial for generated CAD and the registered native CAD/slicer lane, or keep every mutating Codex tool unregistered.
+4. Add authenticated POST/cancel/SSE contracts only after the isolation boundary passes; connect browser Run and repair progress last.
+5. Perform visual browser, assistive-technology, and end-to-end demo QA; retain fixture mode for judges without local Codex authentication.
 
 ## Exit gate for M4
 

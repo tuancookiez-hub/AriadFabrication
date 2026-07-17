@@ -482,7 +482,7 @@ class ProductionTargetRegistryTests(unittest.TestCase):
         self.assertFalse(resolved.hardware_actions)
         self.assertEqual(
             resolved.plan.cad_runtime.cad_runtime_manifest_sha256,
-            "d206970fb822d7b7dab2f76cc86111029e69a1d9df4cd06de48ab309b5cadf02",
+            "d8d3418927e49d7c52d474c3bf2a4cb2084586332370d78fea919b6b927b65a9",
         )
         self.assertEqual(
             resolved.plan.slicer.installation_manifest_sha256,

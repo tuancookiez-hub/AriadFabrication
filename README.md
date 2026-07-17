@@ -2,7 +2,7 @@
 
 ![Ariad Fabrication official logo](assets/ariad-fabrication-official-logo.jpg)
 
-**Ariad Fabrication**, shortened to **Ariad**, is a local-first, calibration-aware fabrication system that turns plain-language requirements into editable parametric CAD, validates geometry and printability, slices against real printer profiles, and produces an auditable fabrication package.
+**Ariad Fabrication**, shortened to **Ariad**, is a local-first visual fabrication workspace for Codex. A locally authenticated Codex agent converses with the user while Ariad supplies constrained tools that turn confirmed requirements into editable parametric CAD, validate geometry and printability, slice against real printer profiles, and produce an auditable fabrication package.
 
 The project is being built as a long-term developer tool. A hackathon submission may be a checkpoint, but deadlines do not define the architecture or the evidence standard.
 
@@ -30,7 +30,8 @@ This repository contains an early Python prototype, not a production pipeline.
 
 | Area | Current evidence |
 |---|---|
-| Intent intake | Rule-based parser and an SDK-independent OpenAI adapter exist |
+| Codex agent | Target architecture accepted; a versioned tool catalog currently permits only stateless idea capture and bounded evidence reads. The local SDK/app-server connection is not implemented yet |
+| Intent intake | Universal bounded prompt capture and a strict GPT-5.6 proposal decoder exist; no direct model call is configured |
 | Orchestration | The Golden Part path records Brief R0 through Slicing/Package R4 with immutable revisions, stage runs, events, findings, and artifact lineage |
 | CAD generation | One registered hand-authored CadQuery provider creates editable parametric source, one valid solid, exact STEP, 3MF geometry, GLB preview, and compatibility STL |
 | Geometry validation | The re-imported STEP passes 25 frozen OCCT feature, clearance, and dimensional checks; compatibility STL also passes a closed two-manifold edge check |
