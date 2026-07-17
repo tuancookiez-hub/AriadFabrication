@@ -494,7 +494,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.9.0";
+            schema_version: "1.10.0";
             /**
              * Service
              * @constant
@@ -727,7 +727,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.9.0";
+            schema_version: "1.10.0";
         };
         /** IntentProviderView */
         IntentProviderView: {
@@ -787,7 +787,7 @@ export interface components {
          * LocalCodexStatus
          * @enum {string}
          */
-        LocalCodexStatus: "ready" | "unauthenticated" | "unavailable" | "error";
+        LocalCodexStatus: "ready" | "unauthenticated" | "unavailable" | "error" | "incompatible";
         /** LocalCodexStatusResponse */
         LocalCodexStatusResponse: {
             /** Authentication */
@@ -799,6 +799,8 @@ export interface components {
              * @constant
              */
             contract_version: "1.0.0";
+            /** Conversation Available */
+            conversation_available: boolean;
             /**
              * Conversation Started
              * @constant
@@ -815,7 +817,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.9.0";
+            schema_version: "1.10.0";
             status: components["schemas"]["LocalCodexStatus"];
             /**
              * Tools Registered
@@ -883,7 +885,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.9.0";
+            schema_version: "1.10.0";
             /** Summaries */
             summaries: components["schemas"]["ComparisonAreaSummaryView"][];
             /** Total Change Count */
@@ -902,7 +904,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.9.0";
+            schema_version: "1.10.0";
             source: components["schemas"]["SourceView"];
             /** Stages */
             stages: components["schemas"]["StageView"][];
@@ -916,7 +918,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.9.0";
+            schema_version: "1.10.0";
             window: components["schemas"]["RevisionListWindowView"];
         };
         /** RevisionListWindowView */

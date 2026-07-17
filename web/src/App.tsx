@@ -115,7 +115,7 @@ function AppShell({
           <span>
             <strong>Codex</strong>
             <small>
-              <i /> {codex?.status === 'ready' ? 'Local agent ready' : 'Local connection unavailable'}
+              <i /> {codex?.conversation_available ? 'Local agent ready' : 'Local conversation unavailable'}
             </small>
           </span>
         </div>
@@ -125,7 +125,7 @@ function AppShell({
           <div className="project-context"><small>Project</small><strong>Fabrication Journey</strong></div>
           <div className="topbar-actions">
             <div className={`system-pill codex-${codex?.status ?? 'checking'}`}>
-              <i /> {codex?.status === 'ready' ? 'Codex authenticated locally' : 'Codex disconnected'}
+              <i /> {codex?.conversation_available ? 'Codex conversation ready' : 'Codex disconnected'}
             </div>
             <Link className="new-project-button" to="/new">+ New idea</Link>
         <div className="boundary-pill">

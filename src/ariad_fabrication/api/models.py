@@ -21,8 +21,8 @@ from ..intake import CapabilityLane, RouteStatus
 from ..local_codex import LocalCodexStatus
 
 
-InterfaceApiVersion = Literal["1.9.0"]
-INTERFACE_API_VERSION: InterfaceApiVersion = "1.9.0"
+InterfaceApiVersion = Literal["1.10.0"]
+INTERFACE_API_VERSION: InterfaceApiVersion = "1.10.0"
 Timestamp = Annotated[str, Field(json_schema_extra={"format": "date-time"})]
 
 
@@ -84,6 +84,7 @@ class LocalCodexStatusResponse(ApiModel):
     cli_version: str | None
     authentication: Literal["chatgpt", "api_key", "other"] | None
     reason: str
+    conversation_available: bool
     tools_registered: Literal[0]
     conversation_started: Literal[False]
     workspace_mutated: Literal[False]

@@ -11,7 +11,7 @@ from ariad_fabrication.local_codex import (
 class LocalCodexContractTests(unittest.TestCase):
     def test_chatgpt_account_is_reduced_without_email_or_tokens(self):
         snapshot = snapshot_from_account_response(
-            "codex-cli 0.137.0",
+            "codex-cli 0.144.5",
             {
                 "id": 2,
                 "result": {
@@ -27,6 +27,7 @@ class LocalCodexContractTests(unittest.TestCase):
         )
         value = snapshot.to_dict()
         self.assertEqual(snapshot.status, LocalCodexStatus.READY)
+        self.assertTrue(snapshot.conversation_available)
         self.assertEqual(value["authentication"], "chatgpt")
         self.assertNotIn("email", str(value).lower())
         self.assertNotIn("token", str(value).lower())
@@ -41,6 +42,20 @@ class LocalCodexContractTests(unittest.TestCase):
         )
         self.assertEqual(snapshot.status, LocalCodexStatus.UNAUTHENTICATED)
         self.assertIsNone(snapshot.authentication)
+        self.assertFalse(snapshot.conversation_available)
+
+    def test_authenticated_old_cli_is_incompatible_not_ready(self):
+        snapshot = snapshot_from_account_response(
+            "codex-cli 0.137.0",
+            {
+                "result": {
+                    "account": {"type": "chatgpt", "email": "private@example.invalid", "planType": "pro"},
+                    "requiresOpenaiAuth": True,
+                }
+            },
+        )
+        self.assertEqual(snapshot.status, LocalCodexStatus.INCOMPATIBLE)
+        self.assertFalse(snapshot.conversation_available)
 
     def test_invalid_or_unconfigured_executable_is_never_launched(self):
         snapshot = probe_local_codex(Path("missing-codex.exe"))

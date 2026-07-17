@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 from queue import Empty, Queue
 import subprocess
+import re
 from threading import Thread
 from time import monotonic
 from typing import Any, Mapping, TextIO
@@ -22,6 +23,7 @@ from typing import Any, Mapping, TextIO
 LOCAL_CODEX_CONTRACT_VERSION = "1.0.0"
 MAX_CODEX_LINE_BYTES = 256 * 1024
 MAX_CODEX_VERSION_CHARS = 128
+MINIMUM_CONVERSATION_VERSION = (0, 144, 5)
 
 
 class LocalCodexStatus(str, Enum):
@@ -29,6 +31,7 @@ class LocalCodexStatus(str, Enum):
     UNAUTHENTICATED = "unauthenticated"
     UNAVAILABLE = "unavailable"
     ERROR = "error"
+    INCOMPATIBLE = "incompatible"
 
 
 @dataclass(frozen=True)
@@ -37,6 +40,7 @@ class LocalCodexSnapshot:
     cli_version: str | None
     authentication: str | None
     reason: str
+    conversation_available: bool = False
     tools_registered: int = 0
     conversation_started: bool = False
     workspace_mutated: bool = False
@@ -51,6 +55,8 @@ class LocalCodexSnapshot:
             raise ValueError("Codex CLI version is too long")
         if self.authentication not in {None, "chatgpt", "api_key", "other"}:
             raise ValueError("unsupported Codex authentication classification")
+        if self.conversation_available != (self.status is LocalCodexStatus.READY):
+            raise ValueError("Codex conversation availability must match ready status")
         if not self.reason or len(self.reason) > 512:
             raise ValueError("local Codex reason is required and bounded")
         if self.tools_registered != 0:
@@ -65,6 +71,7 @@ class LocalCodexSnapshot:
             "cli_version": self.cli_version,
             "authentication": self.authentication,
             "reason": self.reason,
+            "conversation_available": self.conversation_available,
             "tools_registered": 0,
             "conversation_started": False,
             "workspace_mutated": False,
@@ -98,11 +105,24 @@ def snapshot_from_account_response(
         "chatgpt": "chatgpt",
         "apiKey": "api_key",
     }.get(account_type, "other")
+    match = re.fullmatch(r"codex-cli (\d+)\.(\d+)\.(\d+)", cli_version)
+    compatible = bool(
+        match and tuple(int(item) for item in match.groups()) >= MINIMUM_CONVERSATION_VERSION
+    )
+    if not compatible:
+        return LocalCodexSnapshot(
+            status=LocalCodexStatus.INCOMPATIBLE,
+            cli_version=cli_version,
+            authentication=classification,
+            reason="Codex is authenticated, but this CLI version cannot run the required model.",
+            conversation_available=False,
+        )
     return LocalCodexSnapshot(
         status=LocalCodexStatus.READY,
         cli_version=cli_version,
         authentication=classification,
         reason="Local Codex authentication is available; no conversation was started.",
+        conversation_available=True,
     )
 
 
