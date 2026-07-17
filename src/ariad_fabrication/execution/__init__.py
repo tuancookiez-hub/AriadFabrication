@@ -101,6 +101,10 @@ from .cad_adapter import (
     SealedCadRun,
     SealedCadWorkerAdapter,
 )
+from .slicer_adapter import (
+    SEALED_SLICER_ADAPTER_VERSION,
+    SealedPrusaSlicerAdapter,
+)
 
 __all__ = [
     "AdmissionDecision",
@@ -149,6 +153,7 @@ __all__ = [
     "ProcessTerminationReason",
     "R4ProfileSnapshot",
     "SEALED_CAD_ADAPTER_VERSION",
+    "SEALED_SLICER_ADAPTER_VERSION",
     "RegisteredAdmissionResult",
     "RegisteredTargetAdmission",
     "ResolvedTarget",
@@ -171,6 +176,7 @@ __all__ = [
     "SealedCadRun",
     "SealedCadPipelineRunner",
     "SealedCadWorkerAdapter",
+    "SealedPrusaSlicerAdapter",
     "SupervisedProcessResult",
     "SupervisionLimits",
     "ManifestImportFinder",

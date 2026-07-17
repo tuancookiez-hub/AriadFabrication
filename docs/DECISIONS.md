@@ -455,6 +455,20 @@ This file records accepted project-level decisions. Change an accepted decision 
 
 **Consequence:** The R2 execution implementation is no longer a parallel proof-of-concept worker; it feeds the existing evidence-producing pipeline. Browser Run remains locked while OS filesystem/network isolation, R4 conversion, store coordination, and HTTP/SSE controls are incomplete.
 
+### D-038 - Supervise the complete registered R4 slicer lane
+
+**Status:** Accepted as implemented evidence on 2026-07-17.
+
+**Decision:** Construct PrusaSlicer only from a launch-reverified `golden_part_r4` plan. Bypass the legacy constructor's unsupervised `--help` process because the registry already verifies the complete approved installation, executable SHA-256, version, archive, and adapter identity. Require the exact registered executable, keep the model and output directory inside the execution workspace, force the frozen four-thread setting, redirect environment state into that workspace, suppress `COMSPEC`, and run model inspection, 3MF export, and G-code export as three separately bounded Windows Job commands sharing the execution deadline and cancellation token.
+
+**Evidence:** A real sealed R4 integration first reaches persisted R2 through the sealed CAD adapter, passes deterministic R3, then executes all three supervised PrusaSlicer commands successfully. The test verifies three zero return codes, literal-false hardware behavior, no observed `cmd.exe`, explicit `--threads 4` on both export commands, 36 persisted artifacts, an R4 package, and false printer-connected/print-started fields. A separate test rejects an R2 plan before slicer construction.
+
+**Limitation:** This establishes process/resource/identity evidence for the approved local slicer, not OS filesystem or network isolation and not physical print evidence. PrusaSlicer remains a native AGPL tool with host read/network capability until the remaining OS boundary is implemented. The adapter is still internal and unreachable from HTTP.
+
+**Removal path:** A different slicer or containerized execution service may replace this adapter only if it preserves fixed profile/tool identity, real slicer output, four-thread/resource controls, shared cancellation/deadline behavior, bounded logs, workspace confinement, complete package lineage, and disconnected hardware semantics.
+
+**Consequence:** Both registered digital targets now have real supervised execution paths. The remaining pre-HTTP work is OS filesystem/network isolation and transactional coordination between the execution store, persisted Journey snapshots, and event projection.
+
 ## Deferred decisions
 
 These require later evidence and should not be decided through preference alone:
