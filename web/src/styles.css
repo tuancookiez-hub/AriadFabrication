@@ -1663,7 +1663,298 @@ main {
   margin: 1.5rem 0 0;
 }
 
+/* M4-Q: Ariad workshop shell, derived from the approved dashboard direction. */
+.app-shell {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  background: #111113;
+}
+
+.app-sidebar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 1rem 0.75rem;
+  border-right: 1px solid #29292d;
+  background: #111113;
+}
+
+.app-sidebar .brand {
+  justify-content: center;
+  min-height: 118px;
+  padding: 0.25rem;
+}
+
+.app-sidebar .brand img {
+  width: 142px;
+  border: 0;
+  border-radius: 0;
+  mix-blend-mode: screen;
+}
+
+.primary-navigation {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 1rem;
+}
+
+.nav-item {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  min-height: 42px;
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  color: #c5c1bd;
+  font-size: 0.82rem;
+  text-decoration: none;
+}
+
+.nav-item > span {
+  width: 1.15rem;
+  color: #a9a5a1;
+  font-size: 1rem;
+  text-align: center;
+}
+
+.nav-item-active {
+  background: #222225;
+  color: #ff6262;
+}
+
+.nav-item-active > span {
+  color: #ff6262;
+}
+
+.nav-item-disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.sidebar-status {
+  display: flex;
+  gap: 0.65rem;
+  align-items: center;
+  margin-top: auto;
+  padding: 0.85rem 0.45rem;
+  border-top: 1px solid #29292d;
+}
+
+.status-avatar {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid #57575d;
+  border-radius: 50%;
+  color: #fff;
+  font-family: Georgia, serif;
+  font-weight: 800;
+}
+
+.sidebar-status > span:last-child {
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.78rem;
+}
+
+.sidebar-status small {
+  color: #8f8b87;
+}
+
+.sidebar-status i,
+.system-pill i {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 0.35rem;
+  border-radius: 50%;
+  background: #52c788;
+  box-shadow: 0 0 8px rgba(82, 199, 136, 0.6);
+}
+
+.workspace-shell {
+  min-width: 0;
+  background: #f3efe7;
+  color: #181719;
+}
+
+.workspace-shell .topbar {
+  min-height: 64px;
+  padding: 0.55rem clamp(1rem, 3vw, 2rem);
+  border-color: #2b2b2f;
+  background: rgba(17, 17, 19, 0.96);
+  color: #f7f4ef;
+}
+
+.project-context {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.project-context small {
+  color: #918d89;
+  font-size: 0.68rem;
+}
+
+.project-context strong {
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.topbar-actions {
+  display: flex;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.system-pill {
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #323237;
+  border-radius: 8px;
+  background: #1b1b1e;
+  color: #bbb7b2;
+  font-size: 0.68rem;
+}
+
+.workspace-shell main {
+  min-height: calc(100vh - 64px);
+}
+
+.workspace-shell .hero,
+.workspace-shell .detail-header {
+  padding-top: clamp(2.5rem, 6vw, 5rem);
+}
+
+.workspace-shell .hero h1,
+.workspace-shell .detail-header h1,
+.workspace-shell .claim-grid h2,
+.workspace-shell .section-heading h2,
+.workspace-shell .revision-card h3,
+.workspace-shell .comparison-launcher h3 {
+  color: #181719;
+}
+
+.workspace-shell .hero h1,
+.workspace-shell .detail-header h1 {
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(2.5rem, 5.5vw, 5.4rem);
+  font-weight: 800;
+  letter-spacing: -0.055em;
+  text-transform: uppercase;
+}
+
+.workspace-shell .hero p,
+.workspace-shell .detail-header p,
+.workspace-shell .claim-grid p,
+.workspace-shell .revision-card p,
+.workspace-shell .comparison-launcher p:not(.eyebrow) {
+  color: #625d58;
+}
+
+.workspace-shell .content-section,
+.workspace-shell .journey-layout,
+.workspace-shell .claim-grid {
+  color: #181719;
+}
+
+.workspace-shell .revision-card,
+.workspace-shell .claim-grid article,
+.workspace-shell .comparison-launcher,
+.workspace-shell .revision-listing-status,
+.workspace-shell .stage-body {
+  border-color: #d7d0c6;
+  background: rgba(255, 253, 248, 0.82);
+  box-shadow: 0 8px 28px rgba(49, 39, 31, 0.06);
+}
+
+.workspace-shell .revision-card:hover {
+  border-color: #b9282b;
+  transform: translateY(-2px);
+}
+
+.workspace-shell .metric-row span,
+.workspace-shell .evidence-panel,
+.workspace-shell .hero-boundary {
+  border-color: #d7d0c6;
+  background: #ebe4d9;
+  color: #292629;
+}
+
+.workspace-shell .timeline::before {
+  background: #c8beb1;
+}
+
+.workspace-shell .stage-node {
+  border-color: #181719;
+  background: #181719;
+  color: #fff;
+}
+
+.workspace-shell .stage-heading h3,
+.workspace-shell .stage-summary,
+.workspace-shell .artifact-list h4,
+.workspace-shell .event-log summary {
+  color: #242124;
+}
+
+.workspace-shell .artifact-row,
+.workspace-shell .finding,
+.workspace-shell .event-log {
+  border-color: #ded7cd;
+  background: #f7f3ec;
+  color: #242124;
+}
+
+.workspace-shell .artifact-row small,
+.workspace-shell .finding p,
+.workspace-shell .finding small,
+.workspace-shell .event-log p {
+  color: #6e6862;
+}
+
+.workspace-shell .back-link {
+  color: #9d2024;
+}
+
 @media (max-width: 900px) {
+  .app-shell {
+    grid-template-columns: 74px minmax(0, 1fr);
+  }
+
+  .app-sidebar {
+    padding-inline: 0.45rem;
+  }
+
+  .app-sidebar .brand {
+    min-height: 72px;
+  }
+
+  .app-sidebar .brand img {
+    width: 62px;
+  }
+
+  .nav-item {
+    justify-content: center;
+    padding-inline: 0;
+    font-size: 0;
+  }
+
+  .nav-item > span {
+    font-size: 1.05rem;
+  }
+
+  .sidebar-status > span:last-child {
+    display: none;
+  }
+
+  .sidebar-status {
+    justify-content: center;
+  }
+
   .hero,
   .detail-header,
   .journey-layout,
@@ -1689,9 +1980,50 @@ main {
 }
 
 @media (max-width: 620px) {
+  .app-shell {
+    display: block;
+  }
+
+  .app-sidebar {
+    position: static;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    width: 100%;
+    height: auto;
+    padding: 0.4rem 0.75rem;
+  }
+
+  .app-sidebar .brand {
+    min-height: 52px;
+  }
+
+  .app-sidebar .brand img {
+    width: 76px;
+  }
+
+  .primary-navigation {
+    display: flex;
+    justify-content: flex-end;
+    margin: 0;
+  }
+
+  .nav-item:not(.nav-item-active),
+  .sidebar-status {
+    display: none;
+  }
+
+  .nav-item-active {
+    width: 48px;
+    min-height: 48px;
+  }
+
+  .topbar-actions .boundary-pill {
+    display: none;
+  }
+
   .topbar {
-    align-items: flex-start;
-    flex-direction: column;
+    align-items: center;
+    flex-direction: row;
     gap: 0.6rem;
   }
 

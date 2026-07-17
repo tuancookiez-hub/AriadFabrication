@@ -38,4 +38,12 @@ describe('interface accessibility styles', () => {
     expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\)/)
     expect(css).toMatch(/\.comparison-launcher \.compare-button\s*\{[^}]*color:\s*var\(--bg\)/s)
   })
+
+  it('keeps the approved workshop shell responsive without hiding the active journey', () => {
+    expect(css).toMatch(/\.app-shell\s*\{[^}]*grid-template-columns:\s*180px minmax\(0, 1fr\)/s)
+    expect(css).toMatch(/\.workspace-shell\s*\{[^}]*background:\s*#f3efe7/s)
+    expect(css).toMatch(/\.nav-item-active\s*\{[^}]*color:\s*#ff6262/s)
+    expect(css).toMatch(/@media \(max-width: 620px\)[\s\S]*\.app-shell\s*\{[^}]*display:\s*block/s)
+    expect(css).toMatch(/@media \(max-width: 620px\)[\s\S]*\.nav-item:not\(\.nav-item-active\)/s)
+  })
 })

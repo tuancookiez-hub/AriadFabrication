@@ -43,7 +43,7 @@ from .contracts import (
 TREE_ALGORITHM = "ariad-tree-sha256-v1"
 TARGET_REGISTRY_VERSION = "1.0.0"
 MAX_JSON_ASSET_BYTES = 2 * 1024 * 1024
-MAX_MANIFEST_BYTES = 512 * 1024
+MAX_MANIFEST_BYTES = 1024 * 1024
 READ_CHUNK_BYTES = 1024 * 1024
 
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
@@ -731,7 +731,7 @@ def _parse_cad_runtime_manifest(
     environment_tree = _parse_manifest_tree(
         environment["runtime"],
         name="CAD dependency runtime tree",
-        maximum_files=2_000,
+        maximum_files=4_000,
         maximum_bytes=1024 * 1024 * 1024,
     )
     trace = _exact_keys(

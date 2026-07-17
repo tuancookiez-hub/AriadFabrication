@@ -86,21 +86,38 @@ function AppShell({
       <a className="skip-link" href="#main-content">
         Skip to main content
       </a>
-      <header className="topbar">
+      <aside className="app-sidebar" aria-label="Ariad workspace navigation">
         <Link className="brand" to="/" aria-label="Ariad Fabrication home">
           <img src={logoUrl} alt="Ariad Fabrication" />
-          <span>
-            <strong>Ariad Fabrication</strong>
-            <small>Follow the thread from idea to evidence</small>
-          </span>
         </Link>
+        <nav className="primary-navigation" aria-label="Primary navigation">
+          <Link className="nav-item nav-item-active" to="/" aria-current="page"><span aria-hidden="true">⌁</span> Journey</Link>
+          <span className="nav-item nav-item-disabled"><span aria-hidden="true">▤</span> Projects</span>
+          <span className="nav-item nav-item-disabled"><span aria-hidden="true">◇</span> Parts library</span>
+          <span className="nav-item nav-item-disabled"><span aria-hidden="true">▱</span> Printers</span>
+          <span className="nav-item nav-item-disabled"><span aria-hidden="true">◫</span> Materials</span>
+          <span className="nav-item nav-item-disabled"><span aria-hidden="true">◎</span> Agents</span>
+          <span className="nav-item nav-item-disabled"><span aria-hidden="true">▧</span> Reports</span>
+        </nav>
+        <div className="sidebar-status">
+          <span className="status-avatar" aria-hidden="true">A</span>
+          <span><strong>Ariad</strong><small><i /> Local orchestrator</small></span>
+        </div>
+      </aside>
+      <div className="workspace-shell">
+        <header className="topbar">
+          <div className="project-context"><small>Project</small><strong>Fabrication Journey</strong></div>
+          <div className="topbar-actions">
+            <div className="system-pill"><i /> Evidence system nominal</div>
         <div className="boundary-pill">
           Read-only · hardware disconnected
         </div>
-      </header>
-      <main id="main-content" tabIndex={-1}>
-        {children}
-      </main>
+          </div>
+        </header>
+        <main id="main-content" tabIndex={-1}>
+          {children}
+        </main>
+      </div>
     </div>
   )
 }

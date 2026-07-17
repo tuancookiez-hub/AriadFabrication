@@ -259,7 +259,11 @@ def build_manifest() -> dict[str, Any]:
     )
     environment_files = set(environment_modules)
     for path, distribution in owner.items():
-        if distribution in selected_distributions and path.suffix.lower() == ".dll":
+        if distribution in selected_distributions and path.suffix.lower() in {
+            ".py",
+            ".pyd",
+            ".dll",
+        }:
             environment_files.add(path)
     for path in purelib.glob("*.pth"):
         environment_files.add(path.resolve())
@@ -301,9 +305,9 @@ def build_manifest() -> dict[str, Any]:
             "selected_distribution_count": len(selected_distributions),
             "selected_distributions": selected_distributions,
             "runtime_selection": (
-                "Every observed dependency module, every DLL owned by an observed "
-                "distribution, pyvenv.cfg, and every active environment .pth/bootstrap "
-                "file."
+                "Every importable Python/native module and DLL owned by a distribution "
+                "observed in the registered trace, plus pyvenv.cfg and every active "
+                "environment .pth/bootstrap file."
             ),
             "runtime": environment_tree,
         },

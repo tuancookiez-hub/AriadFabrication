@@ -11,8 +11,6 @@ from .contracts import (
     CadBuildRequest,
     CadBuildResult,
 )
-from .pipeline import CadPipelineOutcome, GoldenPartCadPipeline
-
 __all__ = [
     "CAD_CONTRACT_VERSION",
     "CadArtifactDescriptor",
@@ -22,3 +20,14 @@ __all__ = [
     "CadPipelineOutcome",
     "GoldenPartCadPipeline",
 ]
+
+
+def __getattr__(name: str):
+    if name in {"CadPipelineOutcome", "GoldenPartCadPipeline"}:
+        from .pipeline import CadPipelineOutcome, GoldenPartCadPipeline
+
+        return {
+            "CadPipelineOutcome": CadPipelineOutcome,
+            "GoldenPartCadPipeline": GoldenPartCadPipeline,
+        }[name]
+    raise AttributeError(name)

@@ -425,6 +425,36 @@ This file records accepted project-level decisions. Change an accepted decision 
 
 **Consequence:** The next M4 slice is the cancellable policy adapter. It must consume only a registry-sealed target, enforce the frozen wall/log/workspace/process/memory/network/import policy, and coordinate partial Journey evidence with the control store before any mutation endpoint, SSE transport, or browser Run control is added.
 
+### D-036 - Permit monitored workspace enforcement for sealed local targets
+
+**Status:** Accepted by the project owner on 2026-07-17. This supersedes D-033 and D-035 only where they required the 512 MiB workspace ceiling to be an operating-system hard quota.
+
+**Decision:** For the two registry-sealed, content-verified Golden Part R2/R4 targets only, permit the Windows supervisor to enforce the 512 MiB workspace ceiling by bounded recursive observation, immediate process-tree termination when the threshold is observed, and a mandatory final scan before success. The adapter must disclose that a fast writer can temporarily exceed the threshold between observations. This exception does not authorize caller-selected commands, paths, providers, generated code, arbitrary Python, or any hardware action.
+
+**Remaining security boundary:** Filesystem isolation, network denial, manifest-backed Python import enforcement, launch-time accepted-plan re-verification, and target-specific command construction remain mandatory before browser mutation. The monitored workspace exception cannot be generalized to an organic-model provider or other untrusted executable without a new decision and stronger containment evidence.
+
+**Evidence:** The Windows Job Object supervisor tests cover periodic and final workspace-overflow detection, bounded logs, aggregate memory, active-process limits, cancellation, shared deadlines, suspended launch, and descendant cleanup. The full backend suite passes 178 tests after the supervisor source bundle and CAD runtime manifest update. This is software-control evidence only and does not prove a hard disk quota.
+
+**Removal path:** Replace monitored enforcement with a fixed-size isolated volume, operating-system quota, disposable VM/container, or equivalent hard storage boundary when a supported implementation is available. That replacement must retain the same 512 MiB policy, complete process-tree cleanup, and overflow tests.
+
+**Consequence:** Workspace polling is no longer the sole blocker for the sealed R2/R4 adapter. Browser Run remains unavailable until every remaining security and persistence boundary above is implemented and tested.
+
+### D-037 - Seal and supervise the registered R2 Python lane
+
+**Status:** Accepted as implemented evidence on 2026-07-17.
+
+**Decision:** Launch the registry-reverified R2 CAD worker through a standalone `python -I -B -S` bootstrap before importing the registered module. Replace `sys.path` with four approved roots and permit only built-in/frozen modules or files whose absolute path and SHA-256 appear in the parent-built configuration. Include every importable Python/native module and DLL owned by a distribution observed in the approved trace, rather than only the exact modules loaded by one trace. Reject duplicate/open configuration shapes, unlisted origins, bytecode substitutions, changed bytes, escaping namespace locations, arbitrary module targets, ambient environment secrets, non-empty workspaces, and all hardware behavior.
+
+**Process boundary:** Run the bootstrap under the Windows Job Object supervisor with the frozen CAD deadline, aggregate memory, process-tree, log, cancellation, and D-036 workspace policy. Redirect home, temporary, and application-data directories into the execution workspace. Disable `COMSPEC` so dependency font discovery cannot invoke `cmd.exe`; the real R2 worker remains successful without that host probe. Record process image basenames and accounting for diagnosis without exposing full host paths. Windows may account short-lived Console Host infrastructure separately from the application child ceiling; the dedicated process-limit test remains the evidence that an attempted application child is rejected.
+
+**Evidence:** Standalone bootstrap tests prove registered success, arbitrary-target rejection, unlisted-import rejection, byte-drift rejection, and correct `SystemExit(0)` handling. Registry configuration tests prove immutable closed output and a current allowlist over 613 curated CPython files plus 2,285 dependency files. Real integration runs produce ten verified worker artifacts; the existing Golden Part pipeline consumes the sealed result, reaches persisted `geometry_verified` R2, writes Journey and manifest records, records 15 artifacts, and contains no Manufacturing stage. The persisted-pipeline integration passed three consecutive repetitions after shell suppression.
+
+**Limitation:** Exact import identity and Job supervision do not prevent approved native modules from reading arbitrary host files or opening a socket. Filesystem isolation and network denial remain mandatory before HTTP mutation. R4 PrusaSlicer execution is not covered by this decision.
+
+**Removal path:** A signed hermetic environment, disposable VM/container, or supported Windows sandbox launcher may replace the bootstrap and Job adapter only if it preserves accepted-plan re-verification, exact code identity, bounded resources/logs, cancellation and descendant cleanup, no ambient secrets or command shell, persisted R2 integration, and adversarial tests.
+
+**Consequence:** The R2 execution implementation is no longer a parallel proof-of-concept worker; it feeds the existing evidence-producing pipeline. Browser Run remains locked while OS filesystem/network isolation, R4 conversion, store coordination, and HTTP/SSE controls are incomplete.
+
 ## Deferred decisions
 
 These require later evidence and should not be decided through preference alone:

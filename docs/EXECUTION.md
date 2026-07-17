@@ -4,7 +4,7 @@
 
 **Policy version:** 1.0.0
 
-**Status:** Implemented as schemas, immutable Python records, pure lifecycle operations, an internal transactional SQLite control store, and a checkout-local trusted target registry with idempotency-aware admission. No process runner, event transport, mutation endpoint, or browser Run control exists yet.
+**Status:** Implemented as schemas, immutable Python records, lifecycle operations, an internal transactional SQLite store, a checkout-local sealed R2/R4 registry, Windows Job Object supervision, and a connected exact-path/SHA-256 Python worker bootstrap. The registered R2 CAD lane launch-reverifies its accepted plan, suppresses command-shell probing, runs under the frozen process/log/memory/deadline/cancellation policy and D-036 workspace monitoring, then feeds the existing persisted R2 Journey pipeline. Filesystem isolation, network denial, sealed R4 slicer execution, store/Journey event coordination, mutation/SSE endpoints, and browser controls remain unavailable.
 
 ## Purpose
 
@@ -141,7 +141,7 @@ These are admission and runtime requirements for the future adapter, not claims 
 | Persisted events | 10,000 per execution | Store enforces append order, 8 MiB aggregate JSON, and terminal slot/byte reserves |
 | Event data | 64 KiB, depth 16, 20,000 nodes, 32 top-level fields | Enforced by the event record |
 | Each stdout or stderr stream | 8 MiB | Not yet enforced; existing capture can grow without this bound |
-| Execution workspace | 512 MiB | Not yet enforced |
+| Execution workspace | 512 MiB | Enforced for sealed R2/R4 targets by bounded polling, immediate Job termination, and a final scan under D-036; temporary overshoot remains possible |
 | Active process-tree memory | 4 GiB | Not yet enforced by the operating system |
 | Concurrent child processes | 1 per execution | Not yet enforced as an OS process-tree limit |
 | Slicer threads | 4 | Existing default agrees; accepted runner must force it |
@@ -200,8 +200,8 @@ The GET-only API and read-only browser remain unchanged until all of these are i
 
 1. [x] A transactional SQLite control store with idempotency, FIFO admission, event sequences, leases, and startup reconciliation. M4-O implements it internally and keeps it unreachable from HTTP.
 2. [x] A target registry that snapshots and re-verifies all R2/R4 identities before acceptance and launch. M4-P implements acceptance and explicit `reverify`; the future adapter must call it at launch.
-3. [ ] Cancellable process-group adapters with bounded streaming stdout/stderr, one total deadline, and deterministic process-tree cleanup.
-4. [ ] Enforceable workspace, memory, child-process, network-denial, and slicer-thread controls for the host platform.
+3. [~] The registered R2 CAD worker now runs through the Windows Job Object with cancellable process-tree execution, bounded stdout/stderr, one shared deadline, launch-time accepted-plan re-verification, and deterministic descendant cleanup. R4 slicer commands remain unconverted.
+4. [~] Aggregate memory and active-process limits are enforced by the Windows Job Object. D-036 permits bounded polling plus a final workspace scan. The R2 Python lane now enforces exact import hashes and suppresses command-shell probing. Filesystem isolation, network denial, and sealed target-specific slicer-thread enforcement remain incomplete.
 5. [ ] Atomic Journey snapshot and execution-event coordination with retained partial evidence.
 6. [ ] Adapter-level recovery, cancellation-race, resource-exhaustion, and crash-injection tests. Store-level admission, race, rollback, stale-lease, corruption, and concurrent-open tests already pass.
 7. [ ] JSON-only same-origin mutation authentication plus an anti-CSRF capability.
