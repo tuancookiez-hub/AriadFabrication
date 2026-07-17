@@ -3,16 +3,24 @@
 from __future__ import annotations
 
 import argparse
+from hmac import compare_digest
 from pathlib import Path
+from secrets import token_urlsafe
 from threading import Lock
 from urllib.parse import quote
 
-from fastapi import FastAPI, HTTPException, Query, Response
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, Response
 
+from ..codex_conversation import LocalCodexConversation
 from ..intake import CapabilityLane, CurrentCapabilityRouter, IntentProposal, PromptIntake
 from ..local_codex import LocalCodexSnapshot, LocalCodexStatus, probe_local_codex
 
 from .models import (
+    BrowserSessionResponse,
+    ConversationCancelResponse,
+    ConversationEventsResponse,
+    ConversationTurnRequest,
+    ConversationTurnResponse,
     ErrorResponse,
     INTERFACE_API_VERSION,
     HealthResponse,
@@ -92,6 +100,7 @@ def create_app(
     runs_root: Path | str = Path("runs"),
     *,
     codex_executable: Path | None = None,
+    codex_workspace: Path | None = None,
 ) -> FastAPI:
     repository = JourneyRepository(runs_root)
     app = FastAPI(
@@ -111,18 +120,12 @@ def create_app(
     app.state.codex_executable = codex_executable
     app.state.codex_snapshot = None
     app.state.codex_probe_lock = Lock()
+    app.state.codex_workspace = codex_workspace
+    app.state.codex_conversation = None
+    app.state.codex_conversation_lock = Lock()
+    app.state.browser_session_token = token_urlsafe(32)
 
-    @app.get("/api/v1/health", response_model=HealthResponse)
-    def health() -> HealthResponse:
-        return HealthResponse(
-            schema_version=INTERFACE_API_VERSION,
-            service="ariad-interface-api",
-            status="ok",
-            capabilities=read_only_capabilities(),
-        )
-
-    @app.get("/api/v1/codex/status", response_model=LocalCodexStatusResponse)
-    def codex_status() -> LocalCodexStatusResponse:
+    def configured_codex_snapshot() -> LocalCodexSnapshot:
         snapshot: LocalCodexSnapshot | None = app.state.codex_snapshot
         if snapshot is None:
             with app.state.codex_probe_lock:
@@ -140,9 +143,124 @@ def create_app(
                         )
                     )
                     app.state.codex_snapshot = snapshot
+        return snapshot
+
+    def require_browser_session(x_ariad_session: str | None = Header(default=None)) -> None:
+        expected: str = app.state.browser_session_token
+        if x_ariad_session is None or not compare_digest(x_ariad_session, expected):
+            raise HTTPException(status_code=403, detail="A valid local Ariad session is required.")
+
+    def configured_conversation() -> LocalCodexConversation:
+        snapshot = configured_codex_snapshot()
+        if not snapshot.conversation_available:
+            raise HTTPException(status_code=503, detail=snapshot.reason)
+        executable: Path | None = app.state.codex_executable
+        workspace: Path | None = app.state.codex_workspace
+        if executable is None or workspace is None:
+            raise HTTPException(
+                status_code=503,
+                detail="A trusted Codex executable and empty conversation workspace are required.",
+            )
+        conversation: LocalCodexConversation | None = app.state.codex_conversation
+        if conversation is None:
+            with app.state.codex_conversation_lock:
+                conversation = app.state.codex_conversation
+                if conversation is None:
+                    try:
+                        conversation = LocalCodexConversation(executable, workspace)
+                    except (OSError, RuntimeError, ValueError) as exc:
+                        raise HTTPException(
+                            status_code=503,
+                            detail=f"Local Codex conversation could not start: {type(exc).__name__}.",
+                        ) from exc
+                    app.state.codex_conversation = conversation
+        return conversation
+
+    def close_conversation() -> None:
+        conversation: LocalCodexConversation | None = app.state.codex_conversation
+        if conversation is not None:
+            conversation.close()
+
+    app.router.add_event_handler("shutdown", close_conversation)
+
+    @app.get("/api/v1/health", response_model=HealthResponse)
+    def health() -> HealthResponse:
+        return HealthResponse(
+            schema_version=INTERFACE_API_VERSION,
+            service="ariad-interface-api",
+            status="ok",
+            capabilities=read_only_capabilities(),
+        )
+
+    @app.get("/api/v1/codex/status", response_model=LocalCodexStatusResponse)
+    def codex_status() -> LocalCodexStatusResponse:
+        snapshot = configured_codex_snapshot()
         return LocalCodexStatusResponse(
             schema_version=INTERFACE_API_VERSION,
             **snapshot.to_dict(),
+        )
+
+    @app.get("/api/v1/session", response_model=BrowserSessionResponse)
+    def browser_session(response: Response) -> BrowserSessionResponse:
+        response.headers["Cache-Control"] = "no-store"
+        return BrowserSessionResponse(
+            schema_version=INTERFACE_API_VERSION,
+            session_token=app.state.browser_session_token,
+            expires_on_restart=True,
+            codex_credentials_exposed=False,
+        )
+
+    @app.post(
+        "/api/v1/codex/turns",
+        response_model=ConversationTurnResponse,
+    )
+    def start_codex_turn(
+        request: ConversationTurnRequest,
+        _: None = Depends(require_browser_session),
+    ) -> ConversationTurnResponse:
+        conversation = configured_conversation()
+        try:
+            turn_id = conversation.start_turn(request.prompt)
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        except RuntimeError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        return ConversationTurnResponse(
+            schema_version=INTERFACE_API_VERSION,
+            turn_id=turn_id,
+            accepted=True,
+            tools_registered=0,
+            workspace_mutation_enabled=False,
+            hardware_actions=False,
+        )
+
+    @app.get("/api/v1/codex/events", response_model=ConversationEventsResponse)
+    def codex_events(
+        after: int = Query(0, ge=0),
+        _: None = Depends(require_browser_session),
+    ) -> ConversationEventsResponse:
+        conversation = configured_conversation()
+        events = conversation.events_after(after)
+        next_sequence = events[-1].sequence if events else after
+        return ConversationEventsResponse(
+            schema_version=INTERFACE_API_VERSION,
+            events=[event.to_dict() for event in events],
+            active_turn_id=conversation.active_turn_id,
+            next_sequence=next_sequence,
+            tools_registered=0,
+            workspace_mutation_enabled=False,
+            hardware_actions=False,
+        )
+
+    @app.post("/api/v1/codex/cancel", response_model=ConversationCancelResponse)
+    def cancel_codex_turn(
+        _: None = Depends(require_browser_session),
+    ) -> ConversationCancelResponse:
+        conversation = configured_conversation()
+        return ConversationCancelResponse(
+            schema_version=INTERFACE_API_VERSION,
+            accepted=conversation.cancel_active_turn(),
+            hardware_actions=False,
         )
 
     @app.post(
@@ -281,13 +399,23 @@ def main(argv: list[str] | None = None) -> None:
         default=None,
         help="Explicit native codex.exe used only for the bounded local account probe.",
     )
+    parser.add_argument(
+        "--codex-workspace",
+        type=Path,
+        default=None,
+        help="Existing empty directory used by the read-only local Codex conversation.",
+    )
     args = parser.parse_args(argv)
     if args.host not in {"127.0.0.1", "localhost", "::1"}:
         parser.error("the M4 API is local-only and may bind only to a loopback host")
     import uvicorn
 
     uvicorn.run(
-        create_app(args.runs_root, codex_executable=args.codex_bin),
+        create_app(
+            args.runs_root,
+            codex_executable=args.codex_bin,
+            codex_workspace=args.codex_workspace,
+        ),
         host=args.host,
         port=args.port,
     )

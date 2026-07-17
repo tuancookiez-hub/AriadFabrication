@@ -1,5 +1,9 @@
 import type {
   IntakeResponse,
+  BrowserSession,
+  ConversationCancel,
+  ConversationEvents,
+  ConversationTurn,
   LocalCodexStatus,
   RevisionComparison,
   RevisionDetail,
@@ -20,13 +24,14 @@ export class ApiError extends Error {
 async function requestJson<T>(
   path: string,
   signal?: AbortSignal,
-  init: Pick<RequestInit, 'method' | 'body'> = {},
+  init: Pick<RequestInit, 'method' | 'body' | 'headers'> = {},
 ): Promise<T> {
   const response = await fetch(`${apiRoot}${path}`, {
     ...init,
     headers: {
       Accept: 'application/json',
       ...(init.body ? { 'Content-Type': 'application/json' } : {}),
+      ...init.headers,
     },
     signal,
   })
@@ -52,6 +57,42 @@ export function captureIdea(prompt: string, signal?: AbortSignal): Promise<Intak
 
 export function getLocalCodexStatus(signal?: AbortSignal): Promise<LocalCodexStatus> {
   return requestJson('/api/v1/codex/status', signal)
+}
+
+export function getBrowserSession(signal?: AbortSignal): Promise<BrowserSession> {
+  return requestJson('/api/v1/session', signal)
+}
+
+export function startCodexTurn(
+  prompt: string,
+  sessionToken: string,
+  signal?: AbortSignal,
+): Promise<ConversationTurn> {
+  return requestJson('/api/v1/codex/turns', signal, {
+    method: 'POST',
+    body: JSON.stringify({ prompt }),
+    headers: { 'X-Ariad-Session': sessionToken },
+  })
+}
+
+export function getCodexEvents(
+  after: number,
+  sessionToken: string,
+  signal?: AbortSignal,
+): Promise<ConversationEvents> {
+  return requestJson(`/api/v1/codex/events?after=${after}`, signal, {
+    headers: { 'X-Ariad-Session': sessionToken },
+  })
+}
+
+export function cancelCodexTurn(
+  sessionToken: string,
+  signal?: AbortSignal,
+): Promise<ConversationCancel> {
+  return requestJson('/api/v1/codex/cancel', signal, {
+    method: 'POST',
+    headers: { 'X-Ariad-Session': sessionToken },
+  })
 }
 
 export function listRevisions(

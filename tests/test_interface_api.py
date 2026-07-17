@@ -22,6 +22,8 @@ from ariad_fabrication.api.repository import (
     InvalidRevisionError,
     RevisionNotFoundError,
 )
+from ariad_fabrication.codex_conversation import ConversationEvent, ConversationEventType
+from ariad_fabrication.local_codex import LocalCodexSnapshot, LocalCodexStatus
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -77,7 +79,7 @@ class JourneyRepositoryTests(unittest.TestCase):
         self.assertEqual(len(detail.stages[3].findings), 2)
         self.assertTrue(all(stage.evidence_mode == "fixture" for stage in detail.stages))
         self.assertFalse(detail.capabilities.hardware_actions)
-        self.assertEqual(detail.schema_version, "1.10.0")
+        self.assertEqual(detail.schema_version, "1.11.0")
         self.assertEqual(
             [report.report_kind for report in detail.inspection.reports],
             ["geometry", "printability", "gcode_preflight"],
@@ -1052,7 +1054,7 @@ class InterfaceHttpTests(unittest.TestCase):
         response = self.client.get("/api/v1/codex/status")
         self.assertEqual(response.status_code, 200)
         payload = response.json()
-        self.assertEqual(payload["schema_version"], "1.10.0")
+        self.assertEqual(payload["schema_version"], "1.11.0")
         self.assertEqual(payload["status"], "unavailable")
         self.assertIsNone(payload["authentication"])
         self.assertFalse(payload["conversation_available"])
@@ -1063,6 +1065,80 @@ class InterfaceHttpTests(unittest.TestCase):
         self.assertNotIn("email", str(payload).lower())
         self.assertNotIn("access_token", str(payload).lower())
 
+    def test_browser_session_protects_account_using_conversation_routes(self):
+        session = self.client.get("/api/v1/session")
+        self.assertEqual(session.status_code, 200)
+        self.assertEqual(session.headers["cache-control"], "no-store")
+        token = session.json()["session_token"]
+        self.assertGreaterEqual(len(token), 32)
+        self.assertFalse(session.json()["codex_credentials_exposed"])
+
+        unauthenticated = self.client.post(
+            "/api/v1/codex/turns",
+            json={"prompt": "Hello"},
+        )
+        self.assertEqual(unauthenticated.status_code, 403)
+        unavailable = self.client.post(
+            "/api/v1/codex/turns",
+            json={"prompt": "Hello"},
+            headers={"X-Ariad-Session": token},
+        )
+        self.assertEqual(unavailable.status_code, 503)
+
+    def test_conversation_routes_expose_only_curated_no_tool_events(self):
+        class FakeConversation:
+            active_turn_id = "turn_demo"
+
+            def start_turn(self, prompt):
+                self.prompt = prompt
+                return "turn_demo"
+
+            def events_after(self, sequence):
+                return (
+                    ConversationEvent(
+                        sequence + 1,
+                        ConversationEventType.ASSISTANT_TEXT_DELTA,
+                        "turn_demo",
+                        "Hello from Codex",
+                    ),
+                )
+
+            def cancel_active_turn(self):
+                return True
+
+        app = create_app(FIXTURE_ROOT)
+        app.state.codex_snapshot = LocalCodexSnapshot(
+            status=LocalCodexStatus.READY,
+            cli_version="codex-cli 0.144.5",
+            authentication="chatgpt",
+            reason="Ready for test conversation.",
+            conversation_available=True,
+        )
+        app.state.codex_executable = Path("configured-codex.exe")
+        app.state.codex_workspace = Path("configured-workspace")
+        app.state.codex_conversation = FakeConversation()
+        client = TestClient(app)
+        token = client.get("/api/v1/session").json()["session_token"]
+        headers = {"X-Ariad-Session": token}
+
+        started = client.post(
+            "/api/v1/codex/turns",
+            json={"prompt": "Design an airship"},
+            headers=headers,
+        )
+        self.assertEqual(started.status_code, 200)
+        self.assertEqual(started.json()["turn_id"], "turn_demo")
+        self.assertEqual(started.json()["tools_registered"], 0)
+        self.assertFalse(started.json()["workspace_mutation_enabled"])
+
+        events = client.get("/api/v1/codex/events?after=0", headers=headers)
+        self.assertEqual(events.status_code, 200)
+        self.assertEqual(events.json()["events"][0]["text"], "Hello from Codex")
+        self.assertEqual(events.json()["tools_registered"], 0)
+        self.assertFalse(events.json()["hardware_actions"])
+        cancelled = client.post("/api/v1/codex/cancel", headers=headers)
+        self.assertTrue(cancelled.json()["accepted"])
+
     def test_stateless_intake_accepts_an_idea_without_model_or_execution(self):
         response = self.client.post(
             "/api/v1/intake",
@@ -1070,7 +1146,7 @@ class InterfaceHttpTests(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 200)
         payload = response.json()
-        self.assertEqual(payload["schema_version"], "1.10.0")
+        self.assertEqual(payload["schema_version"], "1.11.0")
         self.assertEqual(payload["intake"]["prompt"], "Create a decorative floating air warship ✨")
         self.assertEqual(len(payload["intake"]["prompt_sha256"]), 64)
         self.assertFalse(payload["provider"]["configured"])
@@ -1121,7 +1197,7 @@ class InterfaceHttpTests(unittest.TestCase):
         detail = self.client.get(f"/api/v1/revisions/{JOB_ID}/{REVISION_ID}")
         self.assertEqual(detail.status_code, 200)
         payload = detail.json()
-        self.assertEqual(payload["schema_version"], "1.10.0")
+        self.assertEqual(payload["schema_version"], "1.11.0")
         self.assertEqual(
             [stage["stage"] for stage in payload["stages"]],
             [item[0] for item in STAGES],

@@ -14622,7 +14622,7 @@
     "geometry_expectations_sha256": "81fe5be964b47c727a581f2590a56bacd69ca3885cfc5c12db568e1e138b4f7d",
     "module_file_count_observed": 869,
     "claim_boundary": "The trace proves which Python module files were loaded by this successful registered digital path on the recorded runtime. It does not prove that unmanifested modules can never load until the process adapter enforces the allowlist, and it is not physical evidence.",
-    "application_bundle_sha256": "a663dd87264ee1b9b630d998f60d80d4a02d18362932c3023e10d570d42e43af",
+    "application_bundle_sha256": "5d1005764b0c9bf9b05b6e326aa094d2881f23deee01515826af3de515d247bb",
     "module_file_count_in_python_base": 162,
     "module_file_count_in_dependency_environment": 675
   },

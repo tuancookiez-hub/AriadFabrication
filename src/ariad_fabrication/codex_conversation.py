@@ -100,6 +100,8 @@ class LocalCodexConversation:
             raise ValueError("a native Codex executable is required")
         if not self.workspace.is_dir():
             raise ValueError("Codex conversation workspace must already exist")
+        if any(self.workspace.iterdir()):
+            raise ValueError("Codex conversation workspace must be empty")
         if not 1.0 <= timeout_seconds <= 60.0:
             raise ValueError("conversation request timeout must be between 1 and 60 seconds")
         self.timeout_seconds = timeout_seconds
@@ -314,6 +316,11 @@ class LocalCodexConversation:
             raise ValueError("event sequence cannot be negative")
         with self._state_lock:
             return tuple(event for event in self._events if event.sequence > sequence)
+
+    @property
+    def active_turn_id(self) -> str | None:
+        with self._state_lock:
+            return self._active_turn_id
 
     def cancel_active_turn(self) -> bool:
         with self._state_lock:

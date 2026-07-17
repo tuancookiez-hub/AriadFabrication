@@ -17,12 +17,13 @@ from ..domain import (
     JobStatus,
     StageStatus,
 )
+from ..codex_conversation import ConversationEventType
 from ..intake import CapabilityLane, RouteStatus
 from ..local_codex import LocalCodexStatus
 
 
-InterfaceApiVersion = Literal["1.10.0"]
-INTERFACE_API_VERSION: InterfaceApiVersion = "1.10.0"
+InterfaceApiVersion = Literal["1.11.0"]
+INTERFACE_API_VERSION: InterfaceApiVersion = "1.11.0"
 Timestamp = Annotated[str, Field(json_schema_extra={"format": "date-time"})]
 
 
@@ -88,6 +89,50 @@ class LocalCodexStatusResponse(ApiModel):
     tools_registered: Literal[0]
     conversation_started: Literal[False]
     workspace_mutated: Literal[False]
+    hardware_actions: Literal[False]
+
+
+class BrowserSessionResponse(ApiModel):
+    schema_version: InterfaceApiVersion
+    session_token: str = Field(min_length=32, max_length=128)
+    expires_on_restart: Literal[True]
+    codex_credentials_exposed: Literal[False]
+
+
+class ConversationTurnRequest(ApiModel):
+    prompt: str = Field(min_length=1, max_length=16_384)
+
+
+class ConversationTurnResponse(ApiModel):
+    schema_version: InterfaceApiVersion
+    turn_id: str
+    accepted: Literal[True]
+    tools_registered: Literal[0]
+    workspace_mutation_enabled: Literal[False]
+    hardware_actions: Literal[False]
+
+
+class ConversationEventView(ApiModel):
+    contract_version: Literal["1.0.0"]
+    sequence: int
+    event_type: ConversationEventType
+    turn_id: str
+    text: str
+
+
+class ConversationEventsResponse(ApiModel):
+    schema_version: InterfaceApiVersion
+    events: list[ConversationEventView]
+    active_turn_id: str | None
+    next_sequence: int
+    tools_registered: Literal[0]
+    workspace_mutation_enabled: Literal[False]
+    hardware_actions: Literal[False]
+
+
+class ConversationCancelResponse(ApiModel):
+    schema_version: InterfaceApiVersion
+    accepted: bool
     hardware_actions: Literal[False]
 
 

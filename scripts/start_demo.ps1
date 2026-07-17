@@ -39,7 +39,17 @@ if ($null -ne $CodexBin) {
     if (-not $CodexBin.Exists -or $CodexBin.Extension -ne ".exe") {
         throw "CodexBin must be an existing native codex.exe path."
     }
-    $apiArguments += @("--codex-bin", $CodexBin.FullName)
+    $codexWorkspace = Join-Path $root "runs\codex-chat"
+    if (-not (Test-Path -LiteralPath $codexWorkspace)) {
+        New-Item -ItemType Directory -Path $codexWorkspace | Out-Null
+    }
+    if (@(Get-ChildItem -LiteralPath $codexWorkspace -Force).Count -ne 0) {
+        throw "The isolated Codex conversation workspace must be empty: $codexWorkspace"
+    }
+    $apiArguments += @(
+        "--codex-bin", $CodexBin.FullName,
+        "--codex-workspace", $codexWorkspace
+    )
 }
 $apiProcess = Start-Process -FilePath $api -ArgumentList $apiArguments -WorkingDirectory $root -PassThru -WindowStyle Hidden
 
@@ -65,7 +75,7 @@ try {
     Write-Host "Ariad demo: http://${HostAddress}:${WebPort}"
     Write-Host "Evidence root: $runsRoot"
     Write-Host "Hardware actions: disabled"
-    Write-Host "Codex probe: $(if ($null -eq $CodexBin) { 'not configured' } else { 'configured' })"
+    Write-Host "Codex conversation: $(if ($null -eq $CodexBin) { 'not configured' } else { 'configured (read-only)' })"
     & pnpm --dir $web dev --host $HostAddress --port $WebPort
 } finally {
     if (-not $apiProcess.HasExited) {

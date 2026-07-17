@@ -4,6 +4,40 @@
  */
 
 export interface paths {
+    "/api/v1/codex/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel Codex Turn */
+        post: operations["cancel_codex_turn_api_v1_codex_cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/codex/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Codex Events */
+        get: operations["codex_events_api_v1_codex_events_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/codex/status": {
         parameters: {
             query?: never;
@@ -15,6 +49,23 @@ export interface paths {
         get: operations["codex_status_api_v1_codex_status_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/codex/turns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start Codex Turn */
+        post: operations["start_codex_turn_api_v1_codex_turns_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -126,6 +177,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Browser Session */
+        get: operations["browser_session_api_v1_session_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -187,6 +255,26 @@ export interface components {
             size_bytes: number | null;
             /** Stage Run Id */
             stage_run_id: string;
+        };
+        /** BrowserSessionResponse */
+        BrowserSessionResponse: {
+            /**
+             * Codex Credentials Exposed
+             * @constant
+             */
+            codex_credentials_exposed: false;
+            /**
+             * Expires On Restart
+             * @constant
+             */
+            expires_on_restart: true;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "1.11.0";
+            /** Session Token */
+            session_token: string;
         };
         /** CapabilitiesView */
         CapabilitiesView: {
@@ -330,6 +418,105 @@ export interface components {
             source_label: string;
             /** Title */
             title: string;
+        };
+        /** ConversationCancelResponse */
+        ConversationCancelResponse: {
+            /** Accepted */
+            accepted: boolean;
+            /**
+             * Hardware Actions
+             * @constant
+             */
+            hardware_actions: false;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "1.11.0";
+        };
+        /** ConversationEventsResponse */
+        ConversationEventsResponse: {
+            /** Active Turn Id */
+            active_turn_id: string | null;
+            /** Events */
+            events: components["schemas"]["ConversationEventView"][];
+            /**
+             * Hardware Actions
+             * @constant
+             */
+            hardware_actions: false;
+            /** Next Sequence */
+            next_sequence: number;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "1.11.0";
+            /**
+             * Tools Registered
+             * @constant
+             */
+            tools_registered: 0;
+            /**
+             * Workspace Mutation Enabled
+             * @constant
+             */
+            workspace_mutation_enabled: false;
+        };
+        /**
+         * ConversationEventType
+         * @enum {string}
+         */
+        ConversationEventType: "turn_started" | "assistant_text_delta" | "turn_completed" | "turn_failed" | "turn_cancelled";
+        /** ConversationEventView */
+        ConversationEventView: {
+            /**
+             * Contract Version
+             * @constant
+             */
+            contract_version: "1.0.0";
+            event_type: components["schemas"]["ConversationEventType"];
+            /** Sequence */
+            sequence: number;
+            /** Text */
+            text: string;
+            /** Turn Id */
+            turn_id: string;
+        };
+        /** ConversationTurnRequest */
+        ConversationTurnRequest: {
+            /** Prompt */
+            prompt: string;
+        };
+        /** ConversationTurnResponse */
+        ConversationTurnResponse: {
+            /**
+             * Accepted
+             * @constant
+             */
+            accepted: true;
+            /**
+             * Hardware Actions
+             * @constant
+             */
+            hardware_actions: false;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "1.11.0";
+            /**
+             * Tools Registered
+             * @constant
+             */
+            tools_registered: 0;
+            /** Turn Id */
+            turn_id: string;
+            /**
+             * Workspace Mutation Enabled
+             * @constant
+             */
+            workspace_mutation_enabled: false;
         };
         /**
          * DecisionActor
@@ -494,7 +681,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.10.0";
+            schema_version: "1.11.0";
             /**
              * Service
              * @constant
@@ -727,7 +914,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.10.0";
+            schema_version: "1.11.0";
         };
         /** IntentProviderView */
         IntentProviderView: {
@@ -817,7 +1004,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.10.0";
+            schema_version: "1.11.0";
             status: components["schemas"]["LocalCodexStatus"];
             /**
              * Tools Registered
@@ -885,7 +1072,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.10.0";
+            schema_version: "1.11.0";
             /** Summaries */
             summaries: components["schemas"]["ComparisonAreaSummaryView"][];
             /** Total Change Count */
@@ -904,7 +1091,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.10.0";
+            schema_version: "1.11.0";
             source: components["schemas"]["SourceView"];
             /** Stages */
             stages: components["schemas"]["StageView"][];
@@ -918,7 +1105,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.10.0";
+            schema_version: "1.11.0";
             window: components["schemas"]["RevisionListWindowView"];
         };
         /** RevisionListWindowView */
@@ -1099,6 +1286,70 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    cancel_codex_turn_api_v1_codex_cancel_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-ariad-session"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationCancelResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    codex_events_api_v1_codex_events_get: {
+        parameters: {
+            query?: {
+                after?: number;
+            };
+            header?: {
+                "x-ariad-session"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationEventsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     codex_status_api_v1_codex_status_get: {
         parameters: {
             query?: never;
@@ -1115,6 +1366,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LocalCodexStatusResponse"];
+                };
+            };
+        };
+    };
+    start_codex_turn_api_v1_codex_turns_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-ariad-session"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConversationTurnRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationTurnResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -1372,6 +1658,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    browser_session_api_v1_session_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrowserSessionResponse"];
                 };
             };
         };
