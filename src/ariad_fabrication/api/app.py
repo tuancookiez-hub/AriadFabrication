@@ -129,6 +129,10 @@ def create_app(
     )
     app.state.repository = repository
     app.state.runs_root = Path(runs_root).expanduser().resolve()
+    app.state.project_confirmation_enabled = not (
+        app.state.runs_root.name == "interface"
+        and app.state.runs_root.parent.name == "benchmarks"
+    )
     app.state.project_store = ProjectIntentStore(projects_root)
     app.state.agent_tool_runtime = ReadOnlyAgentToolRuntime(repository)
     app.state.codex_executable = codex_executable
@@ -357,6 +361,11 @@ def create_app(
         _: None = Depends(require_browser_session),
     ) -> ProjectBriefView:
         del request
+        if not app.state.project_confirmation_enabled:
+            raise HTTPException(
+                status_code=409,
+                detail="R0 confirmation is disabled while replaying the committed interface fixture.",
+            )
         store: ProjectIntentStore = app.state.project_store
         try:
             brief = store.confirm_brief(project_id, runs_root=app.state.runs_root)

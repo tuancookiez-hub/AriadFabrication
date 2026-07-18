@@ -1140,6 +1140,16 @@ class InterfaceHttpTests(unittest.TestCase):
             self.assertEqual(journey.json()["job"]["status"], "ready_for_design")
             self.assertEqual(journey.json()["stages"][0]["evidence_level"], "R0")
 
+    def test_committed_fixture_mode_cannot_publish_project_r0_records(self):
+        token = self.client.get("/api/v1/session").json()["session_token"]
+        response = self.client.post(
+            "/api/v1/projects/project_00000000000000000000000000000000/brief-confirmation",
+            json={"confirmed": True},
+            headers={"X-Ariad-Session": token},
+        )
+        self.assertEqual(response.status_code, 409)
+        self.assertIn("fixture", response.json()["detail"])
+
     def test_codex_status_is_sanitized_and_does_not_start_work(self):
         response = self.client.get("/api/v1/codex/status")
         self.assertEqual(response.status_code, 200)

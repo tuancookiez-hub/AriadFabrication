@@ -53,6 +53,9 @@ pnpm --dir web install --frozen-lockfile
 # One-command fixture demo (hardware remains disabled)
 .\scripts\start_demo.ps1
 
+# Live project clarification and R0 confirmation use the mutable runs workspace.
+.\scripts\start_demo.ps1 -Evidence runs
+
 # Optional: show sanitized local Codex authentication status. Pass the native
 # codex.exe from the installed Codex package, never auth.json or a token.
 .\scripts\start_demo.ps1 -CodexBin "C:\path\to\codex.exe"
@@ -66,7 +69,8 @@ pnpm --dir web dev
 
 For a lightweight UI-only evaluation, use `benchmarks/interface` as the API
 runs root. Those records are visibly marked as fixtures and provide no
-fabrication evidence.
+fabrication evidence. R0 project confirmation is disabled in this mode so the
+committed fixture cannot be mutated; use `-Evidence runs` for the live project flow.
 
 For the real disconnected benchmark:
 
