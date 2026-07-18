@@ -26,6 +26,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  overflow-x: clip;
   background:
     radial-gradient(circle at 78% -20%, rgba(239, 41, 41, 0.16), transparent 38rem),
     var(--bg);
@@ -2151,6 +2152,8 @@ main {
   .hero h1,
   .detail-header h1 {
     font-size: clamp(2.6rem, 15vw, 4.5rem);
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
   .fixture-banner,
