@@ -16,11 +16,15 @@ from pathlib import Path
 from threading import Lock
 from uuid import uuid4
 
+from ..domain import BoundingBox, EvidenceLevel, PartSpec, SafetyClass, SupportPolicy
+from ..orchestrator import PipelineOrchestrator
+
 
 PROJECT_INTENT_SCHEMA_VERSION = "1.0.0"
 MAX_PROJECT_INTENTS = 500
 MAX_PROJECT_RECORD_BYTES = 64 * 1024
 PROJECT_DRAFT_SCHEMA_VERSION = "1.0.0"
+PROJECT_BRIEF_SCHEMA_VERSION = "1.0.0"
 PROJECT_DRAFT_FIELDS = (
     "material",
     "manufacturing_process",
@@ -96,6 +100,24 @@ class ProjectDraft:
         return value
 
 
+@dataclass(frozen=True)
+class ProjectBrief:
+    schema_version: str
+    project_id: str
+    job_id: str
+    revision_id: str
+    draft_sha256: str
+    confirmed_at: str
+    confirmed_by: str
+    evidence_level: str
+    status: str
+    fabrication_started: bool
+    hardware_actions: bool
+
+    def to_dict(self) -> dict[str, object]:
+        return asdict(self)
+
+
 class ProjectIntentStore:
     def __init__(self, root: Path | str):
         self.root = Path(root).expanduser().resolve()
@@ -163,6 +185,8 @@ class ProjectIntentStore:
 
     def save_draft(self, project_id: str, values: dict[str, object]) -> ProjectDraft:
         self._read(project_id)
+        if self.get_brief(project_id) is not None:
+            raise ProjectStoreError("the clarification draft is immutable after R0 confirmation")
         normalized = self._normalize_draft_values(values)
         missing = tuple(name for name in PROJECT_DRAFT_FIELDS if normalized[name] is None)
         draft = ProjectDraft(
@@ -229,6 +253,137 @@ class ProjectIntentStore:
         if updated_at.tzinfo is None:
             raise ProjectStoreError("clarification draft timestamp must include a timezone")
         return draft
+
+    def confirm_brief(self, project_id: str, *, runs_root: Path | str) -> ProjectBrief:
+        project = self._read(project_id)
+        draft = self.get_draft(project_id)
+        if draft is None or draft.status != "ready_for_confirmation":
+            raise ProjectStoreError("a complete clarification draft is required before confirmation")
+        existing = self.get_brief(project_id)
+        if existing is not None:
+            return existing
+        spec = PartSpec(
+            name=draft.name,
+            purpose=draft.purpose,
+            part_type=draft.part_type,
+            bounding_box=BoundingBox(draft.size_x_mm, draft.size_y_mm, draft.size_z_mm),
+            material=draft.material,
+            tolerance_mm=draft.tolerance_mm,
+            support_policy=SupportPolicy(draft.support_policy),
+            manufacturing_process=draft.manufacturing_process,
+            safety_class=SafetyClass(draft.safety_class),
+            source="user_confirmed_project_draft",
+            notes=f"Confirmed from saved project intent {project.project_id}.",
+        )
+        journey = PipelineOrchestrator(None).run_spec(spec, request=project.prompt, confirm=True)
+        revision = journey.current_revision
+        if (
+            revision is None
+            or journey.stage_runs[-1].evidence_level is not EvidenceLevel.R0
+            or journey.job.status != "ready_for_design"
+        ):
+            raise ProjectStoreError("the confirmed draft did not pass the existing Brief gate")
+        root = Path(runs_root).expanduser().resolve()
+        record = ProjectBrief(
+            schema_version=PROJECT_BRIEF_SCHEMA_VERSION,
+            project_id=project_id,
+            job_id=journey.job.job_id,
+            revision_id=revision.revision_id,
+            draft_sha256=self._draft_sha256(draft),
+            confirmed_at=datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+            confirmed_by="user",
+            evidence_level=EvidenceLevel.R0.value,
+            status="ready_for_design",
+            fabrication_started=False,
+            hardware_actions=False,
+        )
+        with self._lock:
+            existing = self._read_brief_file(project_id)
+            if existing is not None:
+                return existing
+            project_directory = self.root / project_id
+            staging = project_directory / f"brief-staging-{uuid4().hex}"
+            destination = root / journey.job.job_id / "revisions" / revision.revision_id
+            staging.mkdir(parents=False, exist_ok=False)
+            try:
+                self._write_atomic(staging / "journey.json", journey.to_dict())
+                self._write_atomic(
+                    staging / "manifest.json",
+                    journey.manifest_for_revision(revision.revision_id).to_dict(),
+                )
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                os.replace(staging, destination)
+                self._write_atomic(project_directory / "brief.json", record.to_dict())
+            finally:
+                if staging.exists():
+                    for child in staging.iterdir():
+                        child.unlink(missing_ok=True)
+                    staging.rmdir()
+        return record
+
+    def get_brief(self, project_id: str) -> ProjectBrief | None:
+        self._read(project_id)
+        return self._read_brief_file(project_id)
+
+    def _read_brief_file(self, project_id: str) -> ProjectBrief | None:
+        path = self.root / project_id / "brief.json"
+        if not path.exists():
+            return None
+        if not path.is_file() or path.is_symlink():
+            raise ProjectStoreError("confirmed Brief record is unavailable")
+        with path.open("rb") as stream:
+            raw = stream.read(MAX_PROJECT_RECORD_BYTES + 1)
+        if len(raw) > MAX_PROJECT_RECORD_BYTES:
+            raise ProjectStoreError("confirmed Brief record exceeds the read ceiling")
+        try:
+            record = ProjectBrief(**json.loads(raw, object_pairs_hook=_strict_object))
+        except (UnicodeDecodeError, json.JSONDecodeError, TypeError) as exc:
+            raise ProjectStoreError("confirmed Brief record is invalid") from exc
+        if (
+            record.schema_version != PROJECT_BRIEF_SCHEMA_VERSION
+            or record.project_id != project_id
+            or record.confirmed_by != "user"
+            or record.evidence_level != EvidenceLevel.R0.value
+            or record.status != "ready_for_design"
+            or record.fabrication_started is not False
+            or record.hardware_actions is not False
+        ):
+            raise ProjectStoreError("confirmed Brief claim boundary is inconsistent")
+        if not record.job_id.startswith("job_") or not record.revision_id.startswith("rev_"):
+            raise ProjectStoreError("confirmed Brief Journey identity is inconsistent")
+        if not isinstance(record.confirmed_at, str):
+            raise ProjectStoreError("confirmed Brief timestamp is invalid")
+        try:
+            confirmed_at = datetime.fromisoformat(record.confirmed_at.replace("Z", "+00:00"))
+        except ValueError as exc:
+            raise ProjectStoreError("confirmed Brief timestamp is invalid") from exc
+        if confirmed_at.tzinfo is None:
+            raise ProjectStoreError("confirmed Brief timestamp must include a timezone")
+        draft = self.get_draft(project_id)
+        if draft is None or record.draft_sha256 != self._draft_sha256(draft):
+            raise ProjectStoreError("confirmed Brief draft checksum is inconsistent")
+        return record
+
+    @staticmethod
+    def _draft_sha256(draft: ProjectDraft) -> str:
+        canonical = json.dumps(
+            draft.to_dict(), ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        ).encode("utf-8")
+        return sha256(canonical).hexdigest()
+
+    @staticmethod
+    def _write_atomic(path: Path, value: dict[str, object]) -> None:
+        rendered = (json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode("utf-8")
+        temporary = path.with_suffix(path.suffix + ".tmp")
+        descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        try:
+            with os.fdopen(descriptor, "wb") as stream:
+                stream.write(rendered)
+                stream.flush()
+                os.fsync(stream.fileno())
+            os.replace(temporary, path)
+        finally:
+            temporary.unlink(missing_ok=True)
 
     @staticmethod
     def _normalize_draft_values(values: dict[str, object]) -> dict[str, object]:
@@ -303,4 +458,4 @@ class ProjectIntentStore:
         return value
 
 
-__all__ = ["ProjectDraft", "ProjectIntent", "ProjectIntentStore", "ProjectStoreError"]
+__all__ = ["ProjectBrief", "ProjectDraft", "ProjectIntent", "ProjectIntentStore", "ProjectStoreError"]

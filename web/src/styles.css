@@ -2187,6 +2187,27 @@ main {
   }
 }
 
+.brief-confirmation {
+  margin-top: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--panel);
+}
+
+.brief-confirmation label {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+  margin: 1rem 0;
+}
+
+.clarify-form fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

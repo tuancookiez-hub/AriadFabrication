@@ -539,6 +539,16 @@ This file records accepted project-level decisions. Change an accepted decision 
 
 **Consequence:** Ariad can guide a beginner without inventing dimensions or conflating form completion with engineering approval. A separate explicit confirmation operation is required to construct and validate `PartSpec` and enter the existing Brief gate.
 
+### D-045 - Enter R0 only through separate user approval and the existing Brief gate
+
+**Status:** Accepted as implemented evidence on 2026-07-18.
+
+**Decision:** A complete clarification draft remains below R0 until the user checks an approval statement and invokes a distinct confirmation operation. Ariad constructs `PartSpec`, calls the existing `PipelineOrchestrator.run_spec(..., confirm=True)` gate, records the user decision, and publishes the resulting Journey and manifest. The approved draft becomes immutable and the project Brief record binds to its canonical SHA-256.
+
+**Evidence:** API 1.15.0 rejects incomplete or non-explicit confirmation, persists one idempotent R0 record, exposes it through normal Journey replay, and keeps fabrication and hardware fields false. Store, HTTP, and React tests cover the separate approval, checksum binding, immutability, and visible no-fabrication boundary.
+
+**Consequence:** The hackathon demo now has an honest prompt-to-R0 product path. R0 means requirements are confirmed and ready for Design; it does not mean CAD exists or that anything is printable.
+
 ## Deferred decisions
 
 These require later evidence and should not be decided through preference alone:

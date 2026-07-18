@@ -74,6 +74,35 @@ class ProjectIntentStoreTests(unittest.TestCase):
             with self.assertRaisesRegex(ProjectStoreError, "readiness"):
                 store.get_draft(project.project_id)
 
+    def test_complete_draft_confirmation_persists_one_r0_journey(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            store = ProjectIntentStore(root / "projects")
+            project = store.create(title="Airship", prompt="A display model")
+            store.save_draft(project.project_id, {
+                "name": "Airship", "purpose": "Desk display", "part_type": "decorative model",
+                "size_x_mm": 120.0, "size_y_mm": 45.0, "size_z_mm": 35.0,
+                "material": "PLA", "tolerance_mm": 0.2, "support_policy": "allowed",
+                "manufacturing_process": "FDM", "safety_class": "general",
+            })
+            brief = store.confirm_brief(project.project_id, runs_root=root / "runs")
+            self.assertEqual(brief.evidence_level, "R0")
+            self.assertEqual(brief.status, "ready_for_design")
+            self.assertFalse(brief.fabrication_started)
+            revision_root = root / "runs" / brief.job_id / "revisions" / brief.revision_id
+            journey = json.loads((revision_root / "journey.json").read_text(encoding="utf-8"))
+            self.assertEqual(journey["job"]["status"], "ready_for_design")
+            self.assertEqual(journey["revisions"][0]["spec"]["status"], "confirmed")
+            self.assertEqual(journey["stage_runs"][0]["evidence_level"], "R0")
+            self.assertEqual(store.confirm_brief(project.project_id, runs_root=root / "runs"), brief)
+            with self.assertRaisesRegex(ProjectStoreError, "immutable"):
+                store.save_draft(project.project_id, {
+                    "name": "Changed", "purpose": "Desk display", "part_type": "decorative model",
+                    "size_x_mm": 120.0, "size_y_mm": 45.0, "size_z_mm": 35.0,
+                    "material": "PLA", "tolerance_mm": 0.2, "support_policy": "allowed",
+                    "manufacturing_process": "FDM", "safety_class": "general",
+                })
+
 
 if __name__ == "__main__":
     unittest.main()

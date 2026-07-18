@@ -10,6 +10,7 @@ import type {
   ProjectDetail,
   ProjectDraft,
   ProjectDraftRequest,
+  ProjectBrief,
   RevisionComparison,
   RevisionDetail,
   RevisionListResponse,
@@ -131,6 +132,12 @@ export function getProjectDetail(projectId: string, sessionToken: string, signal
 export function saveProjectDraft(projectId: string, draft: ProjectDraftRequest, sessionToken: string, signal?: AbortSignal): Promise<ProjectDraft> {
   return requestJson(`/api/v1/projects/${encodeURIComponent(projectId)}/draft`, signal, {
     method: 'PUT', body: JSON.stringify(draft), headers: { 'X-Ariad-Session': sessionToken },
+  })
+}
+
+export function confirmProjectBrief(projectId: string, sessionToken: string, signal?: AbortSignal): Promise<ProjectBrief> {
+  return requestJson(`/api/v1/projects/${encodeURIComponent(projectId)}/brief-confirmation`, signal, {
+    method: 'POST', body: JSON.stringify({ confirmed: true }), headers: { 'X-Ariad-Session': sessionToken },
   })
 }
 

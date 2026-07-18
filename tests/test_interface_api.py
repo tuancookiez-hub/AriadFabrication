@@ -79,7 +79,7 @@ class JourneyRepositoryTests(unittest.TestCase):
         self.assertEqual(len(detail.stages[3].findings), 2)
         self.assertTrue(all(stage.evidence_mode == "fixture" for stage in detail.stages))
         self.assertFalse(detail.capabilities.hardware_actions)
-        self.assertEqual(detail.schema_version, "1.14.0")
+        self.assertEqual(detail.schema_version, "1.15.0")
         self.assertEqual(
             [report.report_kind for report in detail.inspection.reports],
             ["geometry", "printability", "gcode_preflight"],
@@ -1092,11 +1092,59 @@ class InterfaceHttpTests(unittest.TestCase):
         self.assertEqual(detail.status_code, 200)
         self.assertEqual(detail.json()["draft"]["missing_fields"], draft.json()["missing_fields"])
 
+    def test_complete_project_requires_explicit_confirmation_before_r0(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            client = TestClient(create_app(root / "runs", projects_root=root / "projects"))
+            token = client.get("/api/v1/session").json()["session_token"]
+            headers = {"X-Ariad-Session": token}
+            created = client.post(
+                "/api/v1/projects",
+                json={"title": "Airship", "prompt": "A display model", "confirmed": True},
+                headers=headers,
+            ).json()
+            project_id = created["project_id"]
+            complete = {
+                "name": "Airship", "purpose": "Desk display", "part_type": "decorative model",
+                "size_x_mm": 120, "size_y_mm": 45, "size_z_mm": 35, "material": "PLA",
+                "tolerance_mm": 0.2, "support_policy": "allowed",
+                "manufacturing_process": "FDM", "safety_class": "general",
+            }
+            saved = client.put(
+                f"/api/v1/projects/{project_id}/draft", json=complete, headers=headers
+            )
+            self.assertEqual(saved.json()["status"], "ready_for_confirmation")
+            self.assertIsNone(
+                client.get(f"/api/v1/projects/{project_id}", headers=headers).json()["brief"]
+            )
+            rejected = client.post(
+                f"/api/v1/projects/{project_id}/brief-confirmation",
+                json={"confirmed": False}, headers=headers,
+            )
+            self.assertEqual(rejected.status_code, 422)
+            confirmed = client.post(
+                f"/api/v1/projects/{project_id}/brief-confirmation",
+                json={"confirmed": True}, headers=headers,
+            )
+            self.assertEqual(confirmed.status_code, 201)
+            self.assertEqual(confirmed.json()["evidence_level"], "R0")
+            self.assertFalse(confirmed.json()["fabrication_started"])
+            detail = client.get(f"/api/v1/projects/{project_id}", headers=headers).json()
+            self.assertEqual(detail["brief"]["revision_id"], confirmed.json()["revision_id"])
+            revisions = client.get("/api/v1/revisions").json()["revisions"]
+            self.assertEqual(len(revisions), 1)
+            journey = client.get(
+                f"/api/v1/revisions/{confirmed.json()['job_id']}/{confirmed.json()['revision_id']}"
+            )
+            self.assertEqual(journey.status_code, 200)
+            self.assertEqual(journey.json()["job"]["status"], "ready_for_design")
+            self.assertEqual(journey.json()["stages"][0]["evidence_level"], "R0")
+
     def test_codex_status_is_sanitized_and_does_not_start_work(self):
         response = self.client.get("/api/v1/codex/status")
         self.assertEqual(response.status_code, 200)
         payload = response.json()
-        self.assertEqual(payload["schema_version"], "1.14.0")
+        self.assertEqual(payload["schema_version"], "1.15.0")
         self.assertEqual(payload["status"], "unavailable")
         self.assertIsNone(payload["authentication"])
         self.assertFalse(payload["conversation_available"])
@@ -1188,7 +1236,7 @@ class InterfaceHttpTests(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 200)
         payload = response.json()
-        self.assertEqual(payload["schema_version"], "1.14.0")
+        self.assertEqual(payload["schema_version"], "1.15.0")
         self.assertEqual(payload["intake"]["prompt"], "Create a decorative floating air warship ✨")
         self.assertEqual(len(payload["intake"]["prompt_sha256"]), 64)
         self.assertFalse(payload["provider"]["configured"])
@@ -1239,7 +1287,7 @@ class InterfaceHttpTests(unittest.TestCase):
         detail = self.client.get(f"/api/v1/revisions/{JOB_ID}/{REVISION_ID}")
         self.assertEqual(detail.status_code, 200)
         payload = detail.json()
-        self.assertEqual(payload["schema_version"], "1.14.0")
+        self.assertEqual(payload["schema_version"], "1.15.0")
         self.assertEqual(
             [stage["stage"] for stage in payload["stages"]],
             [item[0] for item in STAGES],

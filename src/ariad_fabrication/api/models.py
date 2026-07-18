@@ -22,8 +22,8 @@ from ..intake import CapabilityLane, RouteStatus
 from ..local_codex import LocalCodexStatus
 
 
-InterfaceApiVersion = Literal["1.14.0"]
-INTERFACE_API_VERSION: InterfaceApiVersion = "1.14.0"
+InterfaceApiVersion = Literal["1.15.0"]
+INTERFACE_API_VERSION: InterfaceApiVersion = "1.15.0"
 Timestamp = Annotated[str, Field(json_schema_extra={"format": "date-time"})]
 
 
@@ -203,10 +203,29 @@ class ProjectDraftView(ApiModel):
     hardware_actions: Literal[False]
 
 
+class ProjectBriefConfirmRequest(ApiModel):
+    confirmed: Literal[True]
+
+
+class ProjectBriefView(ApiModel):
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    job_id: str
+    revision_id: str
+    draft_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    confirmed_at: Timestamp
+    confirmed_by: Literal["user"]
+    evidence_level: Literal["R0"]
+    status: Literal["ready_for_design"]
+    fabrication_started: Literal[False]
+    hardware_actions: Literal[False]
+
+
 class ProjectDetailResponse(ApiModel):
     schema_version: InterfaceApiVersion
     project: ProjectIntentView
     draft: ProjectDraftView | None
+    brief: ProjectBriefView | None
     fabrication_started: Literal[False]
     hardware_actions: Literal[False]
 

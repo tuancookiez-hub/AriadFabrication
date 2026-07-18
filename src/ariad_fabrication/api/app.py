@@ -30,6 +30,8 @@ from .models import (
     LocalCodexStatusResponse,
     ProjectIntentCreateRequest,
     ProjectDetailResponse,
+    ProjectBriefConfirmRequest,
+    ProjectBriefView,
     ProjectDraftRequest,
     ProjectDraftView,
     ProjectIntentListResponse,
@@ -114,10 +116,10 @@ def create_app(
     repository = JourneyRepository(runs_root)
     app = FastAPI(
         title="Ariad Fabrication Journey API",
-        summary="Evidence replay, conversation, and confirmed project-intent persistence.",
+        summary="Evidence replay, conversation, project clarification, and explicit R0 confirmation.",
         description=(
             "This API replays persisted records, captures bounded ideas, and may save a "
-            "user-confirmed project intent without creating Brief evidence. It cannot upload G-code, select a printer, heat "
+            "user-confirmed project intent, and explicitly confirm a complete PartSpec through the existing R0 Brief gate. It cannot upload G-code, select a printer, heat "
             "hardware, move hardware, or start manufacturing."
         ),
         version=INTERFACE_API_VERSION,
@@ -126,6 +128,7 @@ def create_app(
         openapi_url=None,
     )
     app.state.repository = repository
+    app.state.runs_root = Path(runs_root).expanduser().resolve()
     app.state.project_store = ProjectIntentStore(projects_root)
     app.state.agent_tool_runtime = ReadOnlyAgentToolRuntime(repository)
     app.state.codex_executable = codex_executable
@@ -318,12 +321,14 @@ def create_app(
         try:
             project = store.get(project_id)
             draft = store.get_draft(project_id)
+            brief = store.get_brief(project_id)
         except ProjectStoreError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
         return ProjectDetailResponse(
             schema_version=INTERFACE_API_VERSION,
             project=ProjectIntentView(**project.to_dict()),
             draft=ProjectDraftView(**draft.to_dict()) if draft else None,
+            brief=ProjectBriefView(**brief.to_dict()) if brief else None,
             fabrication_started=False,
             hardware_actions=False,
         )
@@ -340,6 +345,24 @@ def create_app(
         except ProjectStoreError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
         return ProjectDraftView(**draft.to_dict())
+
+    @app.post(
+        "/api/v1/projects/{project_id}/brief-confirmation",
+        response_model=ProjectBriefView,
+        status_code=201,
+    )
+    def confirm_project_brief(
+        project_id: str,
+        request: ProjectBriefConfirmRequest,
+        _: None = Depends(require_browser_session),
+    ) -> ProjectBriefView:
+        del request
+        store: ProjectIntentStore = app.state.project_store
+        try:
+            brief = store.confirm_brief(project_id, runs_root=app.state.runs_root)
+        except ProjectStoreError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        return ProjectBriefView(**brief.to_dict())
 
     @app.post(
         "/api/v1/intake",
