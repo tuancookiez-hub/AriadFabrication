@@ -15,6 +15,7 @@ import { getLocalCodexStatus, getRevision, getRevisionComparison, listRevisions 
 import { ArtifactInspector } from './ArtifactInspector'
 import { ComparisonView } from './ComparisonView'
 import { CodexChatPage } from './CodexChatPage'
+import { ProjectsPage } from './ProjectsPage'
 import { NewIdeaPage } from './NewIdeaPage'
 import type {
   Finding,
@@ -105,7 +106,7 @@ function AppShell({
           <Link className="nav-item nav-item-active" to="/"><span aria-hidden="true">◇</span> Journey</Link>
           <Link className="nav-item" to="/new"><span aria-hidden="true">＋</span> New idea</Link>
           <Link className="nav-item" to="/chat"><span aria-hidden="true">◌</span> Codex</Link>
-          <span className="nav-item nav-item-disabled"><span aria-hidden="true">▤</span> Projects</span>
+          <Link className="nav-item" to="/projects"><span aria-hidden="true">▤</span> Projects</Link>
           <span className="nav-item nav-item-disabled"><span aria-hidden="true">◇</span> Parts library</span>
           <span className="nav-item nav-item-disabled"><span aria-hidden="true">▱</span> Printers</span>
           <span className="nav-item nav-item-disabled"><span aria-hidden="true">◫</span> Materials</span>
@@ -701,6 +702,7 @@ const router = createBrowserRouter([
       { path: '/', element: <JourneyIndexPage /> },
       { path: '/new', element: <AppShell pageTitle="New fabrication idea"><NewIdeaPage /></AppShell> },
       { path: '/chat', element: <AppShell pageTitle="Conversation with Codex"><CodexChatPage /></AppShell> },
+      { path: '/projects', element: <AppShell pageTitle="Confirmed project intents"><ProjectsPage /></AppShell> },
       { path: '/jobs/:jobId/revisions/:revisionId', element: <JourneyDetailPage /> },
       {
         path: '/compare/:baseJobId/:baseRevisionId/:candidateJobId/:candidateRevisionId',

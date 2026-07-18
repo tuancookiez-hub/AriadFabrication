@@ -1,4 +1,4 @@
-"""FastAPI entry point for the local read-only Fabrication Journey API."""
+"""FastAPI entry point for Ariad evidence replay and confirmed intent persistence."""
 
 from __future__ import annotations
 
@@ -28,11 +28,15 @@ from .models import (
     IntakeRequest,
     IntakeResponse,
     LocalCodexStatusResponse,
+    ProjectIntentCreateRequest,
+    ProjectIntentListResponse,
+    ProjectIntentView,
     RevisionComparisonResponse,
     RevisionDetailResponse,
     RevisionListResponse,
     read_only_capabilities,
 )
+from .project_store import ProjectIntentStore, ProjectStoreError
 from .repository import (
     ArtifactIntegrityError,
     ArtifactNotFoundError,
@@ -102,14 +106,15 @@ def create_app(
     *,
     codex_executable: Path | None = None,
     codex_workspace: Path | None = None,
+    projects_root: Path | str = Path("runs/projects"),
 ) -> FastAPI:
     repository = JourneyRepository(runs_root)
     app = FastAPI(
         title="Ariad Fabrication Journey API",
-        summary="Persisted evidence replay and stateless idea intake.",
+        summary="Evidence replay, conversation, and confirmed project-intent persistence.",
         description=(
-            "This API replays persisted records and can classify a bounded idea without "
-            "persisting or executing it. It cannot upload G-code, select a printer, heat "
+            "This API replays persisted records, captures bounded ideas, and may save a "
+            "user-confirmed project intent without creating Brief evidence. It cannot upload G-code, select a printer, heat "
             "hardware, move hardware, or start manufacturing."
         ),
         version=INTERFACE_API_VERSION,
@@ -118,6 +123,7 @@ def create_app(
         openapi_url=None,
     )
     app.state.repository = repository
+    app.state.project_store = ProjectIntentStore(projects_root)
     app.state.agent_tool_runtime = ReadOnlyAgentToolRuntime(repository)
     app.state.codex_executable = codex_executable
     app.state.codex_snapshot = None
@@ -271,6 +277,35 @@ def create_app(
             hardware_actions=False,
         )
 
+    @app.get("/api/v1/projects", response_model=ProjectIntentListResponse)
+    def projects(
+        limit: int = Query(100, ge=1, le=200),
+        _: None = Depends(require_browser_session),
+    ) -> ProjectIntentListResponse:
+        store: ProjectIntentStore = app.state.project_store
+        try:
+            records = store.list(limit=limit)
+        except ProjectStoreError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        return ProjectIntentListResponse(
+            schema_version=INTERFACE_API_VERSION,
+            projects=[ProjectIntentView(**record.to_dict()) for record in records],
+            fabrication_started=False,
+            hardware_actions=False,
+        )
+
+    @app.post("/api/v1/projects", response_model=ProjectIntentView, status_code=201)
+    def create_project(
+        request: ProjectIntentCreateRequest,
+        _: None = Depends(require_browser_session),
+    ) -> ProjectIntentView:
+        store: ProjectIntentStore = app.state.project_store
+        try:
+            record = store.create(title=request.title, prompt=request.prompt)
+        except ProjectStoreError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        return ProjectIntentView(**record.to_dict())
+
     @app.post(
         "/api/v1/intake",
         response_model=IntakeResponse,
@@ -397,7 +432,7 @@ def create_app(
 
 
 def main(argv: list[str] | None = None) -> None:
-    parser = argparse.ArgumentParser(description="Serve Ariad's local read-only journey API.")
+    parser = argparse.ArgumentParser(description="Serve Ariad's local evidence and intent API.")
     parser.add_argument("--runs-root", type=Path, default=Path("runs"))
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8000)
@@ -413,6 +448,7 @@ def main(argv: list[str] | None = None) -> None:
         default=None,
         help="Existing empty directory used by the read-only local Codex conversation.",
     )
+    parser.add_argument("--projects-root", type=Path, default=Path("runs/projects"))
     args = parser.parse_args(argv)
     if args.host not in {"127.0.0.1", "localhost", "::1"}:
         parser.error("the M4 API is local-only and may bind only to a loopback host")
@@ -423,6 +459,7 @@ def main(argv: list[str] | None = None) -> None:
             args.runs_root,
             codex_executable=args.codex_bin,
             codex_workspace=args.codex_workspace,
+            projects_root=args.projects_root,
         ),
         host=args.host,
         port=args.port,

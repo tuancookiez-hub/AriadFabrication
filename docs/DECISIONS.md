@@ -517,6 +517,18 @@ This file records accepted project-level decisions. Change an accepted decision 
 
 **Consequence:** The user-facing agent can now ground conversation in Ariad's real intake and evidence boundaries. The next authority increase requires an explicit confirmation/persistence design; arbitrary CAD remains blocked on enforceable isolation.
 
+### D-043 - Persist confirmed intent below the R0 Brief gate
+
+**Status:** Accepted as implemented evidence on 2026-07-18.
+
+**Decision:** A chat message may become a durable Ariad project only after the user activates a separate “Confirm and save intent” action. Persist the exact prompt, its SHA-256, an editable bounded title, UTC confirmation time, and user actor in a dedicated project-intent store. Keep these records outside Journey evidence and set `brief_evidence_level: null`, `fabrication_started: false`, and `hardware_actions: false`. Do not let Codex call this mutation tool.
+
+**Evidence:** Store tests cover atomic creation, durable listing, bounded inputs, checksum drift, and literal-false claim fields. Authenticated API tests reject missing sessions and `confirmed: false`. React tests exercise the confirmation card, success boundary, and Projects library while asserting “Brief evidence: none” and “Fabrication not started.” API 1.13.0, generated TypeScript, lint, and production build pass.
+
+**Limitation:** A confirmed intent is only evidence that the user chose to save an idea. It is not a complete or confirmed PartSpec, R0 Brief evidence, CAD, validation, slicing, printability, or physical proof. The file store provides local atomic records and integrity checks, not signatures against a privileged local editor or a multi-user database.
+
+**Consequence:** Ariad now has a durable project entry point without overstating readiness. The next milestone is clarification into a draft PartSpec and a separate explicit confirmation that invokes the existing Brief gate.
+
 ## Deferred decisions
 
 These require later evidence and should not be decided through preference alone:

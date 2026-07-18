@@ -22,8 +22,8 @@ const reportArtifact: Artifact = {
 }
 
 const detail: RevisionDetail = {
-  schema_version: '1.12.0',
-  capabilities: { read_only: true, hardware_actions: false },
+  schema_version: '1.13.0',
+  capabilities: { read_only: false, project_intent_persistence: true, fabrication_execution: false, hardware_actions: false },
   source: {
     kind: 'interface_fixture',
     label: 'INTERFACE FIXTURE — no fabrication or physical evidence',

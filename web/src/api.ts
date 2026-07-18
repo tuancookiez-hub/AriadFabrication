@@ -5,6 +5,8 @@ import type {
   ConversationEvents,
   ConversationTurn,
   LocalCodexStatus,
+  ProjectIntent,
+  ProjectIntentList,
   RevisionComparison,
   RevisionDetail,
   RevisionListResponse,
@@ -91,6 +93,28 @@ export function cancelCodexTurn(
 ): Promise<ConversationCancel> {
   return requestJson('/api/v1/codex/cancel', signal, {
     method: 'POST',
+    headers: { 'X-Ariad-Session': sessionToken },
+  })
+}
+
+export function createProjectIntent(
+  title: string,
+  prompt: string,
+  sessionToken: string,
+  signal?: AbortSignal,
+): Promise<ProjectIntent> {
+  return requestJson('/api/v1/projects', signal, {
+    method: 'POST',
+    body: JSON.stringify({ title, prompt, confirmed: true }),
+    headers: { 'X-Ariad-Session': sessionToken },
+  })
+}
+
+export function listProjectIntents(
+  sessionToken: string,
+  signal?: AbortSignal,
+): Promise<ProjectIntentList> {
+  return requestJson('/api/v1/projects?limit=100', signal, {
     headers: { 'X-Ariad-Session': sessionToken },
   })
 }

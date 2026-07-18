@@ -22,8 +22,8 @@ from ..intake import CapabilityLane, RouteStatus
 from ..local_codex import LocalCodexStatus
 
 
-InterfaceApiVersion = Literal["1.12.0"]
-INTERFACE_API_VERSION: InterfaceApiVersion = "1.12.0"
+InterfaceApiVersion = Literal["1.13.0"]
+INTERFACE_API_VERSION: InterfaceApiVersion = "1.13.0"
 Timestamp = Annotated[str, Field(json_schema_extra={"format": "date-time"})]
 
 
@@ -55,7 +55,9 @@ class ApiModel(BaseModel):
 
 
 class CapabilitiesView(ApiModel):
-    read_only: Literal[True]
+    read_only: Literal[False]
+    project_intent_persistence: Literal[True]
+    fabrication_execution: Literal[False]
     hardware_actions: Literal[False]
 
 
@@ -134,6 +136,34 @@ class ConversationEventsResponse(ApiModel):
 class ConversationCancelResponse(ApiModel):
     schema_version: InterfaceApiVersion
     accepted: bool
+    hardware_actions: Literal[False]
+
+
+class ProjectIntentCreateRequest(ApiModel):
+    title: str = Field(min_length=1, max_length=120)
+    prompt: str = Field(min_length=1, max_length=16_384)
+    confirmed: Literal[True]
+
+
+class ProjectIntentView(ApiModel):
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    title: str
+    prompt: str
+    prompt_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    confirmed_at: Timestamp
+    confirmed_by: Literal["user"]
+    status: Literal["intent_confirmed"]
+    evidence_mode: Literal["user_confirmed"]
+    brief_evidence_level: None
+    fabrication_started: Literal[False]
+    hardware_actions: Literal[False]
+
+
+class ProjectIntentListResponse(ApiModel):
+    schema_version: InterfaceApiVersion
+    projects: list[ProjectIntentView]
+    fabrication_started: Literal[False]
     hardware_actions: Literal[False]
 
 
@@ -559,6 +589,11 @@ class RevisionDetailResponse(ApiModel):
 
 
 def read_only_capabilities() -> CapabilitiesView:
-    """Return the explicit, schema-visible boundary for the local interface."""
+    """Return the explicit, schema-visible authority boundary for the local interface."""
 
-    return CapabilitiesView(read_only=True, hardware_actions=False)
+    return CapabilitiesView(
+        read_only=False,
+        project_intent_persistence=True,
+        fabrication_execution=False,
+        hardware_actions=False,
+    )

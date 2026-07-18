@@ -19,6 +19,7 @@ $runsRoot = if ($Evidence -eq "fixture") {
 } else {
     Join-Path $root "runs"
 }
+$projectsRoot = Join-Path $root "runs\projects"
 
 if (-not (Test-Path -LiteralPath $api -PathType Leaf)) {
     throw "Ariad API is not installed. Run: uv sync --extra test --extra cad"
@@ -32,6 +33,7 @@ if (-not (Test-Path -LiteralPath (Join-Path $web "node_modules") -PathType Conta
 
 $apiArguments = @(
     "--runs-root", $runsRoot,
+    "--projects-root", $projectsRoot,
     "--host", $HostAddress,
     "--port", [string]$ApiPort
 )

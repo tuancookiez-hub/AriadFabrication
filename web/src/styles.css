@@ -1979,6 +1979,26 @@ main {
 .tool-activity-completed > span { background: #dcecdf; color: #23643a; }
 .tool-activity-failed > span { background: #f6dddd; color: #8f1f1f; }
 .chat-error { margin: 0 1.25rem 1rem; padding: .75rem 1rem; border: 1px solid #e2a6a6; border-radius: 8px; background: #fff0f0; color: #8f1f1f; }
+.project-confirmation { margin: 0 1.25rem 1.25rem; padding: 1.1rem; border: 1px solid #d6c7b6; border-radius: 12px; background: #f8f1e7; }
+.project-confirmation h2 { margin: .25rem 0 1rem; font-family: Georgia, "Times New Roman", serif; font-weight: 500; }
+.project-confirmation label { display: block; margin-bottom: .35rem; font-weight: 750; }
+.project-confirmation input { width: 100%; border: 1px solid #bdb3a7; border-radius: 8px; background: #fffdf9; color: #171414; font: inherit; padding: .75rem; }
+.project-confirmation > p:not(.eyebrow) { padding: .75rem; border-left: 3px solid #b92323; color: #5f5750; }
+.project-confirmation > small { display: block; color: #716961; line-height: 1.5; }
+.project-confirmation > div { display: flex; justify-content: flex-end; gap: .75rem; margin-top: 1rem; }
+.project-saved { display: grid; gap: .2rem; margin: 0 1.25rem 1.25rem; padding: 1rem; border: 1px solid #b9d4bf; border-radius: 10px; background: #edf6ef; color: #245b33; }
+.project-saved small { color: #55725d; }
+.projects-hero { max-width: 980px; padding: clamp(3rem, 7vw, 6rem) clamp(1rem, 4vw, 4rem) 2rem; }
+.projects-hero h1 { margin: .35rem 0 1rem; color: #171414; font-family: Georgia, "Times New Roman", serif; font-size: clamp(3rem, 7vw, 6rem); font-weight: 500; letter-spacing: -.055em; line-height: .96; }
+.projects-hero > p:last-child { max-width: 730px; color: #635c56; line-height: 1.7; }
+.projects-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; padding: 0 clamp(1rem, 4vw, 4rem) 5rem; }
+.project-intent-card, .projects-empty { padding: 1.4rem; border: 1px solid #ddd5ca; border-radius: 14px; background: #fffdf9; color: #171414; box-shadow: 0 10px 35px rgba(52, 35, 24, .06); }
+.project-intent-card > div, .project-intent-card footer { display: flex; justify-content: space-between; gap: 1rem; color: #716961; font-size: .82rem; }
+.project-intent-card > div span { color: #8f1f1f; font-weight: 800; text-transform: uppercase; }
+.project-intent-card h2, .projects-empty h2 { font-family: Georgia, "Times New Roman", serif; font-weight: 500; }
+.project-intent-card > p { min-height: 4.8rem; color: #5f5750; line-height: 1.6; }
+.project-intent-card footer { padding-top: 1rem; border-top: 1px solid #e6dfd6; }
+.project-intent-card footer strong { color: #8f1f1f; }
 .chat-composer { padding: 1.25rem; border-top: 1px solid #e6dfd6; }
 .chat-composer label { display: block; margin-bottom: .5rem; font-weight: 750; }
 .chat-composer textarea { width: 100%; resize: vertical; border: 1px solid #bdb3a7; border-radius: 10px; background: #fbf8f2; color: #171414; font: inherit; line-height: 1.55; padding: .9rem; }

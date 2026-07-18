@@ -2,12 +2,14 @@ import { type FormEvent, useEffect, useRef, useState } from 'react'
 
 import {
   cancelCodexTurn,
+  createProjectIntent,
   getBrowserSession,
   getCodexEvents,
   getLocalCodexStatus,
   startCodexTurn,
 } from './api'
 import type { LocalCodexStatus } from './types'
+import type { ProjectIntent } from './types'
 
 type Message = { id: string; role: 'user' | 'assistant'; text: string }
 type ToolActivity = { id: string; name: string; state: 'running' | 'completed' | 'failed' }
@@ -18,6 +20,8 @@ export function CodexChatPage() {
   const [prompt, setPrompt] = useState('')
   const [messages, setMessages] = useState<Message[]>([])
   const [toolActivity, setToolActivity] = useState<ToolActivity[]>([])
+  const [projectCandidate, setProjectCandidate] = useState<{ prompt: string; title: string } | null>(null)
+  const [savedProject, setSavedProject] = useState<ProjectIntent | null>(null)
   const [activeTurn, setActiveTurn] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const sequence = useRef(0)
@@ -98,6 +102,8 @@ export function CodexChatPage() {
     setPrompt('')
     setError(null)
     setMessages((current) => [...current, { id: `user-${Date.now()}`, role: 'user', text }])
+    setProjectCandidate({ prompt: text, title: text.replace(/\s+/g, ' ').slice(0, 80) })
+    setSavedProject(null)
     try {
       const result = await startCodexTurn(text, sessionToken)
       setActiveTurn(result.turn_id)
@@ -112,6 +118,21 @@ export function CodexChatPage() {
       await cancelCodexTurn(sessionToken)
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Codex cancellation failed.')
+    }
+  }
+
+  async function saveProjectIntent() {
+    if (!sessionToken || !projectCandidate) return
+    try {
+      const project = await createProjectIntent(
+        projectCandidate.title,
+        projectCandidate.prompt,
+        sessionToken,
+      )
+      setSavedProject(project)
+      setProjectCandidate(null)
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Project intent could not be saved.')
     }
   }
 
@@ -157,6 +178,32 @@ export function CodexChatPage() {
             ))}
           </div>
           {error ? <div className="chat-error" role="alert">{error}</div> : null}
+          {projectCandidate && !activeTurn ? (
+            <section className="project-confirmation" aria-labelledby="project-confirmation-title">
+              <p className="eyebrow">Explicit confirmation</p>
+              <h2 id="project-confirmation-title">Save this idea as a project?</h2>
+              <label htmlFor="project-title">Project title</label>
+              <input
+                id="project-title"
+                maxLength={120}
+                onChange={(event) => setProjectCandidate({ ...projectCandidate, title: event.target.value })}
+                value={projectCandidate.title}
+              />
+              <p>{projectCandidate.prompt}</p>
+              <small>This saves a user-confirmed intent only. It is not an R0 Brief and starts no fabrication.</small>
+              <div>
+                <button className="secondary-action" onClick={() => setProjectCandidate(null)} type="button">Not now</button>
+                <button className="primary-action" disabled={!projectCandidate.title.trim()} onClick={saveProjectIntent} type="button">Confirm and save intent</button>
+              </div>
+            </section>
+          ) : null}
+          {savedProject ? (
+            <div className="project-saved" role="status">
+              <strong>Project intent saved</strong>
+              <span>{savedProject.title}</span>
+              <small>No Brief evidence or fabrication run exists yet.</small>
+            </div>
+          ) : null}
           <form className="chat-composer" onSubmit={submit}>
             <label htmlFor="codex-prompt">Message Codex</label>
             <textarea

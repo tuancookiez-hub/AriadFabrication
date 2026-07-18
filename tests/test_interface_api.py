@@ -79,7 +79,7 @@ class JourneyRepositoryTests(unittest.TestCase):
         self.assertEqual(len(detail.stages[3].findings), 2)
         self.assertTrue(all(stage.evidence_mode == "fixture" for stage in detail.stages))
         self.assertFalse(detail.capabilities.hardware_actions)
-        self.assertEqual(detail.schema_version, "1.12.0")
+        self.assertEqual(detail.schema_version, "1.13.0")
         self.assertEqual(
             [report.report_kind for report in detail.inspection.reports],
             ["geometry", "printability", "gcode_preflight"],
@@ -1043,18 +1043,43 @@ class JourneyRepositoryTests(unittest.TestCase):
 
 class InterfaceHttpTests(unittest.TestCase):
     def setUp(self):
-        self.client = TestClient(create_app(FIXTURE_ROOT))
+        self.project_temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.project_temporary.cleanup)
+        self.client = TestClient(
+            create_app(FIXTURE_ROOT, projects_root=Path(self.project_temporary.name) / "projects")
+        )
 
     def test_health_explicitly_disables_hardware(self):
         response = self.client.get("/api/v1/health")
         self.assertEqual(response.status_code, 200)
         self.assertFalse(response.json()["capabilities"]["hardware_actions"])
+        self.assertFalse(response.json()["capabilities"]["read_only"])
+        self.assertTrue(response.json()["capabilities"]["project_intent_persistence"])
+        self.assertFalse(response.json()["capabilities"]["fabrication_execution"])
+
+    def test_project_intent_requires_session_and_explicit_confirmation(self):
+        payload = {"title": "Floating airship", "prompt": "A 120 mm display model", "confirmed": True}
+        self.assertEqual(self.client.post("/api/v1/projects", json=payload).status_code, 403)
+        token = self.client.get("/api/v1/session").json()["session_token"]
+        headers = {"X-Ariad-Session": token}
+        unconfirmed = self.client.post(
+            "/api/v1/projects", json={**payload, "confirmed": False}, headers=headers
+        )
+        self.assertEqual(unconfirmed.status_code, 422)
+        created = self.client.post("/api/v1/projects", json=payload, headers=headers)
+        self.assertEqual(created.status_code, 201)
+        self.assertEqual(created.json()["status"], "intent_confirmed")
+        self.assertIsNone(created.json()["brief_evidence_level"])
+        self.assertFalse(created.json()["fabrication_started"])
+        listing = self.client.get("/api/v1/projects", headers=headers)
+        self.assertEqual(len(listing.json()["projects"]), 1)
+        self.assertFalse(listing.json()["fabrication_started"])
 
     def test_codex_status_is_sanitized_and_does_not_start_work(self):
         response = self.client.get("/api/v1/codex/status")
         self.assertEqual(response.status_code, 200)
         payload = response.json()
-        self.assertEqual(payload["schema_version"], "1.12.0")
+        self.assertEqual(payload["schema_version"], "1.13.0")
         self.assertEqual(payload["status"], "unavailable")
         self.assertIsNone(payload["authentication"])
         self.assertFalse(payload["conversation_available"])
@@ -1146,7 +1171,7 @@ class InterfaceHttpTests(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 200)
         payload = response.json()
-        self.assertEqual(payload["schema_version"], "1.12.0")
+        self.assertEqual(payload["schema_version"], "1.13.0")
         self.assertEqual(payload["intake"]["prompt"], "Create a decorative floating air warship ✨")
         self.assertEqual(len(payload["intake"]["prompt_sha256"]), 64)
         self.assertFalse(payload["provider"]["configured"])
@@ -1197,7 +1222,7 @@ class InterfaceHttpTests(unittest.TestCase):
         detail = self.client.get(f"/api/v1/revisions/{JOB_ID}/{REVISION_ID}")
         self.assertEqual(detail.status_code, 200)
         payload = detail.json()
-        self.assertEqual(payload["schema_version"], "1.12.0")
+        self.assertEqual(payload["schema_version"], "1.13.0")
         self.assertEqual(
             [stage["stage"] for stage in payload["stages"]],
             [item[0] for item in STAGES],

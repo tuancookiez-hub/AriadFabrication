@@ -164,10 +164,11 @@ class RevisionComparisonHttpTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         payload = response.json()
-        self.assertEqual(payload["schema_version"], "1.12.0")
+        self.assertEqual(payload["schema_version"], "1.13.0")
         self.assertEqual(payload["relationship"], "parent_to_child")
         self.assertEqual(payload["total_change_count"], 12)
-        self.assertTrue(payload["capabilities"]["read_only"])
+        self.assertFalse(payload["capabilities"]["read_only"])
+        self.assertFalse(payload["capabilities"]["fabrication_execution"])
         self.assertFalse(payload["capabilities"]["hardware_actions"])
         self.assertIn("does not rerun CAD", payload["claim_boundary"])
         self.assertEqual(before, {path: path.read_bytes() for path in tracked})

@@ -109,6 +109,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/projects": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Projects */
+        get: operations["projects_api_v1_projects_get"];
+        put?: never;
+        /** Create Project */
+        post: operations["create_project_api_v1_projects_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/revision-comparison": {
         parameters: {
             query?: never;
@@ -272,22 +290,32 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.12.0";
+            schema_version: "1.13.0";
             /** Session Token */
             session_token: string;
         };
         /** CapabilitiesView */
         CapabilitiesView: {
             /**
+             * Fabrication Execution
+             * @constant
+             */
+            fabrication_execution: false;
+            /**
              * Hardware Actions
              * @constant
              */
             hardware_actions: false;
             /**
+             * Project Intent Persistence
+             * @constant
+             */
+            project_intent_persistence: true;
+            /**
              * Read Only
              * @constant
              */
-            read_only: true;
+            read_only: false;
         };
         /**
          * CapabilityLane
@@ -432,7 +460,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.12.0";
+            schema_version: "1.13.0";
         };
         /** ConversationEventsResponse */
         ConversationEventsResponse: {
@@ -451,7 +479,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.12.0";
+            schema_version: "1.13.0";
             /**
              * Tools Registered
              * @constant
@@ -506,7 +534,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.12.0";
+            schema_version: "1.13.0";
             /**
              * Tools Registered
              * @constant
@@ -683,7 +711,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.12.0";
+            schema_version: "1.13.0";
             /**
              * Service
              * @constant
@@ -916,7 +944,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.12.0";
+            schema_version: "1.13.0";
         };
         /** IntentProviderView */
         IntentProviderView: {
@@ -1006,7 +1034,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.12.0";
+            schema_version: "1.13.0";
             status: components["schemas"]["LocalCodexStatus"];
             /**
              * Tools Registered
@@ -1042,6 +1070,86 @@ export interface components {
             /** Unresolved Warning Count */
             unresolved_warning_count: number;
         };
+        /** ProjectIntentCreateRequest */
+        ProjectIntentCreateRequest: {
+            /**
+             * Confirmed
+             * @constant
+             */
+            confirmed: true;
+            /** Prompt */
+            prompt: string;
+            /** Title */
+            title: string;
+        };
+        /** ProjectIntentListResponse */
+        ProjectIntentListResponse: {
+            /**
+             * Fabrication Started
+             * @constant
+             */
+            fabrication_started: false;
+            /**
+             * Hardware Actions
+             * @constant
+             */
+            hardware_actions: false;
+            /** Projects */
+            projects: components["schemas"]["ProjectIntentView"][];
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "1.13.0";
+        };
+        /** ProjectIntentView */
+        ProjectIntentView: {
+            /** Brief Evidence Level */
+            brief_evidence_level: null;
+            /**
+             * Confirmed At
+             * Format: date-time
+             */
+            confirmed_at: string;
+            /**
+             * Confirmed By
+             * @constant
+             */
+            confirmed_by: "user";
+            /**
+             * Evidence Mode
+             * @constant
+             */
+            evidence_mode: "user_confirmed";
+            /**
+             * Fabrication Started
+             * @constant
+             */
+            fabrication_started: false;
+            /**
+             * Hardware Actions
+             * @constant
+             */
+            hardware_actions: false;
+            /** Project Id */
+            project_id: string;
+            /** Prompt */
+            prompt: string;
+            /** Prompt Sha256 */
+            prompt_sha256: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "1.0.0";
+            /**
+             * Status
+             * @constant
+             */
+            status: "intent_confirmed";
+            /** Title */
+            title: string;
+        };
         /** RevisionComparisonResponse */
         RevisionComparisonResponse: {
             base: components["schemas"]["ComparisonRevisionView"];
@@ -1074,7 +1182,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.12.0";
+            schema_version: "1.13.0";
             /** Summaries */
             summaries: components["schemas"]["ComparisonAreaSummaryView"][];
             /** Total Change Count */
@@ -1093,7 +1201,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.12.0";
+            schema_version: "1.13.0";
             source: components["schemas"]["SourceView"];
             /** Stages */
             stages: components["schemas"]["StageView"][];
@@ -1107,7 +1215,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.12.0";
+            schema_version: "1.13.0";
             window: components["schemas"]["RevisionListWindowView"];
         };
         /** RevisionListWindowView */
@@ -1456,6 +1564,74 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    projects_api_v1_projects_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: {
+                "x-ariad-session"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectIntentListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_project_api_v1_projects_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-ariad-session"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProjectIntentCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectIntentView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
