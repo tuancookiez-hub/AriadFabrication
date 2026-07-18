@@ -33,6 +33,8 @@ class OpenApiContractTests(unittest.TestCase):
                 "/api/v1/session",
                 "/api/v1/intake",
                 "/api/v1/projects",
+                "/api/v1/projects/{project_id}",
+                "/api/v1/projects/{project_id}/draft",
                 "/api/v1/revision-comparison",
                 "/api/v1/revisions",
                 "/api/v1/revisions/{job_id}/{revision_id}",
@@ -42,6 +44,8 @@ class OpenApiContractTests(unittest.TestCase):
         for route, path in document["paths"].items():
             if route == "/api/v1/projects":
                 expected_methods = {"get", "post"}
+            elif route == "/api/v1/projects/{project_id}/draft":
+                expected_methods = {"put"}
             elif route in {"/api/v1/intake", "/api/v1/codex/cancel", "/api/v1/codex/turns"}:
                 expected_methods = {"post"}
             else:
@@ -57,7 +61,7 @@ class OpenApiContractTests(unittest.TestCase):
         self.assertEqual(capabilities["properties"]["hardware_actions"]["const"], False)
 
         health = document["components"]["schemas"]["HealthResponse"]["properties"]
-        self.assertEqual(health["schema_version"]["const"], "1.13.0")
+        self.assertEqual(health["schema_version"]["const"], "1.14.0")
         self.assertEqual(health["service"]["const"], "ariad-interface-api")
         self.assertEqual(health["status"]["const"], "ok")
 
@@ -95,6 +99,8 @@ class OpenApiContractTests(unittest.TestCase):
             "PackageView",
             "ProjectIntentListResponse",
             "ProjectIntentView",
+            "ProjectDetailResponse",
+            "ProjectDraftView",
             "RevisionDetailResponse",
             "RevisionComparisonResponse",
             "RevisionListResponse",

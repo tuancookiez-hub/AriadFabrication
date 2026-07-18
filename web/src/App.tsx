@@ -16,6 +16,7 @@ import { ArtifactInspector } from './ArtifactInspector'
 import { ComparisonView } from './ComparisonView'
 import { CodexChatPage } from './CodexChatPage'
 import { ProjectsPage } from './ProjectsPage'
+import { ProjectClarifyPage } from './ProjectClarifyPage'
 import { NewIdeaPage } from './NewIdeaPage'
 import type {
   Finding,
@@ -703,6 +704,7 @@ const router = createBrowserRouter([
       { path: '/new', element: <AppShell pageTitle="New fabrication idea"><NewIdeaPage /></AppShell> },
       { path: '/chat', element: <AppShell pageTitle="Conversation with Codex"><CodexChatPage /></AppShell> },
       { path: '/projects', element: <AppShell pageTitle="Confirmed project intents"><ProjectsPage /></AppShell> },
+      { path: '/projects/:projectId', element: <AppShell pageTitle="Clarify project requirements"><ProjectClarifyPage /></AppShell> },
       { path: '/jobs/:jobId/revisions/:revisionId', element: <JourneyDetailPage /> },
       {
         path: '/compare/:baseJobId/:baseRevisionId/:candidateJobId/:candidateRevisionId',

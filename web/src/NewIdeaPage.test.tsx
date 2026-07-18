@@ -10,7 +10,7 @@ describe('NewIdeaPage', () => {
   it('captures an imaginative prompt without claiming model inference or execution', async () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
       new Response(JSON.stringify({
-        schema_version: '1.13.0',
+        schema_version: '1.14.0',
         intake: { schema_version: '1.0.0', intake_id: 'intake_demo', prompt: 'A floating airship', prompt_sha256: 'a'.repeat(64), hardware_actions: false },
         provider: { provider_id: 'openai_gpt_5_6_intent', model: 'gpt-5.6-sol', configured: false, evidence_mode: 'unavailable', reason: 'No API credential is configured.' },
         route: { schema_version: '1.0.0', intake_id: 'intake_demo', prompt_sha256: 'a'.repeat(64), lane: 'planning_only', status: 'needs_input', summary: 'A floating airship', reason: 'Provider unavailable.', questions: ['Configure GPT-5.6.'], assumptions: [], part_spec: null, available_targets: [], evidence_mode: 'model_proposal', hardware_actions: false, physical_validation: false, metadata: {} },

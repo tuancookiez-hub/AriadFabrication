@@ -29,6 +29,9 @@ from .models import (
     IntakeResponse,
     LocalCodexStatusResponse,
     ProjectIntentCreateRequest,
+    ProjectDetailResponse,
+    ProjectDraftRequest,
+    ProjectDraftView,
     ProjectIntentListResponse,
     ProjectIntentView,
     RevisionComparisonResponse,
@@ -305,6 +308,38 @@ def create_app(
         except ProjectStoreError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
         return ProjectIntentView(**record.to_dict())
+
+    @app.get("/api/v1/projects/{project_id}", response_model=ProjectDetailResponse)
+    def project_detail(
+        project_id: str,
+        _: None = Depends(require_browser_session),
+    ) -> ProjectDetailResponse:
+        store: ProjectIntentStore = app.state.project_store
+        try:
+            project = store.get(project_id)
+            draft = store.get_draft(project_id)
+        except ProjectStoreError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        return ProjectDetailResponse(
+            schema_version=INTERFACE_API_VERSION,
+            project=ProjectIntentView(**project.to_dict()),
+            draft=ProjectDraftView(**draft.to_dict()) if draft else None,
+            fabrication_started=False,
+            hardware_actions=False,
+        )
+
+    @app.put("/api/v1/projects/{project_id}/draft", response_model=ProjectDraftView)
+    def save_project_draft(
+        project_id: str,
+        request: ProjectDraftRequest,
+        _: None = Depends(require_browser_session),
+    ) -> ProjectDraftView:
+        store: ProjectIntentStore = app.state.project_store
+        try:
+            draft = store.save_draft(project_id, request.model_dump())
+        except ProjectStoreError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        return ProjectDraftView(**draft.to_dict())
 
     @app.post(
         "/api/v1/intake",

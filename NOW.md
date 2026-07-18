@@ -40,7 +40,8 @@ Integrate the operator's locally authenticated Codex as Ariad's conversational f
 - Verified seven ignored real R2/R4 directories are discovered. Six remain available with ten reports and eight profiles; the seventh is correctly invalid because its R2 journey has an orphaned R4 package that references fourteen artifacts absent from its manifest.
 - API 1.12.0 registers exactly three namespaced, read-only Codex tools: stateless idea capture, bounded evidence listing, and checksum-validated evidence reading. Tool inputs are closed, outputs are capped at 256 KiB, errors hide internals, and tool lifecycle cards are visible in React. A real Codex CLI 0.144.5 / GPT-5.6 Sol turn invoked `ariad.capture_idea`, summarized its non-evidentiary result, reached a clean terminal event, and left the dedicated workspace empty. CAD execution, evidence mutation, and hardware remain unavailable.
 - API 1.13.0 adds authenticated project-intent creation and listing. The user must click an explicit confirmation action; the durable record preserves the exact prompt checksum, user confirmation time, and literal-false fabrication/hardware fields. Projects are not Journey revisions, carry no R0 level, and remain visibly labelled as intents in chat and the Projects page.
-- The full pinned suite passes 235 backend tests, including real sealed R2/R4 integrations. OpenAPI/generated-type drift, TypeScript, ESLint, sixteen deterministic frontend tests, and the production build pass.
+- API 1.14.0 adds authenticated project detail and nullable clarification-draft updates. The clarification workspace preserves every unknown requirement, derives readiness from the closed field set, and cannot confirm a PartSpec, create R0, start fabrication, or contact hardware.
+- The full pinned suite passes 237 backend tests, including real sealed R2/R4 integrations. OpenAPI/generated-type drift, TypeScript, ESLint, seventeen deterministic frontend tests, and the production build pass.
 - Added the approved Ariad workshop shell: a dark persistent navigation rail, compact project/status bar, warm technical workspace, red journey accent, responsive mobile navigation, and paper-like evidence cards. Existing routes and evidence content are unchanged. Thirteen deterministic frontend tests, generated API drift, TypeScript, ESLint, and production build pass. Screenshot-level browser approval remains pending because the local in-app browser bootstrap is currently blocked outside the repository by a Node module-mode conflict.
 - Added and connected a manifest-backed Python import guard. The real worker starts with `-I -B -S`, replaces `sys.path` with four approved roots, verifies each imported source/native module by exact path and SHA-256, rejects unlisted origins and bytecode-only substitutions, and confines namespace locations. The registry-built configuration contains the complete importable code/native inventory of the 18 traced dependency distributions: 2,285 files / 653,201,326 bytes, plus 613 curated CPython files and the accepted Ariad source bundle. A real sealed/supervised R2 run reaches `geometry_verified`, persists Journey/manifest records and 15 artifacts, and records no Manufacturing stage.
 - Added an internal registered execution service that starts only the store's oldest queued R2/R4 plan, shares one cancellation token and deadline across CAD and slicing, renews the fenced lease, binds Journey identity once, and commits stage-snapshot events only after bounded files pass schema/identity/status checks and are hashed. Missing evidence fails closed; active cancellation reaches the sealed adapter and terminates as `cancelled`. This service has no HTTP or hardware surface.
@@ -67,11 +68,10 @@ Integrate the operator's locally authenticated Codex as Ariad's conversational f
 
 ## Next actions
 
-1. Define the clarification workspace and schema that turns a saved intent into a complete draft PartSpec without silently inventing engineering requirements.
-2. Add explicit PartSpec confirmation and revision creation; only then may the project reach the existing R0 Brief gate.
-3. Establish enforceable filesystem isolation and network denial for generated CAD and the registered native CAD/slicer lane, or keep every mutating Codex tool unregistered.
-4. Add authenticated POST/cancel/SSE contracts only after the isolation boundary passes; connect browser Run and repair progress last.
-5. Perform visual browser, assistive-technology, and end-to-end demo QA; retain fixture mode for judges without local Codex authentication.
+1. Add explicit PartSpec confirmation and revision creation; only then may a complete clarification draft reach the existing R0 Brief gate.
+2. Establish enforceable filesystem isolation and network denial for generated CAD and the registered native CAD/slicer lane, or keep every mutating Codex tool unregistered.
+3. Add authenticated POST/cancel/SSE contracts only after the isolation boundary passes; connect browser Run and repair progress last.
+4. Perform visual browser, assistive-technology, and end-to-end demo QA; retain fixture mode for judges without local Codex authentication.
 
 ## Exit gate for M4
 

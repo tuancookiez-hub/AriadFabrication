@@ -529,6 +529,16 @@ This file records accepted project-level decisions. Change an accepted decision 
 
 **Consequence:** Ariad now has a durable project entry point without overstating readiness. The next milestone is clarification into a draft PartSpec and a separate explicit confirmation that invokes the existing Brief gate.
 
+### D-044 - Keep clarification drafts nullable and below the R0 Brief gate
+
+**Status:** Accepted as implemented evidence on 2026-07-18.
+
+**Decision:** Store project clarification separately from `PartSpec`. Every required field may remain null while the user is still deciding; the store derives `missing_fields` and `needs_input` or `ready_for_confirmation` from the closed field set. A clarification save never confirms requirements, creates a Journey revision, awards R0, starts fabrication, or contacts hardware.
+
+**Evidence:** API 1.14.0 provides authenticated project-detail and draft-update routes. Store and interface tests cover incomplete and complete drafts, integrity-checked readiness metadata, visible unknowns, and the explicit no-confirmation/no-fabrication boundary.
+
+**Consequence:** Ariad can guide a beginner without inventing dimensions or conflating form completion with engineering approval. A separate explicit confirmation operation is required to construct and validate `PartSpec` and enter the existing Brief gate.
+
 ## Deferred decisions
 
 These require later evidence and should not be decided through preference alone:

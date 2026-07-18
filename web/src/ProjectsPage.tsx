@@ -42,6 +42,7 @@ export function ProjectsPage() {
             <h2>{project.title}</h2>
             <p>{project.prompt}</p>
             <footer><strong>Brief evidence: none</strong><span>Fabrication not started</span></footer>
+            <Link className="secondary-action" to={`/projects/${project.project_id}`}>Clarify requirements</Link>
           </article>
         ))}
       </section>

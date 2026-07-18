@@ -7,6 +7,9 @@ import type {
   LocalCodexStatus,
   ProjectIntent,
   ProjectIntentList,
+  ProjectDetail,
+  ProjectDraft,
+  ProjectDraftRequest,
   RevisionComparison,
   RevisionDetail,
   RevisionListResponse,
@@ -116,6 +119,18 @@ export function listProjectIntents(
 ): Promise<ProjectIntentList> {
   return requestJson('/api/v1/projects?limit=100', signal, {
     headers: { 'X-Ariad-Session': sessionToken },
+  })
+}
+
+export function getProjectDetail(projectId: string, sessionToken: string, signal?: AbortSignal): Promise<ProjectDetail> {
+  return requestJson(`/api/v1/projects/${encodeURIComponent(projectId)}`, signal, {
+    headers: { 'X-Ariad-Session': sessionToken },
+  })
+}
+
+export function saveProjectDraft(projectId: string, draft: ProjectDraftRequest, sessionToken: string, signal?: AbortSignal): Promise<ProjectDraft> {
+  return requestJson(`/api/v1/projects/${encodeURIComponent(projectId)}/draft`, signal, {
+    method: 'PUT', body: JSON.stringify(draft), headers: { 'X-Ariad-Session': sessionToken },
   })
 }
 

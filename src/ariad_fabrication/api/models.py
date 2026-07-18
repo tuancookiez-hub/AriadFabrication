@@ -22,8 +22,8 @@ from ..intake import CapabilityLane, RouteStatus
 from ..local_codex import LocalCodexStatus
 
 
-InterfaceApiVersion = Literal["1.13.0"]
-INTERFACE_API_VERSION: InterfaceApiVersion = "1.13.0"
+InterfaceApiVersion = Literal["1.14.0"]
+INTERFACE_API_VERSION: InterfaceApiVersion = "1.14.0"
 Timestamp = Annotated[str, Field(json_schema_extra={"format": "date-time"})]
 
 
@@ -163,6 +163,50 @@ class ProjectIntentView(ApiModel):
 class ProjectIntentListResponse(ApiModel):
     schema_version: InterfaceApiVersion
     projects: list[ProjectIntentView]
+    fabrication_started: Literal[False]
+    hardware_actions: Literal[False]
+
+
+class ProjectDraftRequest(ApiModel):
+    name: str | None = Field(default=None, max_length=120)
+    purpose: str | None = Field(default=None, max_length=512)
+    part_type: str | None = Field(default=None, max_length=120)
+    size_x_mm: float | None = Field(default=None, gt=0)
+    size_y_mm: float | None = Field(default=None, gt=0)
+    size_z_mm: float | None = Field(default=None, gt=0)
+    material: str | None = Field(default=None, max_length=120)
+    tolerance_mm: float | None = Field(default=None, gt=0)
+    support_policy: Literal["avoid", "allowed", "required"] | None = None
+    manufacturing_process: str | None = Field(default=None, max_length=120)
+    safety_class: Literal["general", "caution", "safety_critical"] | None = None
+
+
+class ProjectDraftView(ApiModel):
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    name: str | None
+    purpose: str | None
+    part_type: str | None
+    size_x_mm: float | None
+    size_y_mm: float | None
+    size_z_mm: float | None
+    material: str | None
+    tolerance_mm: float | None
+    support_policy: Literal["avoid", "allowed", "required"] | None
+    manufacturing_process: str | None
+    safety_class: Literal["general", "caution", "safety_critical"] | None
+    updated_at: Timestamp
+    status: Literal["needs_input", "ready_for_confirmation"]
+    missing_fields: list[str]
+    brief_evidence_level: None
+    fabrication_started: Literal[False]
+    hardware_actions: Literal[False]
+
+
+class ProjectDetailResponse(ApiModel):
+    schema_version: InterfaceApiVersion
+    project: ProjectIntentView
+    draft: ProjectDraftView | None
     fabrication_started: Literal[False]
     hardware_actions: Literal[False]
 

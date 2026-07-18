@@ -127,6 +127,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/projects/{project_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Project Detail */
+        get: operations["project_detail_api_v1_projects__project_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{project_id}/draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Save Project Draft */
+        put: operations["save_project_draft_api_v1_projects__project_id__draft_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/revision-comparison": {
         parameters: {
             query?: never;
@@ -290,7 +324,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.13.0";
+            schema_version: "1.14.0";
             /** Session Token */
             session_token: string;
         };
@@ -460,7 +494,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.13.0";
+            schema_version: "1.14.0";
         };
         /** ConversationEventsResponse */
         ConversationEventsResponse: {
@@ -479,7 +513,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.13.0";
+            schema_version: "1.14.0";
             /**
              * Tools Registered
              * @constant
@@ -534,7 +568,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.13.0";
+            schema_version: "1.14.0";
             /**
              * Tools Registered
              * @constant
@@ -711,7 +745,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.13.0";
+            schema_version: "1.14.0";
             /**
              * Service
              * @constant
@@ -944,7 +978,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.13.0";
+            schema_version: "1.14.0";
         };
         /** IntentProviderView */
         IntentProviderView: {
@@ -1034,7 +1068,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.13.0";
+            schema_version: "1.14.0";
             status: components["schemas"]["LocalCodexStatus"];
             /**
              * Tools Registered
@@ -1070,6 +1104,107 @@ export interface components {
             /** Unresolved Warning Count */
             unresolved_warning_count: number;
         };
+        /** ProjectDetailResponse */
+        ProjectDetailResponse: {
+            draft: components["schemas"]["ProjectDraftView"] | null;
+            /**
+             * Fabrication Started
+             * @constant
+             */
+            fabrication_started: false;
+            /**
+             * Hardware Actions
+             * @constant
+             */
+            hardware_actions: false;
+            project: components["schemas"]["ProjectIntentView"];
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "1.14.0";
+        };
+        /** ProjectDraftRequest */
+        ProjectDraftRequest: {
+            /** Manufacturing Process */
+            manufacturing_process?: string | null;
+            /** Material */
+            material?: string | null;
+            /** Name */
+            name?: string | null;
+            /** Part Type */
+            part_type?: string | null;
+            /** Purpose */
+            purpose?: string | null;
+            /** Safety Class */
+            safety_class?: ("general" | "caution" | "safety_critical") | null;
+            /** Size X Mm */
+            size_x_mm?: number | null;
+            /** Size Y Mm */
+            size_y_mm?: number | null;
+            /** Size Z Mm */
+            size_z_mm?: number | null;
+            /** Support Policy */
+            support_policy?: ("avoid" | "allowed" | "required") | null;
+            /** Tolerance Mm */
+            tolerance_mm?: number | null;
+        };
+        /** ProjectDraftView */
+        ProjectDraftView: {
+            /** Brief Evidence Level */
+            brief_evidence_level: null;
+            /**
+             * Fabrication Started
+             * @constant
+             */
+            fabrication_started: false;
+            /**
+             * Hardware Actions
+             * @constant
+             */
+            hardware_actions: false;
+            /** Manufacturing Process */
+            manufacturing_process: string | null;
+            /** Material */
+            material: string | null;
+            /** Missing Fields */
+            missing_fields: string[];
+            /** Name */
+            name: string | null;
+            /** Part Type */
+            part_type: string | null;
+            /** Project Id */
+            project_id: string;
+            /** Purpose */
+            purpose: string | null;
+            /** Safety Class */
+            safety_class: ("general" | "caution" | "safety_critical") | null;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "1.0.0";
+            /** Size X Mm */
+            size_x_mm: number | null;
+            /** Size Y Mm */
+            size_y_mm: number | null;
+            /** Size Z Mm */
+            size_z_mm: number | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "needs_input" | "ready_for_confirmation";
+            /** Support Policy */
+            support_policy: ("avoid" | "allowed" | "required") | null;
+            /** Tolerance Mm */
+            tolerance_mm: number | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
         /** ProjectIntentCreateRequest */
         ProjectIntentCreateRequest: {
             /**
@@ -1100,7 +1235,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.13.0";
+            schema_version: "1.14.0";
         };
         /** ProjectIntentView */
         ProjectIntentView: {
@@ -1182,7 +1317,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.13.0";
+            schema_version: "1.14.0";
             /** Summaries */
             summaries: components["schemas"]["ComparisonAreaSummaryView"][];
             /** Total Change Count */
@@ -1201,7 +1336,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.13.0";
+            schema_version: "1.14.0";
             source: components["schemas"]["SourceView"];
             /** Stages */
             stages: components["schemas"]["StageView"][];
@@ -1215,7 +1350,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.13.0";
+            schema_version: "1.14.0";
             window: components["schemas"]["RevisionListWindowView"];
         };
         /** RevisionListWindowView */
@@ -1623,6 +1758,76 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProjectIntentView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    project_detail_api_v1_projects__project_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-ariad-session"?: string | null;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectDetailResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_project_draft_api_v1_projects__project_id__draft_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-ariad-session"?: string | null;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProjectDraftRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectDraftView"];
                 };
             };
             /** @description Validation Error */

@@ -1999,6 +1999,17 @@ main {
 .project-intent-card > p { min-height: 4.8rem; color: #5f5750; line-height: 1.6; }
 .project-intent-card footer { padding-top: 1rem; border-top: 1px solid #e6dfd6; }
 .project-intent-card footer strong { color: #8f1f1f; }
+.project-intent-card > .secondary-action { margin-top: 1rem; }
+.clarify-hero { max-width: 980px; padding: clamp(3rem, 7vw, 5rem) clamp(1rem, 4vw, 4rem) 2rem; }
+.clarify-hero h1 { margin: .35rem 0 1rem; font-family: Georgia, "Times New Roman", serif; font-size: clamp(3rem, 7vw, 5.5rem); font-weight: 500; letter-spacing: -.05em; line-height: .98; }
+.clarify-hero > p:last-child { color: #635c56; }
+.clarify-form { margin: 0 clamp(1rem, 4vw, 4rem) 5rem; padding: clamp(1.2rem, 3vw, 2rem); border: 1px solid #ddd5ca; border-radius: 14px; background: #fffdf9; }
+.clarify-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.2rem; }
+.clarify-grid label { display: grid; gap: .4rem; font-weight: 750; }
+.clarify-grid input, .clarify-grid select { width: 100%; border: 1px solid #bdb3a7; border-radius: 8px; background: #fbf8f2; color: #171414; font: inherit; padding: .75rem; }
+.draft-status { margin: 0 0 1rem; padding: .85rem 1rem; border: 1px solid #d6c7b6; border-radius: 8px; background: #f8f1e7; color: #5f5750; }
+@media (max-width: 900px) { .clarify-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 620px) { .clarify-grid { grid-template-columns: 1fr; } }
 .chat-composer { padding: 1.25rem; border-top: 1px solid #e6dfd6; }
 .chat-composer label { display: block; margin-bottom: .5rem; font-weight: 750; }
 .chat-composer textarea { width: 100%; resize: vertical; border: 1px solid #bdb3a7; border-radius: 10px; background: #fbf8f2; color: #171414; font: inherit; line-height: 1.55; padding: .9rem; }
