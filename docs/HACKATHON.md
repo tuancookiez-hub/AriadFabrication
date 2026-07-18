@@ -182,8 +182,8 @@ developer-tool installation/testing instructions.
 
 ## Final submission blockers
 
-1. Perform screenshot-level browser and assistive-technology checks on the
-   Codex-to-R0 and persisted-evidence paths.
+1. Finish Golden R4 screenshot review and assistive-technology checks. The
+   project-to-R0 path now passes live desktop and mobile browser walkthroughs.
 2. Run the documented setup on a clean Windows checkout.
 3. Select a repository license or configure private judge access.
 4. Start the Devpost submission, add and confirm any teammates, and verify judge access.
