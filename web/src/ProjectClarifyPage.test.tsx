@@ -40,5 +40,6 @@ describe('ProjectClarifyPage', () => {
     fireEvent.click(screen.getByLabelText('I reviewed these requirements and approve them for Design.'))
     fireEvent.click(confirm)
     await screen.findByText('R0 Brief confirmed. This project is ready for Design. Fabrication has not started.')
+    expect(screen.getByRole('link', { name: 'Open the R0 Journey' })).toHaveAttribute('href', '/jobs/job_demo/revisions/rev_demo')
   })
 })

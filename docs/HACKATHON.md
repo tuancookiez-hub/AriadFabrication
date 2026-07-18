@@ -31,10 +31,10 @@ and a reproducible R4 fabrication package without connecting to a printer.
 
 Codex helped build and repeatedly audit the architecture, contracts, failure
 paths, Windows process supervision, evidence replay, React interface, and test
-suite. GPT-5.6 is intended to convert broad user ideas into a strict intent
-proposal and capability route. The model is not allowed to declare geometry,
-printability, slicing, or physical success; deterministic tools and persisted
-artifacts own those claims.
+suite. A locally authenticated GPT-5.6 Codex session also works inside Ariad's
+conversation surface and has called Ariad's bounded idea-capture tool. Codex is
+not allowed to declare geometry, printability, slicing, or physical success;
+deterministic tools and persisted artifacts own those claims.
 
 The long-term product accepts many fabrication ideas and routes them to
 functional parametric CAD, organic mesh generation, clarification, or an
@@ -89,20 +89,21 @@ Show one sentence on screen, then the Ariad dashboard:
 > A generated mesh is not manufacturing evidence. Ariad shows beginners the
 > thread from an idea to what has actually been checked.
 
-### 0:20–0:45 — Universal intake and honest routing
+### 0:20–1:05 — Codex, clarification, and the R0 Brief
 
-Enter two contrasting prompts:
+Ask Codex for a small fabrication idea, then use the separate confirmation
+action to save it as a project. Open Projects and show:
 
-1. “Design a weather-resistant enclosure for a soil sensor.”
-2. “Create a decorative floating air warship.”
+- unknown dimensions remain visibly blank rather than being invented;
+- completing the clarification form still creates no evidence;
+- checking the approval statement and confirming creates one real R0 Brief;
+- the new “Open the R0 Journey” link shows the persisted Brief trace.
 
-Show that both ideas are captured and that GPT-5.6 is explicitly unavailable
-when no API credential is configured. Point to the intended functional-CAD and
-organic-mesh lanes in the capability panel, but do not claim the model selected
-either route. Then open the existing registered Golden Part evidence from the
-Journey page. Do not imply either free-form prompt generated the benchmark.
+Say plainly that R0 proves confirmed requirements only. It does not mean the
+free-form prompt generated CAD. Then open the separately registered Golden Part
+evidence from the Journey page.
 
-### 0:45–1:35 — Fabrication Journey
+### 1:05–1:45 — Fabrication Journey
 
 Open the real Golden Part revision and move across the shipment-style stages:
 
@@ -113,23 +114,24 @@ Open the real Golden Part revision and move across the shipment-style stages:
 
 Say “digital evidence” once. Avoid “guaranteed printable.”
 
-### 1:35–2:05 — Real slicer and package
+### 1:45–2:15 — Real slicer and package
 
 Show the real G-code layer player, PrusaSlicer identity, profile snapshot,
 estimated material/time, package artifacts, and checksums. Point out that G-code
 came from the approved slicer, not GPT-5.6.
 
-### 2:05–2:30 — Failure and revision evidence
+### 2:15–2:35 — Failure and revision evidence
 
 Open one failed fixture and the parent/child comparison. Explain that stages stop
 at the failed gate and that fixture evidence can never be promoted to real.
 
-### 2:30–2:50 — Codex and GPT-5.6
+### 2:35–2:50 — What Codex did
 
 Show the repository test result and one concise architecture view. Explain:
 
 - Codex accelerated implementation, audits, adversarial tests, and UI iteration.
-- GPT-5.6 proposes structured intent and routing only.
+- GPT-5.6 Codex converses through Ariad and can call only three bounded,
+  read-only Ariad tools in the current build.
 - CAD, OCCT validation, PrusaSlicer, and persisted checks own downstream claims.
 
 End on: **“Follow the thread from idea to evidence.”**
@@ -143,7 +145,7 @@ developer-tool installation/testing instructions.
 
 | Requirement | Evidence | State |
 |---|---|---|
-| Working project | Real R2/R4 benchmark plus React intake/evidence explorer | Partial: intake works; browser execution remains locked |
+| Working project | Codex-to-R0 project flow plus real R2/R4 benchmark and React evidence explorer | Ready for local demo; arbitrary CAD remains unavailable |
 | Category | Developer Tools | Ready |
 | Project description | Draft above | Draft |
 | Public demo under 3 minutes | Script above | Not recorded |
@@ -152,7 +154,7 @@ developer-tool installation/testing instructions.
 | README setup instructions | Root README | Present; final clean-machine audit pending |
 | Sample data | `benchmarks/interface/` and Golden Part benchmark | Present |
 | Codex contribution explanation | Description and demo script | Draft |
-| GPT-5.6 working use | Structured intent provider | Blocked by missing API credential |
+| GPT-5.6 working use | Real local Codex GPT-5.6 turn called `ariad.capture_idea` | Ready on the builder's authenticated machine; judges use their own Codex authentication |
 | `/feedback` session ID | Submission form field | Missing; do not substitute a thread ID without verification |
 | Judge test path without rebuild | `scripts/start_demo.ps1` with fixture evidence | Ready on documented Windows environment; clean-machine audit pending |
 
@@ -176,11 +178,10 @@ developer-tool installation/testing instructions.
 
 ## Final submission blockers
 
-1. Configure an OpenAI API credential and validate the GPT-5.6 structured-intent
-   path against a frozen prompt corpus.
-2. Finish the coherent browser intake/run experience or explicitly package the
-   verified runner as a local-only demo with no unsafe mutation endpoint.
-3. Perform screenshot-level browser and assistive-technology checks.
-4. Select a repository license or configure private judge access.
+1. Perform screenshot-level browser and assistive-technology checks on the
+   Codex-to-R0 and persisted-evidence paths.
+2. Run the documented setup on a clean Windows checkout.
+3. Select a repository license or configure private judge access.
+4. Start the Devpost submission, add and confirm any teammates, and verify judge access.
 5. Record/upload the demo, obtain the verified `/feedback` session ID, and enter
    repository/video URLs in Devpost.

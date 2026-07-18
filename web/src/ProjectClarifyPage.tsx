@@ -1,5 +1,5 @@
 import { type FormEvent, useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 
 import { confirmProjectBrief, getBrowserSession, getProjectDetail, saveProjectDraft } from './api'
 import type { ProjectDetail, ProjectDraftRequest } from './types'
@@ -77,7 +77,7 @@ export function ProjectClarifyPage() {
       </form>
       <section className="brief-confirmation" aria-labelledby="brief-confirmation-title">
         <h2 id="brief-confirmation-title">Confirm the manufacturing brief</h2>
-        {detail?.brief ? <p role="status">R0 Brief confirmed. This project is ready for Design. Fabrication has not started.</p> : <>
+        {detail?.brief ? <div role="status"><p>R0 Brief confirmed. This project is ready for Design. Fabrication has not started.</p><Link className="primary-action" to={`/jobs/${encodeURIComponent(detail.brief.job_id)}/revisions/${encodeURIComponent(detail.brief.revision_id)}`}>Open the R0 Journey</Link></div> : <>
           <p>This records the displayed requirements as your approved PartSpec. It still does not generate CAD, slice, print, or contact hardware.</p>
           <label><input type="checkbox" checked={approvalChecked} onChange={(event) => setApprovalChecked(event.target.checked)} /> I reviewed these requirements and approve them for Design.</label>
           <button className="primary-action" type="button" disabled={detail?.draft?.status !== 'ready_for_confirmation' || !approvalChecked} onClick={confirmBrief}>Confirm PartSpec and create R0 Brief</button>
