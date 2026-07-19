@@ -7,6 +7,7 @@ from typing import Any, Mapping
 
 from ..agent_tools import exposed_codex_tools
 from ..intake import CapabilityLane, CurrentCapabilityRouter, IntentProposal, PromptIntake
+from .project_store import ProjectIntentStore, ProjectStoreError
 from .repository import InvalidRevisionError, JourneyRepository, RevisionNotFoundError
 
 
@@ -18,10 +19,11 @@ class AgentToolCallError(RuntimeError):
 
 
 class ReadOnlyAgentToolRuntime:
-    """Execute exactly the three non-mutating tools in the published catalog."""
+    """Execute the bounded non-mutating tools in the published catalog."""
 
-    def __init__(self, repository: JourneyRepository):
+    def __init__(self, repository: JourneyRepository, project_store: ProjectIntentStore):
         self._repository = repository
+        self._project_store = project_store
         self._descriptors = {item.name: item for item in exposed_codex_tools()}
 
     @property
@@ -30,7 +32,7 @@ class ReadOnlyAgentToolRuntime:
             {
                 "type": "namespace",
                 "name": "ariad",
-                "description": "Read-only Ariad fabrication intake and evidence tools.",
+                "description": "Read-only Ariad fabrication intake, planning, and evidence tools.",
                 "tools": [
                     {
                         "type": "function",
@@ -57,11 +59,13 @@ class ReadOnlyAgentToolRuntime:
                 result = self._list_evidence(arguments)
             elif name == "ariad.read_evidence":
                 result = self._read_evidence(arguments)
+            elif name == "ariad.propose_design_plan":
+                result = self._propose_design_plan(arguments)
             else:  # pragma: no cover - catalog and dispatch are asserted together
                 raise AgentToolCallError("Ariad tool dispatch is unavailable.")
         except AgentToolCallError:
             raise
-        except (InvalidRevisionError, RevisionNotFoundError, ValueError) as exc:
+        except (InvalidRevisionError, ProjectStoreError, RevisionNotFoundError, ValueError) as exc:
             raise AgentToolCallError(str(exc)) from exc
         rendered = json.dumps(result, ensure_ascii=False, separators=(",", ":"))
         if len(rendered.encode("utf-8")) > MAX_AGENT_TOOL_OUTPUT_BYTES:
@@ -107,6 +111,64 @@ class ReadOnlyAgentToolRuntime:
         if not isinstance(revision_id, str) or not 1 <= len(revision_id) <= 128:
             raise AgentToolCallError("Evidence revision_id is invalid.")
         return self._repository.get_revision(job_id, revision_id).model_dump(mode="json")
+
+    def _propose_design_plan(self, arguments: Mapping[str, Any]) -> dict[str, Any]:
+        project_id = arguments.get("project_id")
+        if (
+            not isinstance(project_id, str)
+            or not project_id.startswith("project_")
+            or len(project_id) != 40
+        ):
+            raise AgentToolCallError("Design-plan project_id is invalid.")
+        brief = self._project_store.get_brief(project_id)
+        if brief is None:
+            raise AgentToolCallError("An R0 Brief is required before Design planning.")
+        lane = arguments.get("lane")
+        if lane not in {"functional_parametric", "organic_mesh", "hybrid", "undecided"}:
+            raise AgentToolCallError("Design-plan lane is invalid.")
+        strategy = arguments.get("geometry_strategy")
+        if not isinstance(strategy, str) or not strategy.strip() or len(strategy.strip()) > 2_000:
+            raise AgentToolCallError("Design-plan geometry strategy is invalid.")
+        proposal: dict[str, Any] = {
+            "lane": lane,
+            "geometry_strategy": strategy.strip(),
+        }
+        for field_name in (
+            "critical_features",
+            "assembly_interfaces",
+            "constraints",
+            "unresolved_questions",
+        ):
+            items = arguments.get(field_name)
+            if not isinstance(items, list) or len(items) > 20:
+                raise AgentToolCallError(f"Design-plan {field_name} is invalid.")
+            cleaned: list[str] = []
+            for item in items:
+                if not isinstance(item, str) or not item.strip() or len(item.strip()) > 512:
+                    raise AgentToolCallError(f"Design-plan {field_name} is invalid.")
+                cleaned.append(item.strip())
+            proposal[field_name] = cleaned
+        status = (
+            "needs_input"
+            if lane == "undecided" or proposal["unresolved_questions"]
+            else "planning_complete"
+        )
+        return {
+            "tool_contract": "1.1.0",
+            "project_id": project_id,
+            "job_id": brief.job_id,
+            "revision_id": brief.revision_id,
+            "brief_draft_sha256": brief.draft_sha256,
+            "proposal": proposal,
+            "status": status,
+            "persisted": False,
+            "evidence_mode": "model_proposal",
+            "design_evidence_level": None,
+            "cad_generated": False,
+            "fabrication_started": False,
+            "hardware_actions": False,
+            "claim_boundary": "Codex proposed Design-plan fields only; the user must review and save them in Ariad. No CAD or R1 evidence exists.",
+        }
 
 
 __all__ = [

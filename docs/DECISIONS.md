@@ -559,6 +559,16 @@ This file records accepted project-level decisions. Change an accepted decision 
 
 **Consequence:** Ariad now carries a user from prompt through an inspectable plan for Design without pretending broad CAD execution exists. A later Codex-assisted authoring path may propose these fields, but the user-controlled persisted plan remains non-evidentiary until an approved CAD provider executes and the Design gate verifies editable source and geometry.
 
+### D-047 - Let Codex propose, but never persist, Design-plan fields
+
+**Status:** Accepted as implemented evidence on 2026-07-19. This extends D-042's read-only catalog from three to four tools without granting mutation authority.
+
+**Decision:** Register `ariad.propose_design_plan` only as a bounded, non-mutating tool. It accepts the closed Design-plan field set, requires an existing confirmed R0 project, binds its result to the Brief job, revision, and draft checksum, and returns `model_proposal` evidence with persistence, R1, CAD, fabrication, and hardware fields false. The user must review and save any accepted fields through Ariad's separate Design workspace.
+
+**Evidence:** Agent-tool contract 1.1.0 and API 1.17.0 expose four non-mutating functions. Runtime tests prove the R0 gate, checksum binding, field and output ceilings, planning status, and absence of persisted Design records. The React R0 workspace links to a pre-addressed Codex proposal conversation and provides a return path for explicit review. A real locally authenticated Codex 0.145.0-alpha.18 turn called `ariad.propose_design_plan`, retained an unresolved question, stated that the proposal was unpersisted and had no CAD/R1 evidence, completed cleanly, and left the existing Design-plan bytes unchanged.
+
+**Consequence:** Codex can help author the next step without becoming the source of Design evidence or silently changing project state. Generated CAD submission, pipeline execution, and hardware remain unavailable.
+
 ## Deferred decisions
 
 These require later evidence and should not be decided through preference alone:

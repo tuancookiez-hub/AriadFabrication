@@ -185,7 +185,7 @@
             "type": "boolean"
           },
           "schema_version": {
-            "const": "1.16.0",
+            "const": "1.17.0",
             "title": "Schema Version",
             "type": "string"
           },
@@ -621,7 +621,7 @@
             "type": "boolean"
           },
           "schema_version": {
-            "const": "1.16.0",
+            "const": "1.17.0",
             "title": "Schema Version",
             "type": "string"
           }
@@ -725,12 +725,12 @@
             "type": "integer"
           },
           "schema_version": {
-            "const": "1.16.0",
+            "const": "1.17.0",
             "title": "Schema Version",
             "type": "string"
           },
           "tools_registered": {
-            "const": 3,
+            "const": 4,
             "title": "Tools Registered",
             "type": "integer"
           },
@@ -782,12 +782,12 @@
             "type": "boolean"
           },
           "schema_version": {
-            "const": "1.16.0",
+            "const": "1.17.0",
             "title": "Schema Version",
             "type": "string"
           },
           "tools_registered": {
-            "const": 3,
+            "const": 4,
             "title": "Tools Registered",
             "type": "integer"
           },
@@ -1272,7 +1272,7 @@
             "$ref": "#/components/schemas/CapabilitiesView"
           },
           "schema_version": {
-            "const": "1.16.0",
+            "const": "1.17.0",
             "title": "Schema Version",
             "type": "string"
           },
@@ -1914,7 +1914,7 @@
             "$ref": "#/components/schemas/CapabilityRouteView"
           },
           "schema_version": {
-            "const": "1.16.0",
+            "const": "1.17.0",
             "title": "Schema Version",
             "type": "string"
           }
@@ -2096,7 +2096,7 @@
             "type": "string"
           },
           "schema_version": {
-            "const": "1.16.0",
+            "const": "1.17.0",
             "title": "Schema Version",
             "type": "string"
           },
@@ -2538,7 +2538,7 @@
             "$ref": "#/components/schemas/ProjectIntentView"
           },
           "schema_version": {
-            "const": "1.16.0",
+            "const": "1.17.0",
             "title": "Schema Version",
             "type": "string"
           }
@@ -2954,7 +2954,7 @@
             "type": "array"
           },
           "schema_version": {
-            "const": "1.16.0",
+            "const": "1.17.0",
             "title": "Schema Version",
             "type": "string"
           }
@@ -3108,7 +3108,7 @@
             "type": "integer"
           },
           "schema_version": {
-            "const": "1.16.0",
+            "const": "1.17.0",
             "title": "Schema Version",
             "type": "string"
           },
@@ -3175,7 +3175,7 @@
             "$ref": "#/components/schemas/RevisionView"
           },
           "schema_version": {
-            "const": "1.16.0",
+            "const": "1.17.0",
             "title": "Schema Version",
             "type": "string"
           },
@@ -3218,7 +3218,7 @@
             "type": "array"
           },
           "schema_version": {
-            "const": "1.16.0",
+            "const": "1.17.0",
             "title": "Schema Version",
             "type": "string"
           },
@@ -3809,7 +3809,7 @@
     "description": "This API replays persisted records, captures bounded ideas, and may save a user-confirmed project intent, explicitly confirm a complete PartSpec through the existing R0 Brief gate, and persist a planning-only Design plan. It cannot generate CAD, upload G-code, select a printer, heat hardware, move hardware, or start manufacturing.",
     "summary": "Evidence replay, conversation, project clarification, R0 confirmation, and Design planning.",
     "title": "Ariad Fabrication Journey API",
-    "version": "1.16.0"
+    "version": "1.17.0"
   },
   "openapi": "3.1.0",
   "paths": {

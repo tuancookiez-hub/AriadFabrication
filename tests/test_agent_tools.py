@@ -12,7 +12,7 @@ from ariad_fabrication.agent_tools import (
 class AgentToolContractTests(unittest.TestCase):
     def test_catalog_is_namespaced_closed_and_never_hardware_capable(self):
         catalog = current_agent_tool_catalog()
-        self.assertEqual(len(catalog), 6)
+        self.assertEqual(len(catalog), 7)
         self.assertEqual(len({item.name for item in catalog}), len(catalog))
         for item in catalog:
             self.assertEqual(item.contract_version, AGENT_TOOL_CONTRACT_VERSION)
@@ -29,7 +29,12 @@ class AgentToolContractTests(unittest.TestCase):
         exposed = exposed_codex_tools()
         self.assertEqual(
             {item.name for item in exposed},
-            {"ariad.capture_idea", "ariad.list_evidence", "ariad.read_evidence"},
+            {
+                "ariad.capture_idea",
+                "ariad.list_evidence",
+                "ariad.read_evidence",
+                "ariad.propose_design_plan",
+            },
         )
         self.assertTrue(all(not item.mutates_state for item in exposed))
         self.assertTrue(all(item.availability is ToolAvailability.AVAILABLE for item in exposed))

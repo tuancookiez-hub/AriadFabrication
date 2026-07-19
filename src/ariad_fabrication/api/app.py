@@ -127,7 +127,7 @@ def create_app(
         app.state.runs_root.name == "interface" and app.state.runs_root.parent.name == "benchmarks"
     )
     app.state.project_store = ProjectIntentStore(projects_root)
-    app.state.agent_tool_runtime = ReadOnlyAgentToolRuntime(repository)
+    app.state.agent_tool_runtime = ReadOnlyAgentToolRuntime(repository, app.state.project_store)
     app.state.codex_executable = codex_executable
     app.state.codex_snapshot = None
     app.state.codex_probe_lock = Lock()
@@ -246,7 +246,7 @@ def create_app(
             schema_version=INTERFACE_API_VERSION,
             turn_id=turn_id,
             accepted=True,
-            tools_registered=3,
+            tools_registered=4,
             workspace_mutation_enabled=False,
             hardware_actions=False,
         )
@@ -264,7 +264,7 @@ def create_app(
             events=[event.to_dict() for event in events],
             active_turn_id=conversation.active_turn_id,
             next_sequence=next_sequence,
-            tools_registered=3,
+            tools_registered=4,
             workspace_mutation_enabled=False,
             hardware_actions=False,
         )

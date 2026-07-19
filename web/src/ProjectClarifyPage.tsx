@@ -107,6 +107,7 @@ export function ProjectClarifyPage() {
         <p className="eyebrow">Planning only · no R1 evidence</p>
         <h2 id="design-planning-title">Plan the Design stage</h2>
         <p>Describe how this confirmed requirement should become geometry. This plan is bound to the R0 Brief, but no CAD provider runs and no geometry evidence is awarded.</p>
+        <Link className="secondary-action" to={`/chat?project=${encodeURIComponent(projectId)}`}>Ask Codex for a Design-plan proposal</Link>
         <form onSubmit={submitDesignPlan}>
           <label>Design lane<select value={designPlan.lane} onChange={(event) => setDesignPlan((current) => ({ ...current, lane: event.target.value as ProjectDesignPlanRequest['lane'] }))}><option value="undecided">Undecided</option><option value="functional_parametric">Functional parametric CAD</option><option value="organic_mesh">Organic or decorative mesh</option><option value="hybrid">Hybrid CAD and mesh</option></select></label>
           <label>Geometry strategy<textarea required rows={4} value={designPlan.geometry_strategy} onChange={(event) => setDesignPlan((current) => ({ ...current, geometry_strategy: event.target.value }))} placeholder="Example: Build a dimension-driven shell and removable lid around the confirmed envelope." /></label>

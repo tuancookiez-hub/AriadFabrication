@@ -13,7 +13,7 @@ from types import MappingProxyType
 from typing import Any, Mapping
 
 
-AGENT_TOOL_CONTRACT_VERSION = "1.0.0"
+AGENT_TOOL_CONTRACT_VERSION = "1.1.0"
 
 
 class ToolAvailability(str, Enum):
@@ -102,7 +102,9 @@ def current_agent_tool_catalog() -> tuple[AgentToolDescriptor, ...]:
         AgentToolDescriptor(
             name="ariad.capture_idea",
             description="Capture one bounded fabrication idea without persistence or execution.",
-            input_schema=_closed({"prompt": {"type": "string", "minLength": 1, "maxLength": 16384}}),
+            input_schema=_closed(
+                {"prompt": {"type": "string", "minLength": 1, "maxLength": 16384}}
+            ),
             availability=ToolAvailability.AVAILABLE,
         ),
         AgentToolDescriptor(
@@ -123,6 +125,46 @@ def current_agent_tool_catalog() -> tuple[AgentToolDescriptor, ...]:
                 {
                     "job_id": {"type": "string", "minLength": 1, "maxLength": 128},
                     "revision_id": {"type": "string", "minLength": 1, "maxLength": 128},
+                }
+            ),
+            availability=ToolAvailability.AVAILABLE,
+        ),
+        AgentToolDescriptor(
+            name="ariad.propose_design_plan",
+            description="Propose bounded Design-plan fields for one confirmed R0 project without saving or executing them.",
+            input_schema=_closed(
+                {
+                    "project_id": {"type": "string", "pattern": "^project_[0-9a-f]{32}$"},
+                    "lane": {
+                        "type": "string",
+                        "enum": [
+                            "functional_parametric",
+                            "organic_mesh",
+                            "hybrid",
+                            "undecided",
+                        ],
+                    },
+                    "geometry_strategy": {"type": "string", "minLength": 1, "maxLength": 2000},
+                    "critical_features": {
+                        "type": "array",
+                        "maxItems": 20,
+                        "items": {"type": "string", "minLength": 1, "maxLength": 512},
+                    },
+                    "assembly_interfaces": {
+                        "type": "array",
+                        "maxItems": 20,
+                        "items": {"type": "string", "minLength": 1, "maxLength": 512},
+                    },
+                    "constraints": {
+                        "type": "array",
+                        "maxItems": 20,
+                        "items": {"type": "string", "minLength": 1, "maxLength": 512},
+                    },
+                    "unresolved_questions": {
+                        "type": "array",
+                        "maxItems": 20,
+                        "items": {"type": "string", "minLength": 1, "maxLength": 512},
+                    },
                 }
             ),
             availability=ToolAvailability.AVAILABLE,

@@ -134,8 +134,8 @@ at the failed gate and that fixture evidence can never be promoted to real.
 Show the repository test result and one concise architecture view. Explain:
 
 - Codex accelerated implementation, audits, adversarial tests, and UI iteration.
-- GPT-5.6 Codex converses through Ariad and can call only three bounded,
-  read-only Ariad tools in the current build.
+- GPT-5.6 Codex converses through Ariad and can call four bounded,
+  non-mutating Ariad tools, including an R0-bound Design-plan proposal tool.
 - CAD, OCCT validation, PrusaSlicer, and persisted checks own downstream claims.
 
 End on: **“Follow the thread from idea to evidence.”**
@@ -158,7 +158,7 @@ developer-tool installation/testing instructions.
 | README setup instructions | Root README | Present; final clean-machine audit pending |
 | Sample data | `benchmarks/interface/` and Golden Part benchmark | Present |
 | Codex contribution explanation | Description and demo script | Draft |
-| GPT-5.6 working use | Real local Codex GPT-5.6 turn called `ariad.capture_idea` | Ready on the builder's authenticated machine; judges use their own Codex authentication |
+| GPT-5.6 working use | Real local Codex turns called `ariad.capture_idea` and the R0-bound `ariad.propose_design_plan` without persisting CAD or plan state | Ready on the builder's authenticated machine; judges use their own Codex authentication |
 | `/feedback` session ID | Submission form field | Missing; do not substitute a thread ID without verification |
 | Judge test path without rebuild | `scripts/start_demo.ps1` with fixture evidence | Ready on documented Windows environment; clean-machine audit pending |
 

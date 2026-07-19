@@ -1,4 +1,4 @@
-"""Persistent read-only local Codex conversation boundary.
+"""Persistent non-mutating local Codex conversation boundary.
 
 The adapter registers only bounded read-only Ariad tools. It exposes curated
 assistant-text, tool activity, and lifecycle events while keeping raw app-server messages,
@@ -342,8 +342,10 @@ class LocalCodexConversation:
                 "dynamicTools": list(self._tool_specs),
                 "baseInstructions": (
                     "You are the conversational fabrication agent inside Ariad. "
-                    "Use only the registered Ariad read-only tools when they provide relevant "
-                    "intake or evidence. Do not use shell commands, files, web search, MCP, "
+                    "Use only the registered non-mutating Ariad tools when they provide relevant "
+                    "intake, Design planning, or evidence. A Design-plan proposal is unpersisted "
+                    "until the user reviews and saves it in Ariad. After proposing a Design plan, "
+                    "present every proposal field and the claim boundary for review. Do not use shell commands, files, web search, MCP, "
                     "skills, or external context. "
                     "Never claim CAD generation, validation, slicing, printing, or physical proof."
                 ),

@@ -358,7 +358,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.16.0";
+            schema_version: "1.17.0";
             /** Session Token */
             session_token: string;
         };
@@ -528,7 +528,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.16.0";
+            schema_version: "1.17.0";
         };
         /** ConversationEventsResponse */
         ConversationEventsResponse: {
@@ -547,12 +547,12 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.16.0";
+            schema_version: "1.17.0";
             /**
              * Tools Registered
              * @constant
              */
-            tools_registered: 3;
+            tools_registered: 4;
             /**
              * Workspace Mutation Enabled
              * @constant
@@ -602,12 +602,12 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.16.0";
+            schema_version: "1.17.0";
             /**
              * Tools Registered
              * @constant
              */
-            tools_registered: 3;
+            tools_registered: 4;
             /** Turn Id */
             turn_id: string;
             /**
@@ -779,7 +779,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.16.0";
+            schema_version: "1.17.0";
             /**
              * Service
              * @constant
@@ -1012,7 +1012,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.16.0";
+            schema_version: "1.17.0";
         };
         /** IntentProviderView */
         IntentProviderView: {
@@ -1102,7 +1102,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.16.0";
+            schema_version: "1.17.0";
             status: components["schemas"]["LocalCodexStatus"];
             /**
              * Tools Registered
@@ -1298,7 +1298,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.16.0";
+            schema_version: "1.17.0";
         };
         /** ProjectDraftRequest */
         ProjectDraftRequest: {
@@ -1411,7 +1411,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.16.0";
+            schema_version: "1.17.0";
         };
         /** ProjectIntentView */
         ProjectIntentView: {
@@ -1493,7 +1493,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.16.0";
+            schema_version: "1.17.0";
             /** Summaries */
             summaries: components["schemas"]["ComparisonAreaSummaryView"][];
             /** Total Change Count */
@@ -1512,7 +1512,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.16.0";
+            schema_version: "1.17.0";
             source: components["schemas"]["SourceView"];
             /** Stages */
             stages: components["schemas"]["StageView"][];
@@ -1526,7 +1526,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.16.0";
+            schema_version: "1.17.0";
             window: components["schemas"]["RevisionListWindowView"];
         };
         /** RevisionListWindowView */

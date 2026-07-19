@@ -1,4 +1,5 @@
 import { type FormEvent, useEffect, useRef, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 
 import {
   cancelCodexTurn,
@@ -15,9 +16,11 @@ type Message = { id: string; role: 'user' | 'assistant'; text: string }
 type ToolActivity = { id: string; name: string; state: 'running' | 'completed' | 'failed' }
 
 export function CodexChatPage() {
+  const [searchParams] = useSearchParams()
+  const planningProjectId = searchParams.get('project')
   const [status, setStatus] = useState<LocalCodexStatus | null>(null)
   const [sessionToken, setSessionToken] = useState<string | null>(null)
-  const [prompt, setPrompt] = useState('')
+  const [prompt, setPrompt] = useState(() => planningProjectId ? `Propose a Design plan for Ariad project ${planningProjectId}. Use ariad.propose_design_plan, preserve unresolved questions, and do not claim CAD or R1 evidence.` : '')
   const [messages, setMessages] = useState<Message[]>([])
   const [toolActivity, setToolActivity] = useState<ToolActivity[]>([])
   const [projectCandidate, setProjectCandidate] = useState<{ prompt: string; title: string } | null>(null)
@@ -144,8 +147,9 @@ export function CodexChatPage() {
         <p className="eyebrow">Local Codex fabrication agent</p>
         <h1 data-route-heading tabIndex={-1}>Talk through what you want to make.</h1>
         <p>
-          Codex can capture an idea and inspect Ariad evidence through three read-only tools. It
-          still cannot generate CAD, run validation, slice, mutate evidence, or contact hardware.
+          Codex can capture an idea, inspect evidence, and propose Design-plan fields through four
+          non-mutating tools. It still cannot generate CAD, run validation, slice, mutate evidence,
+          or contact hardware.
         </p>
       </section>
       <section className="chat-layout">
@@ -204,6 +208,7 @@ export function CodexChatPage() {
               <small>No Brief evidence or fabrication run exists yet.</small>
             </div>
           ) : null}
+          {planningProjectId ? <div className="project-saved"><strong>Design proposal mode</strong><span>Codex can propose fields for review; Ariad will not save them automatically.</span><Link to={`/projects/${encodeURIComponent(planningProjectId)}`}>Return to the Design workspace</Link></div> : null}
           <form className="chat-composer" onSubmit={submit}>
             <label htmlFor="codex-prompt">Message Codex</label>
             <textarea
@@ -216,7 +221,7 @@ export function CodexChatPage() {
               value={prompt}
             />
             <div>
-              <small>Local session · 3 read-only tools · no execution authority</small>
+              <small>Local session · 4 non-mutating tools · no execution authority</small>
               {activeTurn ? (
                 <button className="stop-action" onClick={cancel} type="button">Stop Codex</button>
               ) : (
@@ -230,7 +235,7 @@ export function CodexChatPage() {
           <h2>Read-only assistance</h2>
           <dl>
             <div><dt>GPT model</dt><dd>{status?.conversation_available ? 'Local Codex default' : 'Unavailable'}</dd></div>
-            <div><dt>Ariad tools</dt><dd>3 read-only</dd></div>
+            <div><dt>Ariad tools</dt><dd>4 non-mutating</dd></div>
             <div><dt>Workspace</dt><dd>Read-only and empty</dd></div>
             <div><dt>Hardware</dt><dd>Disconnected</dd></div>
           </dl>
