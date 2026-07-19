@@ -149,7 +149,7 @@ developer-tool installation/testing instructions.
 
 | Requirement | Evidence | State |
 |---|---|---|
-| Working project | Codex-to-R0 project flow plus real R2/R4 benchmark and React evidence explorer | Ready for local demo; arbitrary CAD remains unavailable |
+| Working project | Codex-to-R0 flow, R0-bound Design planning, real R2/R4 benchmark, and React evidence explorer | Ready for local demo; arbitrary CAD remains unavailable |
 | Category | Developer Tools | Ready |
 | Project description | Draft above | Draft |
 | Public demo under 3 minutes | Script above | Not recorded |

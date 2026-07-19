@@ -2183,6 +2183,10 @@ main {
     border-left: 0;
   }
 
+  .design-plan-grid {
+    grid-template-columns: 1fr;
+  }
+
   .comparison-warning,
   .comparison-revision-heading {
     align-items: flex-start;
@@ -2204,6 +2208,50 @@ main {
   gap: 0.65rem;
   align-items: flex-start;
   margin: 1rem 0;
+}
+
+.design-planning {
+  margin: 0 clamp(1rem, 4vw, 4rem) 5rem;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border: 1px solid #d2c8bb;
+  border-radius: 16px;
+  background: #fffaf3;
+  color: #171414;
+}
+
+.design-planning > p:not(.eyebrow) {
+  max-width: 75ch;
+  color: #625d58;
+  line-height: 1.65;
+}
+
+.design-planning form,
+.design-planning label {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.design-planning form {
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.design-planning select,
+.design-planning textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #bdb3a7;
+  border-radius: 8px;
+  background: #fffdf9;
+  color: #171414;
+  font: inherit;
+  line-height: 1.5;
+}
+
+.design-plan-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
 }
 
 .clarify-form fieldset {

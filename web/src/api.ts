@@ -7,6 +7,8 @@ import type {
   LocalCodexStatus,
   ProjectIntent,
   ProjectIntentList,
+  ProjectDesignPlan,
+  ProjectDesignPlanRequest,
   ProjectDetail,
   ProjectDraft,
   ProjectDraftRequest,
@@ -138,6 +140,12 @@ export function saveProjectDraft(projectId: string, draft: ProjectDraftRequest, 
 export function confirmProjectBrief(projectId: string, sessionToken: string, signal?: AbortSignal): Promise<ProjectBrief> {
   return requestJson(`/api/v1/projects/${encodeURIComponent(projectId)}/brief-confirmation`, signal, {
     method: 'POST', body: JSON.stringify({ confirmed: true }), headers: { 'X-Ariad-Session': sessionToken },
+  })
+}
+
+export function saveProjectDesignPlan(projectId: string, plan: ProjectDesignPlanRequest, sessionToken: string, signal?: AbortSignal): Promise<ProjectDesignPlan> {
+  return requestJson(`/api/v1/projects/${encodeURIComponent(projectId)}/design-plan`, signal, {
+    method: 'PUT', body: JSON.stringify(plan), headers: { 'X-Ariad-Session': sessionToken },
   })
 }
 

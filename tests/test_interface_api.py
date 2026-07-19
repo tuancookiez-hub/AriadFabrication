@@ -79,7 +79,7 @@ class JourneyRepositoryTests(unittest.TestCase):
         self.assertEqual(len(detail.stages[3].findings), 2)
         self.assertTrue(all(stage.evidence_mode == "fixture" for stage in detail.stages))
         self.assertFalse(detail.capabilities.hardware_actions)
-        self.assertEqual(detail.schema_version, "1.15.0")
+        self.assertEqual(detail.schema_version, "1.16.0")
         self.assertEqual(
             [report.report_kind for report in detail.inspection.reports],
             ["geometry", "printability", "gcode_preflight"],
@@ -90,8 +90,7 @@ class JourneyRepositoryTests(unittest.TestCase):
         )
         self.assertTrue(
             all(
-                report.artifact.checksum_verified
-                and report.artifact.evidence_mode == "fixture"
+                report.artifact.checksum_verified and report.artifact.evidence_mode == "fixture"
                 for report in detail.inspection.reports
             )
         )
@@ -208,9 +207,9 @@ class JourneyRepositoryTests(unittest.TestCase):
                     f"job_interface_{slug}",
                     f"rev_interface_{slug}",
                 )
-                expected_stages = [
-                    item[0] for item in STAGES[: scenario["prior_stage_count"]]
-                ] + [scenario["stage"]]
+                expected_stages = [item[0] for item in STAGES[: scenario["prior_stage_count"]]] + [
+                    scenario["stage"]
+                ]
                 self.assertEqual([stage.stage for stage in detail.stages], expected_stages)
                 self.assertEqual(detail.stages[-1].status, scenario["status"])
                 self.assertIsNone(detail.stages[-1].evidence_level)
@@ -222,9 +221,7 @@ class JourneyRepositoryTests(unittest.TestCase):
                 self.assertIsNone(detail.package)
                 self.assertTrue(detail.source.fixture)
                 self.assertFalse(detail.source.physical_evidence_present)
-                self.assertTrue(
-                    all(stage.evidence_mode == "fixture" for stage in detail.stages)
-                )
+                self.assertTrue(all(stage.evidence_mode == "fixture" for stage in detail.stages))
                 self.assertEqual(len(detail.stages[-1].findings), 1)
                 self.assertEqual(
                     detail.stages[-1].findings[0].severity,
@@ -233,6 +230,7 @@ class JourneyRepositoryTests(unittest.TestCase):
                 self.assertFalse(detail.inspection.reports)
                 self.assertFalse(detail.inspection.profiles)
                 self.assertFalse(detail.inspection.features)
+
     def test_artifact_download_is_checksum_verified(self):
         repository = JourneyRepository(FIXTURE_ROOT)
         artifact = repository.get_artifact(JOB_ID, REVISION_ID, "art_fixture_note")
@@ -244,18 +242,11 @@ class JourneyRepositoryTests(unittest.TestCase):
             copied_root = Path(temporary) / "interface"
             shutil.copytree(FIXTURE_ROOT, copied_root)
             note = (
-                copied_root
-                / JOB_ID
-                / "revisions"
-                / REVISION_ID
-                / "notes"
-                / "interface-fixture.txt"
+                copied_root / JOB_ID / "revisions" / REVISION_ID / "notes" / "interface-fixture.txt"
             )
             note.write_text("same size is unnecessary; any mutation must fail", encoding="utf-8")
             with self.assertRaises(ArtifactIntegrityError):
-                JourneyRepository(copied_root).get_artifact(
-                    JOB_ID, REVISION_ID, "art_fixture_note"
-                )
+                JourneyRepository(copied_root).get_artifact(JOB_ID, REVISION_ID, "art_fixture_note")
 
     def test_repository_file_reads_use_bounded_snapshots(self):
         repository = JourneyRepository(FIXTURE_ROOT)
@@ -289,9 +280,7 @@ class JourneyRepositoryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             copied_root = Path(temporary) / "interface"
             shutil.copytree(FIXTURE_ROOT, copied_root)
-            journey_path = (
-                copied_root / JOB_ID / "revisions" / REVISION_ID / "journey.json"
-            )
+            journey_path = copied_root / JOB_ID / "revisions" / REVISION_ID / "journey.json"
             journey = json.loads(journey_path.read_text(encoding="utf-8"))
             journey["job"]["metadata"]["nonfinite"] = float("nan")
             journey_path.write_text(
@@ -305,9 +294,7 @@ class JourneyRepositoryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             copied_root = Path(temporary) / "interface"
             shutil.copytree(FIXTURE_ROOT, copied_root)
-            journey_path = (
-                copied_root / JOB_ID / "revisions" / REVISION_ID / "journey.json"
-            )
+            journey_path = copied_root / JOB_ID / "revisions" / REVISION_ID / "journey.json"
             duplicate = journey_path.read_text(encoding="utf-8").replace(
                 '{\n  "approvals":',
                 '{\n  "schema_version": "1.0.0",\n  "approvals":',
@@ -323,12 +310,7 @@ class JourneyRepositoryTests(unittest.TestCase):
             copied_root = Path(temporary) / "interface"
             shutil.copytree(FIXTURE_ROOT, copied_root)
             package_path = (
-                copied_root
-                / JOB_ID
-                / "revisions"
-                / REVISION_ID
-                / "fabrication"
-                / "package.json"
+                copied_root / JOB_ID / "revisions" / REVISION_ID / "fabrication" / "package.json"
             )
             package = json.loads(package_path.read_text(encoding="utf-8"))
             package["gcode_summary"] = {"filament_mass_g": "NaN"}
@@ -447,9 +429,7 @@ class JourneyRepositoryTests(unittest.TestCase):
                     repository.get_revision(JOB_ID, REVISION_ID)
                 if label == "job status":
                     with self.assertRaisesRegex(InvalidRevisionError, expected):
-                        repository.get_artifact(
-                            JOB_ID, REVISION_ID, "art_fixture_note"
-                        )
+                        repository.get_artifact(JOB_ID, REVISION_ID, "art_fixture_note")
 
     def test_persisted_text_and_timestamp_types_fail_closed(self):
         cases = (
@@ -524,9 +504,7 @@ class JourneyRepositoryTests(unittest.TestCase):
                     repository.get_revision(JOB_ID, REVISION_ID)
                 if label == "job title":
                     with self.assertRaisesRegex(InvalidRevisionError, expected):
-                        repository.get_artifact(
-                            JOB_ID, REVISION_ID, "art_fixture_note"
-                        )
+                        repository.get_artifact(JOB_ID, REVISION_ID, "art_fixture_note")
 
     def test_persisted_temporal_ordering_fails_closed(self):
         cases = (
@@ -578,13 +556,7 @@ class JourneyRepositoryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             copied_root = Path(temporary) / "interface"
             shutil.copytree(FIXTURE_ROOT, copied_root)
-            manifest_path = (
-                copied_root
-                / JOB_ID
-                / "revisions"
-                / REVISION_ID
-                / "manifest.json"
-            )
+            manifest_path = copied_root / JOB_ID / "revisions" / REVISION_ID / "manifest.json"
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
             manifest["generated_at"] = "2026-07-16T07:59:59+00:00"
             manifest_path.write_text(
@@ -672,18 +644,14 @@ class JourneyRepositoryTests(unittest.TestCase):
                 source_path = revision_root / relative
                 source = json.loads(source_path.read_text(encoding="utf-8"))
                 source[field] = value
-                payload = (
-                    json.dumps(source, indent=2, sort_keys=True) + "\n"
-                ).encode("utf-8")
+                payload = (json.dumps(source, indent=2, sort_keys=True) + "\n").encode("utf-8")
                 source_path.write_bytes(payload)
                 checksum = hashlib.sha256(payload).hexdigest()
                 for record_name in ("journey.json", "manifest.json"):
                     record_path = revision_root / record_name
                     record = json.loads(record_path.read_text(encoding="utf-8"))
                     artifact = next(
-                        item
-                        for item in record["artifacts"]
-                        if item["artifact_id"] == artifact_id
+                        item for item in record["artifacts"] if item["artifact_id"] == artifact_id
                     )
                     artifact["checksum_sha256"] = checksum
                     artifact["size_bytes"] = len(payload)
@@ -723,9 +691,7 @@ class JourneyRepositoryTests(unittest.TestCase):
                 for part in parts[:-1]:
                     target = target[part]
                 target[parts[-1]] = value
-                payload = (
-                    json.dumps(source, indent=2, sort_keys=True) + "\n"
-                ).encode("utf-8")
+                payload = (json.dumps(source, indent=2, sort_keys=True) + "\n").encode("utf-8")
                 source_path.write_bytes(payload)
                 checksum = hashlib.sha256(payload).hexdigest()
                 for record_name in ("journey.json", "manifest.json"):
@@ -840,9 +806,7 @@ class JourneyRepositoryTests(unittest.TestCase):
                 "decided_by": "user",
             }
             journey["approvals"].append(approval)
-            journey["stage_runs"][0]["approval_ids"].append(
-                approval["approval_id"]
-            )
+            journey["stage_runs"][0]["approval_ids"].append(approval["approval_id"])
             manifest["approvals"].append(approval)
             for path, value in ((journey_path, journey), (manifest_path, manifest)):
                 path.write_text(
@@ -935,9 +899,7 @@ class JourneyRepositoryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             copied_root = Path(temporary) / "interface"
             shutil.copytree(FIXTURE_ROOT, copied_root)
-            manifest = (
-                copied_root / JOB_ID / "revisions" / REVISION_ID / "manifest.json"
-            )
+            manifest = copied_root / JOB_ID / "revisions" / REVISION_ID / "manifest.json"
             manifest.unlink()
             detail = JourneyRepository(copied_root).get_revision(JOB_ID, REVISION_ID)
             self.assertFalse(detail.manifest_available)
@@ -947,9 +909,7 @@ class JourneyRepositoryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             copied_root = Path(temporary) / "interface"
             shutil.copytree(FIXTURE_ROOT, copied_root)
-            journey_path = (
-                copied_root / JOB_ID / "revisions" / REVISION_ID / "journey.json"
-            )
+            journey_path = copied_root / JOB_ID / "revisions" / REVISION_ID / "journey.json"
             journey = json.loads(journey_path.read_text(encoding="utf-8"))
             primary_artifact_ids = {
                 item["artifact_id"]
@@ -978,9 +938,7 @@ class JourneyRepositoryTests(unittest.TestCase):
 
             detail = JourneyRepository(copied_root).get_revision(JOB_ID, REVISION_ID)
             artifact_ids = {
-                artifact.artifact_id
-                for stage in detail.stages
-                for artifact in stage.artifacts
+                artifact.artifact_id for stage in detail.stages for artifact in stage.artifacts
             }
             self.assertEqual(artifact_ids, primary_artifact_ids)
 
@@ -988,9 +946,7 @@ class JourneyRepositoryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             copied_root = Path(temporary) / "interface"
             shutil.copytree(FIXTURE_ROOT, copied_root)
-            journey_path = (
-                copied_root / JOB_ID / "revisions" / REVISION_ID / "journey.json"
-            )
+            journey_path = copied_root / JOB_ID / "revisions" / REVISION_ID / "journey.json"
             journey = json.loads(journey_path.read_text(encoding="utf-8"))
             journey["stage_runs"][0]["event_ids"] = ["evt_fixture_design"]
             journey_path.write_text(
@@ -1004,16 +960,12 @@ class JourneyRepositoryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             copied_root = Path(temporary) / "interface"
             shutil.copytree(FIXTURE_ROOT, copied_root)
-            journey_path = (
-                copied_root / JOB_ID / "revisions" / REVISION_ID / "journey.json"
-            )
+            journey_path = copied_root / JOB_ID / "revisions" / REVISION_ID / "journey.json"
             journey = json.loads(journey_path.read_text(encoding="utf-8"))
             duplicate_event = dict(journey["events"][0])
             duplicate_event["event_id"] = "evt_fixture_brief_duplicate_sequence"
             journey["events"].append(duplicate_event)
-            journey["stage_runs"][0]["event_ids"].append(
-                duplicate_event["event_id"]
-            )
+            journey["stage_runs"][0]["event_ids"].append(duplicate_event["event_id"])
             journey_path.write_text(
                 json.dumps(journey, indent=2, sort_keys=True) + "\n",
                 encoding="utf-8",
@@ -1025,9 +977,7 @@ class JourneyRepositoryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             copied_root = Path(temporary) / "interface"
             shutil.copytree(FIXTURE_ROOT, copied_root)
-            journey_path = (
-                copied_root / JOB_ID / "revisions" / REVISION_ID / "journey.json"
-            )
+            journey_path = copied_root / JOB_ID / "revisions" / REVISION_ID / "journey.json"
             journey = json.loads(journey_path.read_text(encoding="utf-8"))
             journey["events"][1]["sequence"] = journey["events"][0]["sequence"]
             journey_path.write_text(
@@ -1058,7 +1008,11 @@ class InterfaceHttpTests(unittest.TestCase):
         self.assertFalse(response.json()["capabilities"]["fabrication_execution"])
 
     def test_project_intent_requires_session_and_explicit_confirmation(self):
-        payload = {"title": "Floating airship", "prompt": "A 120 mm display model", "confirmed": True}
+        payload = {
+            "title": "Floating airship",
+            "prompt": "A 120 mm display model",
+            "confirmed": True,
+        }
         self.assertEqual(self.client.post("/api/v1/projects", json=payload).status_code, 403)
         token = self.client.get("/api/v1/session").json()["session_token"]
         headers = {"X-Ariad-Session": token}
@@ -1077,9 +1031,16 @@ class InterfaceHttpTests(unittest.TestCase):
 
         project_id = created.json()["project_id"]
         draft_payload = {
-            "name": "Floating airship", "purpose": "Desk display", "part_type": "decorative model",
-            "size_x_mm": 120, "size_y_mm": None, "size_z_mm": None, "material": None,
-            "tolerance_mm": None, "support_policy": None, "manufacturing_process": "FDM",
+            "name": "Floating airship",
+            "purpose": "Desk display",
+            "part_type": "decorative model",
+            "size_x_mm": 120,
+            "size_y_mm": None,
+            "size_z_mm": None,
+            "material": None,
+            "tolerance_mm": None,
+            "support_policy": None,
+            "manufacturing_process": "FDM",
             "safety_class": "general",
         }
         draft = self.client.put(
@@ -1105,10 +1066,17 @@ class InterfaceHttpTests(unittest.TestCase):
             ).json()
             project_id = created["project_id"]
             complete = {
-                "name": "Airship", "purpose": "Desk display", "part_type": "decorative model",
-                "size_x_mm": 120, "size_y_mm": 45, "size_z_mm": 35, "material": "PLA",
-                "tolerance_mm": 0.2, "support_policy": "allowed",
-                "manufacturing_process": "FDM", "safety_class": "general",
+                "name": "Airship",
+                "purpose": "Desk display",
+                "part_type": "decorative model",
+                "size_x_mm": 120,
+                "size_y_mm": 45,
+                "size_z_mm": 35,
+                "material": "PLA",
+                "tolerance_mm": 0.2,
+                "support_policy": "allowed",
+                "manufacturing_process": "FDM",
+                "safety_class": "general",
             }
             saved = client.put(
                 f"/api/v1/projects/{project_id}/draft", json=complete, headers=headers
@@ -1119,12 +1087,14 @@ class InterfaceHttpTests(unittest.TestCase):
             )
             rejected = client.post(
                 f"/api/v1/projects/{project_id}/brief-confirmation",
-                json={"confirmed": False}, headers=headers,
+                json={"confirmed": False},
+                headers=headers,
             )
             self.assertEqual(rejected.status_code, 422)
             confirmed = client.post(
                 f"/api/v1/projects/{project_id}/brief-confirmation",
-                json={"confirmed": True}, headers=headers,
+                json={"confirmed": True},
+                headers=headers,
             )
             self.assertEqual(confirmed.status_code, 201)
             self.assertEqual(confirmed.json()["evidence_level"], "R0")
@@ -1139,6 +1109,28 @@ class InterfaceHttpTests(unittest.TestCase):
             self.assertEqual(journey.status_code, 200)
             self.assertEqual(journey.json()["job"]["status"], "ready_for_design")
             self.assertEqual(journey.json()["stages"][0]["evidence_level"], "R0")
+            plan_payload = {
+                "lane": "organic_mesh",
+                "geometry_strategy": "Model the decorative hull as a watertight mesh.",
+                "critical_features": ["Stable display base"],
+                "assembly_interfaces": [],
+                "constraints": ["Stay inside the confirmed envelope"],
+                "unresolved_questions": [],
+            }
+            plan = client.put(
+                f"/api/v1/projects/{project_id}/design-plan",
+                json=plan_payload,
+                headers=headers,
+            )
+            self.assertEqual(plan.status_code, 200)
+            self.assertEqual(plan.json()["status"], "planning_complete")
+            self.assertEqual(plan.json()["evidence_mode"], "planning_only")
+            self.assertIsNone(plan.json()["design_evidence_level"])
+            self.assertFalse(plan.json()["cad_generated"])
+            detail = client.get(f"/api/v1/projects/{project_id}", headers=headers).json()
+            self.assertEqual(
+                detail["design_plan"]["brief_draft_sha256"], confirmed.json()["draft_sha256"]
+            )
 
     def test_committed_fixture_mode_cannot_publish_project_r0_records(self):
         token = self.client.get("/api/v1/session").json()["session_token"]
@@ -1154,7 +1146,7 @@ class InterfaceHttpTests(unittest.TestCase):
         response = self.client.get("/api/v1/codex/status")
         self.assertEqual(response.status_code, 200)
         payload = response.json()
-        self.assertEqual(payload["schema_version"], "1.15.0")
+        self.assertEqual(payload["schema_version"], "1.16.0")
         self.assertEqual(payload["status"], "unavailable")
         self.assertIsNone(payload["authentication"])
         self.assertFalse(payload["conversation_available"])
@@ -1246,7 +1238,7 @@ class InterfaceHttpTests(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 200)
         payload = response.json()
-        self.assertEqual(payload["schema_version"], "1.15.0")
+        self.assertEqual(payload["schema_version"], "1.16.0")
         self.assertEqual(payload["intake"]["prompt"], "Create a decorative floating air warship ✨")
         self.assertEqual(len(payload["intake"]["prompt_sha256"]), 64)
         self.assertFalse(payload["provider"]["configured"])
@@ -1297,7 +1289,7 @@ class InterfaceHttpTests(unittest.TestCase):
         detail = self.client.get(f"/api/v1/revisions/{JOB_ID}/{REVISION_ID}")
         self.assertEqual(detail.status_code, 200)
         payload = detail.json()
-        self.assertEqual(payload["schema_version"], "1.15.0")
+        self.assertEqual(payload["schema_version"], "1.16.0")
         self.assertEqual(
             [stage["stage"] for stage in payload["stages"]],
             [item[0] for item in STAGES],
@@ -1344,12 +1336,7 @@ class InterfaceHttpTests(unittest.TestCase):
             repository = app.state.repository
             original_get = repository.get_artifact
             note = (
-                copied_root
-                / JOB_ID
-                / "revisions"
-                / REVISION_ID
-                / "notes"
-                / "interface-fixture.txt"
+                copied_root / JOB_ID / "revisions" / REVISION_ID / "notes" / "interface-fixture.txt"
             )
             expected = note.read_bytes()
 
@@ -1376,9 +1363,7 @@ class InterfaceHttpTests(unittest.TestCase):
                 response.headers["etag"],
                 f'"{hashlib.sha256(expected).hexdigest()}"',
             )
-            self.assertTrue(
-                response.headers["content-disposition"].startswith("attachment;")
-            )
+            self.assertTrue(response.headers["content-disposition"].startswith("attachment;"))
 
     def test_artifact_response_rejects_the_verified_download_ceiling(self):
         with patch(
@@ -1432,9 +1417,7 @@ class InterfaceHttpTests(unittest.TestCase):
             revision = root / "job_bad" / "revisions" / "rev_bad"
             revision.mkdir(parents=True)
             (revision / "journey.json").write_text("{}", encoding="utf-8")
-            response = TestClient(create_app(root)).get(
-                "/api/v1/revisions/job_bad/rev_bad"
-            )
+            response = TestClient(create_app(root)).get("/api/v1/revisions/job_bad/rev_bad")
             self.assertEqual(response.status_code, 409)
 
 

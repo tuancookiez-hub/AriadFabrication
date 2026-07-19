@@ -34,6 +34,8 @@ from .models import (
     ProjectBriefView,
     ProjectDraftRequest,
     ProjectDraftView,
+    ProjectDesignPlanRequest,
+    ProjectDesignPlanView,
     ProjectIntentListResponse,
     ProjectIntentView,
     RevisionComparisonResponse,
@@ -63,11 +65,7 @@ _REVISION_ERROR_RESPONSES = {
 _ARTIFACT_RESPONSES = {
     200: {
         "description": "Bounded binary snapshot whose bytes passed recorded size and SHA-256 checks.",
-        "content": {
-            "application/octet-stream": {
-                "schema": {"type": "string", "format": "binary"}
-            }
-        },
+        "content": {"application/octet-stream": {"schema": {"type": "string", "format": "binary"}}},
         "headers": {
             "ETag": {
                 "description": "Quoted recorded SHA-256 of the returned snapshot.",
@@ -86,16 +84,12 @@ _ARTIFACT_RESPONSES = {
             "X-Ariad-Integrity": {
                 "schema": {"type": "string", "const": "sha256-verified-snapshot"}
             },
-            "X-Ariad-Hardware-Action": {
-                "schema": {"type": "string", "const": "false"}
-            },
+            "X-Ariad-Hardware-Action": {"schema": {"type": "string", "const": "false"}},
             "X-Ariad-Max-Artifact-Bytes": {
                 "schema": {"type": "integer", "const": MAX_ARTIFACT_DOWNLOAD_BYTES}
             },
             "Cache-Control": {"schema": {"type": "string", "const": "no-store"}},
-            "X-Content-Type-Options": {
-                "schema": {"type": "string", "const": "nosniff"}
-            },
+            "X-Content-Type-Options": {"schema": {"type": "string", "const": "nosniff"}},
         },
     },
     **_REVISION_ERROR_RESPONSES,
@@ -116,10 +110,10 @@ def create_app(
     repository = JourneyRepository(runs_root)
     app = FastAPI(
         title="Ariad Fabrication Journey API",
-        summary="Evidence replay, conversation, project clarification, and explicit R0 confirmation.",
+        summary="Evidence replay, conversation, project clarification, R0 confirmation, and Design planning.",
         description=(
             "This API replays persisted records, captures bounded ideas, and may save a "
-            "user-confirmed project intent, and explicitly confirm a complete PartSpec through the existing R0 Brief gate. It cannot upload G-code, select a printer, heat "
+            "user-confirmed project intent, explicitly confirm a complete PartSpec through the existing R0 Brief gate, and persist a planning-only Design plan. It cannot generate CAD, upload G-code, select a printer, heat "
             "hardware, move hardware, or start manufacturing."
         ),
         version=INTERFACE_API_VERSION,
@@ -130,8 +124,7 @@ def create_app(
     app.state.repository = repository
     app.state.runs_root = Path(runs_root).expanduser().resolve()
     app.state.project_confirmation_enabled = not (
-        app.state.runs_root.name == "interface"
-        and app.state.runs_root.parent.name == "benchmarks"
+        app.state.runs_root.name == "interface" and app.state.runs_root.parent.name == "benchmarks"
     )
     app.state.project_store = ProjectIntentStore(projects_root)
     app.state.agent_tool_runtime = ReadOnlyAgentToolRuntime(repository)
@@ -326,6 +319,7 @@ def create_app(
             project = store.get(project_id)
             draft = store.get_draft(project_id)
             brief = store.get_brief(project_id)
+            design_plan = store.get_design_plan(project_id)
         except ProjectStoreError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
         return ProjectDetailResponse(
@@ -333,6 +327,7 @@ def create_app(
             project=ProjectIntentView(**project.to_dict()),
             draft=ProjectDraftView(**draft.to_dict()) if draft else None,
             brief=ProjectBriefView(**brief.to_dict()) if brief else None,
+            design_plan=ProjectDesignPlanView(**design_plan.to_dict()) if design_plan else None,
             fabrication_started=False,
             hardware_actions=False,
         )
@@ -372,6 +367,22 @@ def create_app(
         except ProjectStoreError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
         return ProjectBriefView(**brief.to_dict())
+
+    @app.put(
+        "/api/v1/projects/{project_id}/design-plan",
+        response_model=ProjectDesignPlanView,
+    )
+    def save_project_design_plan(
+        project_id: str,
+        request: ProjectDesignPlanRequest,
+        _: None = Depends(require_browser_session),
+    ) -> ProjectDesignPlanView:
+        store: ProjectIntentStore = app.state.project_store
+        try:
+            plan = store.save_design_plan(project_id, request.model_dump())
+        except ProjectStoreError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        return ProjectDesignPlanView(**plan.to_dict())
 
     @app.post(
         "/api/v1/intake",

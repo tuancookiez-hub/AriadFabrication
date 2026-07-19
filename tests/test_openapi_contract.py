@@ -36,6 +36,7 @@ class OpenApiContractTests(unittest.TestCase):
                 "/api/v1/projects/{project_id}",
                 "/api/v1/projects/{project_id}/draft",
                 "/api/v1/projects/{project_id}/brief-confirmation",
+                "/api/v1/projects/{project_id}/design-plan",
                 "/api/v1/revision-comparison",
                 "/api/v1/revisions",
                 "/api/v1/revisions/{job_id}/{revision_id}",
@@ -45,7 +46,10 @@ class OpenApiContractTests(unittest.TestCase):
         for route, path in document["paths"].items():
             if route == "/api/v1/projects":
                 expected_methods = {"get", "post"}
-            elif route == "/api/v1/projects/{project_id}/draft":
+            elif route in {
+                "/api/v1/projects/{project_id}/draft",
+                "/api/v1/projects/{project_id}/design-plan",
+            }:
                 expected_methods = {"put"}
             elif route == "/api/v1/projects/{project_id}/brief-confirmation":
                 expected_methods = {"post"}
@@ -57,14 +61,12 @@ class OpenApiContractTests(unittest.TestCase):
 
         capabilities = document["components"]["schemas"]["CapabilitiesView"]
         self.assertEqual(capabilities["properties"]["read_only"]["const"], False)
-        self.assertEqual(
-            capabilities["properties"]["project_intent_persistence"]["const"], True
-        )
+        self.assertEqual(capabilities["properties"]["project_intent_persistence"]["const"], True)
         self.assertEqual(capabilities["properties"]["fabrication_execution"]["const"], False)
         self.assertEqual(capabilities["properties"]["hardware_actions"]["const"], False)
 
         health = document["components"]["schemas"]["HealthResponse"]["properties"]
-        self.assertEqual(health["schema_version"]["const"], "1.15.0")
+        self.assertEqual(health["schema_version"]["const"], "1.16.0")
         self.assertEqual(health["service"]["const"], "ariad-interface-api")
         self.assertEqual(health["status"]["const"], "ok")
 
@@ -105,6 +107,7 @@ class OpenApiContractTests(unittest.TestCase):
             "ProjectDetailResponse",
             "ProjectDraftView",
             "ProjectBriefView",
+            "ProjectDesignPlanView",
             "RevisionDetailResponse",
             "RevisionComparisonResponse",
             "RevisionListResponse",
@@ -206,9 +209,7 @@ class OpenApiContractTests(unittest.TestCase):
                 with self.subTest(model=model_name, field=field_name):
                     field = schemas[model_name]["properties"][field_name]
                     choices = field.get("anyOf", [field])
-                    string_choice = next(
-                        item for item in choices if item.get("type") == "string"
-                    )
+                    string_choice = next(item for item in choices if item.get("type") == "string")
                     self.assertEqual(string_choice["format"], "date-time")
 
     def test_revision_listing_contract_discloses_and_bounds_its_window(self):

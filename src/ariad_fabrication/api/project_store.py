@@ -25,6 +25,7 @@ MAX_PROJECT_INTENTS = 500
 MAX_PROJECT_RECORD_BYTES = 64 * 1024
 PROJECT_DRAFT_SCHEMA_VERSION = "1.0.0"
 PROJECT_BRIEF_SCHEMA_VERSION = "1.0.0"
+PROJECT_DESIGN_PLAN_SCHEMA_VERSION = "1.0.0"
 PROJECT_DRAFT_FIELDS = (
     "material",
     "manufacturing_process",
@@ -118,6 +119,40 @@ class ProjectBrief:
         return asdict(self)
 
 
+@dataclass(frozen=True)
+class ProjectDesignPlan:
+    schema_version: str
+    project_id: str
+    job_id: str
+    revision_id: str
+    brief_draft_sha256: str
+    lane: str
+    geometry_strategy: str
+    critical_features: tuple[str, ...]
+    assembly_interfaces: tuple[str, ...]
+    constraints: tuple[str, ...]
+    unresolved_questions: tuple[str, ...]
+    updated_at: str
+    authored_by: str
+    status: str
+    evidence_mode: str
+    design_evidence_level: None
+    cad_generated: bool
+    fabrication_started: bool
+    hardware_actions: bool
+
+    def to_dict(self) -> dict[str, object]:
+        value = asdict(self)
+        for field_name in (
+            "critical_features",
+            "assembly_interfaces",
+            "constraints",
+            "unresolved_questions",
+        ):
+            value[field_name] = list(value[field_name])
+        return value
+
+
 class ProjectIntentStore:
     def __init__(self, root: Path | str):
         self.root = Path(root).expanduser().resolve()
@@ -142,7 +177,9 @@ class ProjectIntentStore:
             fabrication_started=False,
             hardware_actions=False,
         )
-        rendered = (json.dumps(record.to_dict(), ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+        rendered = (json.dumps(record.to_dict(), ensure_ascii=False, indent=2) + "\n").encode(
+            "utf-8"
+        )
         with self._lock:
             self.root.mkdir(parents=True, exist_ok=True)
             directory = self.root / record.project_id
@@ -200,7 +237,9 @@ class ProjectIntentStore:
             fabrication_started=False,
             hardware_actions=False,
         )
-        rendered = (json.dumps(draft.to_dict(), ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+        rendered = (json.dumps(draft.to_dict(), ensure_ascii=False, indent=2) + "\n").encode(
+            "utf-8"
+        )
         directory = self.root / project_id
         temporary = directory / "draft.json.tmp"
         destination = directory / "draft.json"
@@ -235,7 +274,11 @@ class ProjectIntentStore:
             raise ProjectStoreError("clarification draft is invalid") from exc
         if draft.project_id != project_id or draft.schema_version != PROJECT_DRAFT_SCHEMA_VERSION:
             raise ProjectStoreError("clarification draft identity is inconsistent")
-        if draft.brief_evidence_level is not None or draft.fabrication_started or draft.hardware_actions:
+        if (
+            draft.brief_evidence_level is not None
+            or draft.fabrication_started
+            or draft.hardware_actions
+        ):
             raise ProjectStoreError("clarification draft claim boundary is inconsistent")
         normalized = self._normalize_draft_values(
             {field_name: getattr(draft, field_name) for field_name in PROJECT_DRAFT_FIELDS}
@@ -258,7 +301,9 @@ class ProjectIntentStore:
         project = self._read(project_id)
         draft = self.get_draft(project_id)
         if draft is None or draft.status != "ready_for_confirmation":
-            raise ProjectStoreError("a complete clarification draft is required before confirmation")
+            raise ProjectStoreError(
+                "a complete clarification draft is required before confirmation"
+            )
         existing = self.get_brief(project_id)
         if existing is not None:
             return existing
@@ -325,6 +370,88 @@ class ProjectIntentStore:
         self._read(project_id)
         return self._read_brief_file(project_id)
 
+    def save_design_plan(self, project_id: str, values: dict[str, object]) -> ProjectDesignPlan:
+        brief = self.get_brief(project_id)
+        if brief is None:
+            raise ProjectStoreError("an R0 Brief is required before Design planning")
+        normalized = self._normalize_design_plan(values)
+        plan = ProjectDesignPlan(
+            schema_version=PROJECT_DESIGN_PLAN_SCHEMA_VERSION,
+            project_id=project_id,
+            job_id=brief.job_id,
+            revision_id=brief.revision_id,
+            brief_draft_sha256=brief.draft_sha256,
+            **normalized,
+            updated_at=datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+            authored_by="user",
+            status=self._design_plan_status(normalized),
+            evidence_mode="planning_only",
+            design_evidence_level=None,
+            cad_generated=False,
+            fabrication_started=False,
+            hardware_actions=False,
+        )
+        with self._lock:
+            self._write_atomic(self.root / project_id / "design-plan.json", plan.to_dict())
+        return plan
+
+    def get_design_plan(self, project_id: str) -> ProjectDesignPlan | None:
+        brief = self.get_brief(project_id)
+        path = self.root / project_id / "design-plan.json"
+        if not path.exists():
+            return None
+        if brief is None or not path.is_file() or path.is_symlink():
+            raise ProjectStoreError("Design plan is unavailable")
+        with path.open("rb") as stream:
+            raw = stream.read(MAX_PROJECT_RECORD_BYTES + 1)
+        if len(raw) > MAX_PROJECT_RECORD_BYTES:
+            raise ProjectStoreError("Design plan exceeds the read ceiling")
+        try:
+            value = json.loads(raw, object_pairs_hook=_strict_object)
+            for field_name in (
+                "critical_features",
+                "assembly_interfaces",
+                "constraints",
+                "unresolved_questions",
+            ):
+                value[field_name] = tuple(value[field_name])
+            plan = ProjectDesignPlan(**value)
+        except (KeyError, TypeError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise ProjectStoreError("Design plan is invalid") from exc
+        normalized = self._normalize_design_plan(
+            {
+                "lane": plan.lane,
+                "geometry_strategy": plan.geometry_strategy,
+                "critical_features": plan.critical_features,
+                "assembly_interfaces": plan.assembly_interfaces,
+                "constraints": plan.constraints,
+                "unresolved_questions": plan.unresolved_questions,
+            }
+        )
+        expected_status = self._design_plan_status(normalized)
+        if (
+            plan.schema_version != PROJECT_DESIGN_PLAN_SCHEMA_VERSION
+            or plan.project_id != project_id
+            or plan.job_id != brief.job_id
+            or plan.revision_id != brief.revision_id
+            or plan.brief_draft_sha256 != brief.draft_sha256
+            or plan.authored_by != "user"
+            or plan.status != expected_status
+            or plan.evidence_mode != "planning_only"
+            or plan.design_evidence_level is not None
+            or plan.cad_generated
+            or plan.fabrication_started
+            or plan.hardware_actions
+        ):
+            raise ProjectStoreError("Design plan claim boundary is inconsistent")
+        try:
+            updated_at = datetime.fromisoformat(plan.updated_at.replace("Z", "+00:00"))
+        except (AttributeError, ValueError) as exc:
+            raise ProjectStoreError("Design plan timestamp is invalid") from exc
+        if updated_at.tzinfo is None:
+            raise ProjectStoreError("Design plan timestamp must include a timezone")
+        return plan
+
     def _read_brief_file(self, project_id: str) -> ProjectBrief | None:
         path = self.root / project_id / "brief.json"
         if not path.exists():
@@ -373,7 +500,9 @@ class ProjectIntentStore:
 
     @staticmethod
     def _write_atomic(path: Path, value: dict[str, object]) -> None:
-        rendered = (json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode("utf-8")
+        rendered = (json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode(
+            "utf-8"
+        )
         temporary = path.with_suffix(path.suffix + ".tmp")
         descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
         try:
@@ -401,12 +530,53 @@ class ProjectIntentStore:
             if value is not None and (
                 type(value) not in {int, float} or not math.isfinite(value) or value <= 0
             ):
-                raise ProjectStoreError(f"clarification field {field_name} must be positive and finite")
+                raise ProjectStoreError(
+                    f"clarification field {field_name} must be positive and finite"
+                )
         if normalized["support_policy"] not in {None, "avoid", "allowed", "required"}:
             raise ProjectStoreError("clarification support policy is invalid")
         if normalized["safety_class"] not in {None, "general", "caution", "safety_critical"}:
             raise ProjectStoreError("clarification safety class is invalid")
         return normalized
+
+    @staticmethod
+    def _normalize_design_plan(values: dict[str, object]) -> dict[str, object]:
+        fields = {
+            "lane",
+            "geometry_strategy",
+            "critical_features",
+            "assembly_interfaces",
+            "constraints",
+            "unresolved_questions",
+        }
+        if set(values) != fields:
+            raise ProjectStoreError("Design plan fields do not match the closed contract")
+        lane = values["lane"]
+        if lane not in {"functional_parametric", "organic_mesh", "hybrid", "undecided"}:
+            raise ProjectStoreError("Design plan lane is invalid")
+        strategy = values["geometry_strategy"]
+        if not isinstance(strategy, str) or not strategy.strip() or len(strategy.strip()) > 2_000:
+            raise ProjectStoreError("Design geometry strategy is invalid")
+        normalized: dict[str, object] = {"lane": lane, "geometry_strategy": strategy.strip()}
+        for field_name in fields - {"lane", "geometry_strategy"}:
+            items = values[field_name]
+            if not isinstance(items, (list, tuple)) or len(items) > 20:
+                raise ProjectStoreError(f"Design plan {field_name} is invalid")
+            cleaned: list[str] = []
+            for item in items:
+                if not isinstance(item, str) or not item.strip() or len(item.strip()) > 512:
+                    raise ProjectStoreError(f"Design plan {field_name} is invalid")
+                cleaned.append(item.strip())
+            normalized[field_name] = tuple(cleaned)
+        return normalized
+
+    @staticmethod
+    def _design_plan_status(values: dict[str, object]) -> str:
+        return (
+            "needs_input"
+            if values["lane"] == "undecided" or values["unresolved_questions"]
+            else "planning_complete"
+        )
 
     def _read(self, project_id: str) -> ProjectIntent:
         if not project_id.startswith("project_") or len(project_id) != 40:
@@ -423,7 +593,10 @@ class ProjectIntentStore:
             record = ProjectIntent(**value)
         except (UnicodeDecodeError, json.JSONDecodeError, TypeError) as exc:
             raise ProjectStoreError("persisted project record is invalid") from exc
-        if record.project_id != project_id or record.schema_version != PROJECT_INTENT_SCHEMA_VERSION:
+        if (
+            record.project_id != project_id
+            or record.schema_version != PROJECT_INTENT_SCHEMA_VERSION
+        ):
             raise ProjectStoreError("persisted project identity is inconsistent")
         if not isinstance(record.title, str) or not isinstance(record.prompt, str):
             raise ProjectStoreError("persisted project text is invalid")
@@ -458,4 +631,11 @@ class ProjectIntentStore:
         return value
 
 
-__all__ = ["ProjectBrief", "ProjectDraft", "ProjectIntent", "ProjectIntentStore", "ProjectStoreError"]
+__all__ = [
+    "ProjectBrief",
+    "ProjectDesignPlan",
+    "ProjectDraft",
+    "ProjectIntent",
+    "ProjectIntentStore",
+    "ProjectStoreError",
+]

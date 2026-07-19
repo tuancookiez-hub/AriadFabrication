@@ -1,12 +1,12 @@
 # Current work
 
-**Updated:** 2026-07-18
+**Updated:** 2026-07-19
 **Current milestone:** M4 - Fabrication Journey interface and local Codex conversation
 **Project state:** M3 complete; the Golden Part reaches a printer-independent, profile-specific R4 package
 
 ## Immediate objective
 
-Integrate the operator's locally authenticated Codex as Ariad's conversational fabrication agent without widening execution authority. Ariad now owns a versioned capability catalog: only stateless intake and bounded evidence reads may be registered initially. The registered R2/R4 lane remains internal, and browser/Codex-triggered execution remains unavailable until filesystem isolation, network denial, local authentication, and event publication are proved.
+Carry a confirmed R0 project into constrained, user-controlled Design planning without widening execution authority. Ariad now persists an R0-bound planning-only record; browser/Codex-triggered CAD execution remains unavailable until provider and isolation evidence exists.
 
 ## M4-A through M4-P implemented
 
@@ -42,8 +42,9 @@ Integrate the operator's locally authenticated Codex as Ariad's conversational f
 - API 1.13.0 adds authenticated project-intent creation and listing. The user must click an explicit confirmation action; the durable record preserves the exact prompt checksum, user confirmation time, and literal-false fabrication/hardware fields. Projects are not Journey revisions, carry no R0 level, and remain visibly labelled as intents in chat and the Projects page.
 - API 1.14.0 adds authenticated project detail and nullable clarification-draft updates. The clarification workspace preserves every unknown requirement, derives readiness from the closed field set, and cannot confirm a PartSpec, create R0, start fabrication, or contact hardware.
 - API 1.15.0 adds a separate authenticated PartSpec approval action. It runs the complete draft through the existing Brief gate, records the user decision, publishes a checksum-bound R0 Journey revision, and freezes the approved draft. It performs no CAD, slicing, fabrication, or hardware action.
-- The full pinned suite passes 240 backend tests, including real sealed R2/R4 integrations. OpenAPI/generated-type drift, TypeScript, ESLint, eighteen deterministic frontend tests, and the production build pass.
-- Added the approved Ariad workshop shell: a dark persistent navigation rail, compact project/status bar, warm technical workspace, red journey accent, responsive mobile navigation, and paper-like evidence cards. Live in-app-browser QA now passes the complete project-to-R0 flow and the real Golden R4 Model, Evidence, and Toolpath views at desktop and mobile widths. The R4 walkthrough also verifies layer stepping and Arrow/Home/End keyboard tab navigation. These inspections found and fixed an unreadable confirmation panel and mobile page-level horizontal overflow. Assistive-technology testing remains pending.
+- API 1.16.0 adds a persisted Design-planning workspace after R0. The closed plan records a lane, geometry strategy, critical features, assembly interfaces, constraints, and unresolved questions; binds them to the confirmed Brief checksum; derives `needs_input` or `planning_complete`; and explicitly keeps R1 evidence, CAD generation, fabrication, and hardware absent.
+- The ordinary suite passes 234 backend tests with 14 optional CAD/slicer skips. After regenerating the application-bound CAD runtime manifest, 14 focused pinned registry and real sealed R2/R4 tests pass; the monolithic pinned run exceeded its four-minute command window, so no new whole-suite pass is claimed. OpenAPI/generated-type drift, TypeScript, ESLint, eighteen deterministic frontend tests, and the production build pass.
+- Added the approved Ariad workshop shell: a dark persistent navigation rail, compact project/status bar, warm technical workspace, red journey accent, responsive mobile navigation, and paper-like evidence cards. Live in-app-browser QA now passes the complete project-to-R0-to-Design-plan flow and the real Golden R4 Model, Evidence, and Toolpath views at desktop and mobile widths. The R4 walkthrough also verifies layer stepping and Arrow/Home/End keyboard tab navigation. These inspections found and fixed an unreadable confirmation panel and mobile page-level horizontal overflow. Assistive-technology testing remains pending.
 - Added and connected a manifest-backed Python import guard. The real worker starts with `-I -B -S`, replaces `sys.path` with four approved roots, verifies each imported source/native module by exact path and SHA-256, rejects unlisted origins and bytecode-only substitutions, and confines namespace locations. The registry-built configuration contains the complete importable code/native inventory of the 18 traced dependency distributions: 2,285 files / 653,201,326 bytes, plus 613 curated CPython files and the accepted Ariad source bundle. A real sealed/supervised R2 run reaches `geometry_verified`, persists Journey/manifest records and 15 artifacts, and records no Manufacturing stage.
 - Added an internal registered execution service that starts only the store's oldest queued R2/R4 plan, shares one cancellation token and deadline across CAD and slicing, renews the fenced lease, binds Journey identity once, and commits stage-snapshot events only after bounded files pass schema/identity/status checks and are hashed. Missing evidence fails closed; active cancellation reaches the sealed adapter and terminates as `cancelled`. This service has no HTTP or hardware surface.
 - Added universal prompt-capture and capability-routing contracts. Any bounded non-empty UTF-8 fabrication idea can enter intake, but semantic proposals remain non-evidentiary. Only the exact registered Golden Part exposes real R2/R4 demo targets; general functional CAD, organic mesh, missing-information, and unsupported routes remain explicitly unavailable or `needs_input`, with hardware and physical-validation fields fixed false.
@@ -69,8 +70,8 @@ Integrate the operator's locally authenticated Codex as Ariad's conversational f
 
 ## Next actions
 
-1. Connect an R0 project to constrained Design planning while keeping general CAD execution unavailable until provider and isolation evidence exists.
-2. Establish enforceable filesystem isolation and network denial for generated CAD and the registered native CAD/slicer lane, or keep every mutating Codex tool unregistered.
+1. Let Codex propose the closed Design-plan fields through a bounded tool while retaining explicit user review and planning-only evidence.
+2. Establish enforceable filesystem isolation and network denial for generated CAD and the registered native CAD/slicer lane, or keep every CAD-executing Codex tool unregistered.
 3. Add authenticated POST/cancel/SSE contracts only after the isolation boundary passes; connect browser Run and repair progress last.
 4. Finish assistive-technology QA; retain fixture mode for judges without local Codex authentication.
 

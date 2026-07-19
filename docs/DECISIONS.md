@@ -549,6 +549,16 @@ This file records accepted project-level decisions. Change an accepted decision 
 
 **Consequence:** The hackathon demo now has an honest prompt-to-R0 product path. R0 means requirements are confirmed and ready for Design; it does not mean CAD exists or that anything is printable.
 
+### D-046 - Persist Design planning below the R1 geometry gate
+
+**Status:** Accepted as implemented evidence on 2026-07-19.
+
+**Decision:** After a confirmed R0 Brief, let the user record a bounded Design plan containing a selected lane, geometry strategy, critical features, assembly interfaces, constraints, and unresolved questions. Bind the plan to the confirmed Brief job, revision, and draft checksum. Label it `planning_only`, keep `design_evidence_level` null, and fix CAD generation, fabrication, and hardware fields false.
+
+**Evidence:** API 1.16.0 adds an authenticated Design-plan update and includes the integrity-checked plan in project detail. Store tests prove the pre-R0 gate, R0 checksum binding, bounded closed fields, derived `needs_input`/`planning_complete` status, persistence, and fail-closed claim tampering. React exposes the planning workspace only after R0 and states that neither CAD nor R1 evidence exists.
+
+**Consequence:** Ariad now carries a user from prompt through an inspectable plan for Design without pretending broad CAD execution exists. A later Codex-assisted authoring path may propose these fields, but the user-controlled persisted plan remains non-evidentiary until an approved CAD provider executes and the Design gate verifies editable source and geometry.
+
 ## Deferred decisions
 
 These require later evidence and should not be decided through preference alone:

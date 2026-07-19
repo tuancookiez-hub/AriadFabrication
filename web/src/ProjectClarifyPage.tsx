@@ -1,10 +1,11 @@
 import { type FormEvent, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
-import { confirmProjectBrief, getBrowserSession, getProjectDetail, saveProjectDraft } from './api'
-import type { ProjectDetail, ProjectDraftRequest } from './types'
+import { confirmProjectBrief, getBrowserSession, getProjectDetail, saveProjectDesignPlan, saveProjectDraft } from './api'
+import type { ProjectDesignPlanRequest, ProjectDetail, ProjectDraftRequest } from './types'
 
 const emptyDraft: ProjectDraftRequest = { name: null, purpose: null, part_type: null, size_x_mm: null, size_y_mm: null, size_z_mm: null, material: null, tolerance_mm: null, support_policy: null, manufacturing_process: 'FDM', safety_class: 'general' }
+const emptyDesignPlan: ProjectDesignPlanRequest = { lane: 'undecided', geometry_strategy: '', critical_features: [], assembly_interfaces: [], constraints: [], unresolved_questions: [] }
 
 export function ProjectClarifyPage() {
   const { projectId = '' } = useParams()
@@ -14,6 +15,8 @@ export function ProjectClarifyPage() {
   const [saved, setSaved] = useState<string[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [approvalChecked, setApprovalChecked] = useState(false)
+  const [designPlan, setDesignPlan] = useState<ProjectDesignPlanRequest>(emptyDesignPlan)
+  const [planSaved, setPlanSaved] = useState(false)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -23,6 +26,7 @@ export function ProjectClarifyPage() {
     }).then((result) => {
       setDetail(result)
       if (result.draft) setDraft(result.draft)
+      if (result.design_plan) setDesignPlan(result.design_plan)
     }).catch((reason: unknown) => {
       if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : 'Project could not load.')
     })
@@ -50,6 +54,22 @@ export function ProjectClarifyPage() {
       const brief = await confirmProjectBrief(projectId, token)
       setDetail((current) => current ? { ...current, brief } : current)
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'Brief could not be confirmed.') }
+  }
+
+  function lines(name: keyof ProjectDesignPlanRequest, value: string) {
+    setDesignPlan((current) => ({ ...current, [name]: value.split('\n').map((item) => item.trim()).filter(Boolean) }))
+  }
+
+  async function submitDesignPlan(event: FormEvent) {
+    event.preventDefault()
+    if (!token || !detail?.brief) return
+    setError(null)
+    try {
+      const result = await saveProjectDesignPlan(projectId, designPlan, token)
+      setDesignPlan(result)
+      setDetail((current) => current ? { ...current, design_plan: result } : current)
+      setPlanSaved(true)
+    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Design plan could not be saved.') }
   }
 
   return (
@@ -83,6 +103,23 @@ export function ProjectClarifyPage() {
           <button className="primary-action" type="button" disabled={detail?.draft?.status !== 'ready_for_confirmation' || !approvalChecked} onClick={confirmBrief}>Confirm PartSpec and create R0 Brief</button>
         </>}
       </section>
+      {detail?.brief ? <section className="design-planning" aria-labelledby="design-planning-title">
+        <p className="eyebrow">Planning only · no R1 evidence</p>
+        <h2 id="design-planning-title">Plan the Design stage</h2>
+        <p>Describe how this confirmed requirement should become geometry. This plan is bound to the R0 Brief, but no CAD provider runs and no geometry evidence is awarded.</p>
+        <form onSubmit={submitDesignPlan}>
+          <label>Design lane<select value={designPlan.lane} onChange={(event) => setDesignPlan((current) => ({ ...current, lane: event.target.value as ProjectDesignPlanRequest['lane'] }))}><option value="undecided">Undecided</option><option value="functional_parametric">Functional parametric CAD</option><option value="organic_mesh">Organic or decorative mesh</option><option value="hybrid">Hybrid CAD and mesh</option></select></label>
+          <label>Geometry strategy<textarea required rows={4} value={designPlan.geometry_strategy} onChange={(event) => setDesignPlan((current) => ({ ...current, geometry_strategy: event.target.value }))} placeholder="Example: Build a dimension-driven shell and removable lid around the confirmed envelope." /></label>
+          <div className="design-plan-grid">
+            <label>Critical features<textarea rows={5} value={designPlan.critical_features.join('\n')} onChange={(event) => lines('critical_features', event.target.value)} placeholder="One feature per line" /></label>
+            <label>Assembly interfaces<textarea rows={5} value={designPlan.assembly_interfaces.join('\n')} onChange={(event) => lines('assembly_interfaces', event.target.value)} placeholder="One mating part or interface per line" /></label>
+            <label>Design constraints<textarea rows={5} value={designPlan.constraints.join('\n')} onChange={(event) => lines('constraints', event.target.value)} placeholder="One constraint per line" /></label>
+            <label>Unresolved questions<textarea rows={5} value={designPlan.unresolved_questions.join('\n')} onChange={(event) => lines('unresolved_questions', event.target.value)} placeholder="Leave empty only when planning questions are resolved" /></label>
+          </div>
+          {planSaved ? <div className="draft-status" role="status">Design plan saved as {detail.design_plan?.status === 'planning_complete' ? 'planning complete' : 'needs input'}. CAD has not been generated.</div> : null}
+          <button className="primary-action" type="submit">Save Design plan</button>
+        </form>
+      </section> : null}
     </>
   )
 }

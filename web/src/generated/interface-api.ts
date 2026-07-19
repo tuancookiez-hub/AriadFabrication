@@ -161,6 +161,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/projects/{project_id}/design-plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Save Project Design Plan */
+        put: operations["save_project_design_plan_api_v1_projects__project_id__design_plan_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/projects/{project_id}/draft": {
         parameters: {
             query?: never;
@@ -341,7 +358,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.15.0";
+            schema_version: "1.16.0";
             /** Session Token */
             session_token: string;
         };
@@ -511,7 +528,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.15.0";
+            schema_version: "1.16.0";
         };
         /** ConversationEventsResponse */
         ConversationEventsResponse: {
@@ -530,7 +547,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.15.0";
+            schema_version: "1.16.0";
             /**
              * Tools Registered
              * @constant
@@ -585,7 +602,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.15.0";
+            schema_version: "1.16.0";
             /**
              * Tools Registered
              * @constant
@@ -762,7 +779,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.15.0";
+            schema_version: "1.16.0";
             /**
              * Service
              * @constant
@@ -995,7 +1012,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.15.0";
+            schema_version: "1.16.0";
         };
         /** IntentProviderView */
         IntentProviderView: {
@@ -1085,7 +1102,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.15.0";
+            schema_version: "1.16.0";
             status: components["schemas"]["LocalCodexStatus"];
             /**
              * Tools Registered
@@ -1175,9 +1192,96 @@ export interface components {
              */
             status: "ready_for_design";
         };
+        /** ProjectDesignPlanRequest */
+        ProjectDesignPlanRequest: {
+            /** Assembly Interfaces */
+            assembly_interfaces: string[];
+            /** Constraints */
+            constraints: string[];
+            /** Critical Features */
+            critical_features: string[];
+            /** Geometry Strategy */
+            geometry_strategy: string;
+            /**
+             * Lane
+             * @enum {string}
+             */
+            lane: "functional_parametric" | "organic_mesh" | "hybrid" | "undecided";
+            /** Unresolved Questions */
+            unresolved_questions: string[];
+        };
+        /** ProjectDesignPlanView */
+        ProjectDesignPlanView: {
+            /** Assembly Interfaces */
+            assembly_interfaces: string[];
+            /**
+             * Authored By
+             * @constant
+             */
+            authored_by: "user";
+            /** Brief Draft Sha256 */
+            brief_draft_sha256: string;
+            /**
+             * Cad Generated
+             * @constant
+             */
+            cad_generated: false;
+            /** Constraints */
+            constraints: string[];
+            /** Critical Features */
+            critical_features: string[];
+            /** Design Evidence Level */
+            design_evidence_level: null;
+            /**
+             * Evidence Mode
+             * @constant
+             */
+            evidence_mode: "planning_only";
+            /**
+             * Fabrication Started
+             * @constant
+             */
+            fabrication_started: false;
+            /** Geometry Strategy */
+            geometry_strategy: string;
+            /**
+             * Hardware Actions
+             * @constant
+             */
+            hardware_actions: false;
+            /** Job Id */
+            job_id: string;
+            /**
+             * Lane
+             * @enum {string}
+             */
+            lane: "functional_parametric" | "organic_mesh" | "hybrid" | "undecided";
+            /** Project Id */
+            project_id: string;
+            /** Revision Id */
+            revision_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "1.0.0";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "needs_input" | "planning_complete";
+            /** Unresolved Questions */
+            unresolved_questions: string[];
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
         /** ProjectDetailResponse */
         ProjectDetailResponse: {
             brief: components["schemas"]["ProjectBriefView"] | null;
+            design_plan: components["schemas"]["ProjectDesignPlanView"] | null;
             draft: components["schemas"]["ProjectDraftView"] | null;
             /**
              * Fabrication Started
@@ -1194,7 +1298,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.15.0";
+            schema_version: "1.16.0";
         };
         /** ProjectDraftRequest */
         ProjectDraftRequest: {
@@ -1307,7 +1411,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.15.0";
+            schema_version: "1.16.0";
         };
         /** ProjectIntentView */
         ProjectIntentView: {
@@ -1389,7 +1493,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.15.0";
+            schema_version: "1.16.0";
             /** Summaries */
             summaries: components["schemas"]["ComparisonAreaSummaryView"][];
             /** Total Change Count */
@@ -1408,7 +1512,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.15.0";
+            schema_version: "1.16.0";
             source: components["schemas"]["SourceView"];
             /** Stages */
             stages: components["schemas"]["StageView"][];
@@ -1422,7 +1526,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.15.0";
+            schema_version: "1.16.0";
             window: components["schemas"]["RevisionListWindowView"];
         };
         /** RevisionListWindowView */
@@ -1900,6 +2004,43 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProjectBriefView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_project_design_plan_api_v1_projects__project_id__design_plan_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-ariad-session"?: string | null;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProjectDesignPlanRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectDesignPlanView"];
                 };
             };
             /** @description Validation Error */

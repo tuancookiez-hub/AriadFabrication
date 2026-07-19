@@ -22,8 +22,8 @@ from ..intake import CapabilityLane, RouteStatus
 from ..local_codex import LocalCodexStatus
 
 
-InterfaceApiVersion = Literal["1.15.0"]
-INTERFACE_API_VERSION: InterfaceApiVersion = "1.15.0"
+InterfaceApiVersion = Literal["1.16.0"]
+INTERFACE_API_VERSION: InterfaceApiVersion = "1.16.0"
 Timestamp = Annotated[str, Field(json_schema_extra={"format": "date-time"})]
 
 
@@ -221,11 +221,37 @@ class ProjectBriefView(ApiModel):
     hardware_actions: Literal[False]
 
 
+class ProjectDesignPlanRequest(ApiModel):
+    lane: Literal["functional_parametric", "organic_mesh", "hybrid", "undecided"]
+    geometry_strategy: str = Field(min_length=1, max_length=2_000)
+    critical_features: list[str] = Field(max_length=20)
+    assembly_interfaces: list[str] = Field(max_length=20)
+    constraints: list[str] = Field(max_length=20)
+    unresolved_questions: list[str] = Field(max_length=20)
+
+
+class ProjectDesignPlanView(ProjectDesignPlanRequest):
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    job_id: str
+    revision_id: str
+    brief_draft_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    updated_at: Timestamp
+    authored_by: Literal["user"]
+    status: Literal["needs_input", "planning_complete"]
+    evidence_mode: Literal["planning_only"]
+    design_evidence_level: None
+    cad_generated: Literal[False]
+    fabrication_started: Literal[False]
+    hardware_actions: Literal[False]
+
+
 class ProjectDetailResponse(ApiModel):
     schema_version: InterfaceApiVersion
     project: ProjectIntentView
     draft: ProjectDraftView | None
     brief: ProjectBriefView | None
+    design_plan: ProjectDesignPlanView | None
     fabrication_started: Literal[False]
     hardware_actions: Literal[False]
 
