@@ -23,6 +23,19 @@ function missing() {
 }
 
 describe('BuildSessionPage', () => {
+  it('presents the demo example as an assembly plan instead of generated concept art', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL) => {
+      if (String(input).endsWith('/api/v1/session')) return response({ schema_version: '1.19.0', session_token: 'browser-secret' })
+      return response(intake)
+    }))
+    render(<MemoryRouter><BuildSessionPage /></MemoryRouter>)
+
+    expect(screen.getByText('Designed as parts, not a picture')).toBeInTheDocument()
+    expect(screen.getByText('Separate parts and interfaces—not generated CAD.')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Use robot example' }))
+    expect(screen.getByLabelText('What should Ariad help you make?')).toHaveValue('Make a cute two-servo robot with long rotating side limbs that can recover when it falls. Design it as separate, serviceable parts with accessible fasteners.')
+  })
+
   it('turns one prompt into editable defaults and keeps assumptions visible', async () => {
     vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input)

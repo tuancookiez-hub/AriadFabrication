@@ -1,7 +1,7 @@
 import { type FormEvent, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
-import conceptUrl from '../../assets/ariad-robot-concept-v1.png'
+import { AssemblyBlueprint } from './AssemblyBlueprint'
 import {
   ApiError,
   captureIdea,
@@ -181,18 +181,26 @@ export function BuildSessionPage() {
   return (
     <div className="build-session">
       <header className="build-session-header">
-        <div><p className="eyebrow">Guided Build Session</p><h1 data-route-heading tabIndex={-1}>Describe it once. Ariad carries the thread.</h1><p>Defaults stay editable; Ariad interrupts only for decisions that block trustworthy progress.</p></div>
-        <div className="build-session-status"><span>Current evidence</span><strong>{brief ? 'R0 · Brief confirmed' : 'Planning only'}</strong><small>Hardware disconnected</small></div>
+        <div><p className="eyebrow">Guided Build Session</p><h1 data-route-heading tabIndex={-1}>From an idea to evidence, one visible decision at a time.</h1><p>Codex guides the build. Ariad keeps dimensions, parts, checks, and artifacts attached to the same thread.</p></div>
+        <div className="build-session-status"><span>Evidence state</span><strong>{brief ? 'R0 · Brief confirmed' : 'Planning only'}</strong><small><i /> Local workspace · hardware off</small></div>
       </header>
 
       <ol className="build-stage-rail" aria-label="Build stages">
         {stageLabels.map((label, index) => <li className={index < activeIndex ? 'stage-done' : index === activeIndex ? 'stage-active' : ''} key={label}><span>{index < activeIndex ? '✓' : index + 1}</span>{label}</li>)}
       </ol>
 
-      {step === 'describe' ? <section className="build-focus-card">
-        <p className="eyebrow">Start with the outcome</p><h2>What should Ariad help you make?</h2>
-        <form onSubmit={understand}><textarea aria-label="What should Ariad help you make?" required rows={6} value={prompt} onChange={(event) => setPrompt(event.target.value)} placeholder="Example: Make a cute two-servo robot with long rotating side limbs that can recover when it falls." /><button className="primary-action" disabled={busy || !prompt.trim()}>{busy ? 'Understanding…' : 'Continue'}</button></form>
-        <div className="build-promise"><span>Codex guides</span><span>Ariad verifies</span><span>You approve</span></div>
+      {step === 'describe' ? <section className="build-start-workspace">
+        <div className="build-focus-card build-prompt-card">
+          <div className="conversation-label"><span className="conversation-avatar">C</span><div><strong>Start with what you need</strong><small>Codex will turn intent into an editable fabrication brief.</small></div></div>
+          <h2>What should Ariad help you make?</h2>
+          <form onSubmit={understand}><textarea aria-label="What should Ariad help you make?" required rows={6} value={prompt} onChange={(event) => setPrompt(event.target.value)} placeholder="Describe the object, how it should work, and anything it must fit. You can stay in plain language." /><div className="prompt-suggestion"><span>Try the demo idea</span><button type="button" onClick={() => setPrompt('Make a cute two-servo robot with long rotating side limbs that can recover when it falls. Design it as separate, serviceable parts with accessible fasteners.')}>Use robot example</button></div><button aria-label="Continue" className="primary-action" disabled={busy || !prompt.trim()}>{busy ? 'Understanding…' : 'Begin guided build →'}</button></form>
+          <div className="build-promise"><span><b>01</b> Codex guides</span><span><b>02</b> Ariad verifies</span><span><b>03</b> You approve</span></div>
+        </div>
+        <aside className="build-preview-panel">
+          <div className="preview-panel-heading"><div><p className="eyebrow">Example outcome</p><h2>Designed as parts, not a picture</h2></div><span className="live-indicator"><i /> Planning preview</span></div>
+          <AssemblyBlueprint compact />
+          <div className="preview-evidence-row"><span><strong>9</strong> planned parts</span><span><strong>7</strong> interfaces</span><span><strong>0</strong> hidden claims</span></div>
+        </aside>
       </section> : null}
 
       {step === 'review' ? <section className="build-review-grid">
@@ -211,7 +219,7 @@ export function BuildSessionPage() {
           <button className="primary-action" disabled={busy || !token} onClick={prepareBrief}>{busy ? 'Preparing…' : 'Save project and prepare brief'}</button>
         </div>
         <aside className="build-context-card">
-          <img src={conceptUrl} alt="Ariad robot concept reference" />
+          <AssemblyBlueprint compact />
           <p className="eyebrow">Ariad understood</p><h3>{reviewSummary}</h3><p>{reviewReason}</p>
           <div className="assumption-list"><strong>Visible assumptions</strong><span>FDM process</span><span>General-use safety class</span><span>Printer selected later</span></div>
           {reviewQuestion ? <div className="blocking-question"><strong>Decision to revisit</strong><p>{reviewQuestion}</p></div> : null}

@@ -22,7 +22,7 @@ describe('AssemblyPage', () => {
     render(<AssemblyPage />)
 
     expect(await screen.findByRole('heading', { name: 'Ariad Two-Servo Robot V1' })).toBeInTheDocument()
-    expect(screen.getByText('Approved visual direction—not generated CAD.')).toBeInTheDocument()
+    expect(screen.getByText('Separate parts and interfaces—not generated CAD.')).toBeInTheDocument()
     expect(screen.getByText('CAD not generated')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Build it as an assembly, not one mesh' })).toBeInTheDocument()
     expect(screen.getByText('Which servo?')).toBeInTheDocument()

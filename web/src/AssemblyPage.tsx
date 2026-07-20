@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-import conceptUrl from '../../assets/ariad-robot-concept-v1.png'
+import { AssemblyBlueprint } from './AssemblyBlueprint'
 import { getRobotAssembly } from './api'
 import type { AssemblySpec } from './types'
 
@@ -35,10 +35,7 @@ export function AssemblyPage() {
             <span><strong>{assembly.unresolved_questions.length}</strong> open decisions</span>
           </div>
         </div>
-        <figure className="assembly-concept">
-          <img src={conceptUrl} alt="Approved visual concept for a compact two-limb Ariad robot" />
-          <figcaption>Approved visual direction—not generated CAD.</figcaption>
-        </figure>
+        <AssemblyBlueprint />
       </section>
 
       <aside className="assembly-boundary">
