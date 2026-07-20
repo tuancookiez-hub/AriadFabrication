@@ -1829,7 +1829,8 @@ main {
 
 .workspace-shell .hero,
 .workspace-shell .detail-header {
-  padding-top: clamp(2.5rem, 6vw, 5rem);
+  padding: 1.8rem clamp(1rem, 3vw, 3rem) 1.2rem;
+  gap: 2rem;
 }
 
 .workspace-shell .hero h1,
@@ -1844,11 +1845,24 @@ main {
 .workspace-shell .hero h1,
 .workspace-shell .detail-header h1 {
   font-family: Inter, ui-sans-serif, system-ui, sans-serif;
-  font-size: clamp(2.5rem, 5.5vw, 5.4rem);
+  max-width: 720px;
+  margin-bottom: .65rem;
+  font-size: clamp(2rem, 3.1vw, 3.15rem);
+  line-height: 1.02;
   font-weight: 800;
-  letter-spacing: -0.055em;
-  text-transform: uppercase;
+  letter-spacing: -0.045em;
+  text-transform: none;
 }
+.workspace-shell .hero-boundary { padding: 1rem 1.15rem; border-radius: 14px; }
+.workspace-shell .hero-boundary strong { font-size: 1.35rem; }
+.workspace-shell .content-section { padding: 1rem clamp(1rem, 3vw, 3rem) 3rem; }
+.workspace-shell .content-section > .section-heading { margin-bottom: .5rem; }
+.workspace-shell .content-section .section-heading h2 { font-size: 1.85rem; }
+.workspace-shell .revision-listing-status { margin-top: .75rem; padding: .9rem 1rem; }
+.workspace-shell .revision-listing-status small { max-width: 64ch; font-size: .72rem; }
+.workspace-shell .revision-grid { margin-top: 1rem; }
+.workspace-shell .revision-card { min-height: 170px; padding: 1.1rem; border-radius: 12px; }
+.workspace-shell .revision-card h3 { margin: .55rem 0 .9rem; font-size: 1.25rem; }
 
 .workspace-shell .hero p,
 .workspace-shell .detail-header p,

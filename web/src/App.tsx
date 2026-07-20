@@ -391,10 +391,9 @@ function JourneyIndexPage() {
       <section className="hero">
         <div>
           <p className="eyebrow">Fabrication Journey · M4</p>
-          <h1 data-route-heading tabIndex={-1}>Inspect what happened. See what remains unproven.</h1>
+          <h1 data-route-heading tabIndex={-1}>Fabrication records at a glance.</h1>
           <p>
-            Each card comes from a persisted revision. The interface does not calculate fictional
-            progress or turn warnings into a printable badge.
+            Review persisted revisions, inspect evidence, and see exactly what remains unproven.
           </p>
         </div>
         <div className="hero-boundary">
