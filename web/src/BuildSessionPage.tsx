@@ -87,7 +87,7 @@ export function BuildSessionPage() {
     return () => controller.abort()
   }, [])
 
-  const activeIndex = useMemo(() => step === 'describe' ? 0 : step === 'review' ? 1 : 2, [step])
+  const activeIndex = useMemo(() => step === 'describe' ? 0 : step === 'review' ? 1 : step === 'planned' ? 3 : 2, [step])
   const localFallback = intake?.provider.configured === false
   const reviewSummary = localFallback ? suggestedPartType(prompt) : intake?.route.summary
   const reviewReason = localFallback
@@ -170,8 +170,8 @@ export function BuildSessionPage() {
   return (
     <div className="build-session">
       <header className={`build-session-header${step === 'describe' ? ' build-session-header-intake' : ''}`}>
-        <div><p className="eyebrow">Make something</p><h1 data-route-heading tabIndex={-1}>Tell Codex what you need.</h1><p>Ariad will guide the design and keep the technical work available when you want to inspect it.</p></div>
-        <div className="build-session-status"><span>Current step</span><strong>{brief ? 'Brief approved' : 'Describe your idea'}</strong><small><i /> Codex is ready</small></div>
+        <div><p className="eyebrow">Make something</p><h1 data-route-heading tabIndex={-1}>{step === 'planned' ? 'Build and verify your model.' : 'Tell Codex what you need.'}</h1><p>{step === 'planned' ? 'The same build continues from editable CAD into manufacturing evidence.' : 'Ariad will guide the design and keep the technical work available when you want to inspect it.'}</p></div>
+        <div className="build-session-status"><span>Current step</span><strong>{step === 'planned' ? 'Verifying CAD' : brief ? 'Brief approved' : 'Describe your idea'}</strong><small><i /> Codex is ready</small></div>
       </header>
 
       <ol className="build-stage-rail" aria-label="Build stages">

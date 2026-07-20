@@ -13,6 +13,7 @@ from ariad_fabrication.cad.robot_casing_design import (
     assembly_offsets,
     build_parts,
 )
+from scripts.export_robot_prototype_parts import manufacturing_orientation
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -79,3 +80,12 @@ class RobotCasingCadTests(unittest.TestCase):
         self.assertAlmostEqual(bounds.xlen, 94.0, places=6)
         self.assertAlmostEqual(bounds.ylen, 48.0, places=6)
         self.assertAlmostEqual(bounds.zlen, 78.0, places=6)
+
+    def test_limb_manufacturing_orientation_lays_the_broad_side_on_z_zero(self):
+        limb = build_parts(fixture())["left_limb"]
+        oriented, label = manufacturing_orientation("left_limb", limb)
+        bounds = oriented.val().BoundingBox()
+        self.assertEqual(label, "laid flat on broad side")
+        self.assertAlmostEqual(bounds.zmin, 0.0, places=6)
+        self.assertAlmostEqual(bounds.zlen, fixture()["limb_thickness_mm"], places=6)
+        self.assertGreater(max(bounds.xlen, bounds.ylen), bounds.zlen * 4)
