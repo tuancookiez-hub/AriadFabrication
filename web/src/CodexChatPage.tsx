@@ -144,13 +144,9 @@ export function CodexChatPage() {
   return (
     <>
       <section className="chat-hero">
-        <p className="eyebrow">Local Codex fabrication agent</p>
-        <h1 data-route-heading tabIndex={-1}>Talk through what you want to make.</h1>
-        <p>
-          Codex can capture an idea, inspect evidence, and propose Design-plan fields through four
-          non-mutating tools. It still cannot generate CAD, run validation, slice, mutate evidence,
-          or contact hardware.
-        </p>
+        <p className="eyebrow">Your build companion</p>
+        <h1 data-route-heading tabIndex={-1}>Ask Codex</h1>
+        <p>Describe what you want, ask a question, or continue planning a build.</p>
       </section>
       <section className="chat-layout">
         <div className="chat-panel">
@@ -230,17 +226,18 @@ export function CodexChatPage() {
             </div>
           </form>
         </div>
-        <aside className="chat-boundary">
-          <p className="eyebrow">Authority right now</p>
-          <h2>Read-only assistance</h2>
+        <details className="chat-boundary">
+          <summary>Capabilities and limits</summary>
+          <div className="chat-boundary-content"><p className="eyebrow">Authority right now</p>
+          <h2>Planning assistance</h2>
           <dl>
             <div><dt>GPT model</dt><dd>{status?.conversation_available ? 'Local Codex default' : 'Unavailable'}</dd></div>
             <div><dt>Ariad tools</dt><dd>4 non-mutating</dd></div>
             <div><dt>Workspace</dt><dd>Read-only and empty</dd></div>
             <div><dt>Hardware</dt><dd>Disconnected</dd></div>
           </dl>
-          <p>CAD and pipeline controls stay locked until their isolation and evidence gates pass.</p>
-        </aside>
+          <p>CAD and pipeline controls stay locked until their isolation and evidence gates pass.</p></div>
+        </details>
       </section>
     </>
   )

@@ -26,9 +26,9 @@ export function ProjectsPage() {
   return (
     <>
       <section className="projects-hero">
-        <p className="eyebrow">Confirmed intent library</p>
-        <h1 data-route-heading tabIndex={-1}>Projects begin with a promise, not a print.</h1>
-        <p>Each record below was explicitly saved by you. Open it to clarify unknowns or inspect its confirmed R0 Brief.</p>
+        <p className="eyebrow">Your workspace</p>
+        <h1 data-route-heading tabIndex={-1}>My builds</h1>
+        <p>Continue an idea or review what Codex prepared.</p>
       </section>
       <section className="projects-list" aria-busy={loading}>
         {loading ? <p role="status">Loading confirmed project intents...</p> : null}
@@ -38,11 +38,11 @@ export function ProjectsPage() {
         ) : null}
         {projects.map((project) => (
           <article className="project-intent-card" key={project.project_id}>
-            <div><span>Intent confirmed</span><time dateTime={project.confirmed_at}>{new Date(project.confirmed_at).toLocaleString()}</time></div>
+            <div><span>Saved idea</span><time dateTime={project.confirmed_at}>{new Date(project.confirmed_at).toLocaleString()}</time></div>
             <h2>{project.title}</h2>
             <p>{project.prompt}</p>
-            <footer><strong>Open for current Brief status</strong><span>Fabrication not started</span></footer>
-            <Link className="secondary-action" to={`/projects/${project.project_id}`}>Open project</Link>
+            <footer><strong>Ready to continue</strong><span>Planning</span></footer>
+            <Link className="secondary-action" to={`/projects/${project.project_id}`}>Continue build</Link>
           </article>
         ))}
       </section>
