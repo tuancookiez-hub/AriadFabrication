@@ -4,7 +4,9 @@ This directory separates approved project identity from explanatory artwork. A f
 
 ## Official logo
 
-`ariad-fabrication-official-logo-transparent.png` is the primary transparent-background logo used by the project. It is a tightly cropped background extraction of the owner-approved source and does not intentionally alter the mark, lettering, or colors.
+`ariad-fabrication-official-logo-v2.png` is the primary transparent-background logo used by the project. It is a high-resolution image-generation refinement of the owner-approved identity, preserving the anime maker, filament-shaped A, build plate, fabricated parts, `ARIAD` / `FABRICATION` wordmark, and black-white-red palette. Its chroma background was removed locally and the resulting alpha matte was visually checked on a checkerboard.
+
+`ariad-fabrication-official-logo-transparent.png` is the earlier tightly cropped extraction of the original JPEG. It is retained as a non-generative fallback but is not used in the README because source compression remains visible around its edges.
 
 `ariad-fabrication-official-logo.jpg` is the original owner-approved source retained for provenance and future higher-fidelity extraction work.
 
