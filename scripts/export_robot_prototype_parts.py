@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 
 from ariad_fabrication.cad.robot_casing_design import DESIGN_SOURCE_VERSION, build_parts
+from ariad_fabrication.cad.glb import export_glb
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -30,9 +31,16 @@ def main() -> None:
     for name, part in parts.items():
         step_path = output / f"{name}.step"
         stl_path = output / f"{name}.stl"
+        glb_path = output / f"{name}.glb"
         svg_path = output / f"{name}.svg"
         exporters.export(part, str(step_path))
         exporters.export(part, str(stl_path), tolerance=0.08, angularTolerance=0.12)
+        preview_stats = export_glb(
+            part.val(),
+            glb_path,
+            linear_tolerance_mm=0.08,
+            angular_tolerance_rad=0.12,
+        )
         exporters.export(part, str(svg_path), opt={"width": 480, "height": 360, "showAxes": False})
         records.append(
             {
@@ -41,7 +49,10 @@ def main() -> None:
                 "step_sha256": hashlib.sha256(step_path.read_bytes()).hexdigest(),
                 "stl": stl_path.name,
                 "stl_sha256": hashlib.sha256(stl_path.read_bytes()).hexdigest(),
+                "glb": glb_path.name,
+                "glb_sha256": hashlib.sha256(glb_path.read_bytes()).hexdigest(),
                 "preview": svg_path.name,
+                "preview_triangle_count": preview_stats["triangle_count"],
                 "kernel_valid": bool(part.val().isValid()),
                 "solid_count": len(part.solids().vals()),
                 "volume_mm3": round(part.val().Volume(), 3),

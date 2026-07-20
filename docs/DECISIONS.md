@@ -637,6 +637,18 @@ This file records accepted project-level decisions. Change an accepted decision 
 
 **Evidence:** The `/build` React route composes existing intake, session, project-intent, draft, Brief-confirmation, Design-proposal, and Design-plan contracts without expanding backend authority. Three focused tests prove editable defaults, visible blockers, separate save/approve/save-plan actions, Codex-proposal fallback, and absent-CAD language. Live browser rehearsal passes prompt → draft → R0 → editable Design planning with no console warnings or errors and correct route highlighting.
 
+### D-057 - Make editable CAD, not concept imagery, the Design outcome
+
+**Status:** Accepted by the project owner on 2026-07-21.
+
+**Decision:** The primary Ariad experience is prompt to confirmed requirements to editable multi-part CAD to geometry verification to printability assessment to real slicing to fabrication package. A generated concept image or model sheet may help establish visual intent, but it is optional reference material and cannot complete the Design stage. Design completes only when exact CAD artifacts and editable source are attached to a project revision.
+
+**Revision interaction:** After CAD exists, the user may request changes in plain language. Codex translates each request into visible parameter, feature, part, or interface changes; Ariad previews the proposed diff; the user approves it; and a child revision reruns all affected evidence gates. Codex may guide and propose, but it cannot silently overwrite accepted dimensions or waive deterministic failures.
+
+**First vertical slice:** The trusted two-servo robot CadQuery family is the first complete in-product path. It produces separate parts rather than one opaque mesh. STEP is exact editable geometry, GLB is browser preview, STL is compatibility output, and 3MF/G-code must come from the approved slicer path. Until each robot part passes the corresponding gates, the interface must say prototype CAD rather than printer-ready.
+
+**Boundary:** This decision supersedes any demo treatment that ends after Design planning or presents the robot concept sheet as the result. It does not authorize unrestricted prompt-generated code, bypass the sealed execution boundary, establish physical fit, or connect printer hardware.
+
 ## Deferred decisions
 
 These require later evidence and should not be decided through preference alone:

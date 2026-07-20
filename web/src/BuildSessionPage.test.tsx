@@ -74,7 +74,7 @@ describe('BuildSessionPage', () => {
     expect(screen.getByText(/CAD is still absent/i)).toBeInTheDocument()
   })
 
-  it('offers an editable local Design fallback without claiming CAD execution', async () => {
+  it('continues the robot Design plan into inspectable prototype CAD', async () => {
     vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input)
       if (url.endsWith('/api/v1/session')) return response({ schema_version: '1.19.0', session_token: 'browser-secret' })
@@ -84,6 +84,8 @@ describe('BuildSessionPage', () => {
       if (url.endsWith('/brief-confirmation')) return response({ project_id: 'project_demo', job_id: 'job_demo', revision_id: 'rev_demo', evidence_level: 'R0' })
       if (url.endsWith('/design-proposal')) return missing()
       if (url.endsWith('/design-plan')) return response({ lane: 'functional_parametric', geometry_strategy: 'Separate parts.', critical_features: [], assembly_interfaces: [], constraints: [], unresolved_questions: ['Choose servo.'] })
+      if (url.endsWith('/demo/robot-cad/manifest.json')) return response({ artifact_kind: 'prototype_geometry', design_source_version: '0.2.0', part_count: 1, claim_boundary: 'Prototype only.', parts: [{ part_id: 'front_shell', step: 'front_shell.step', stl: 'front_shell.stl', glb: 'front_shell.glb', glb_sha256: 'b'.repeat(64), kernel_valid: true, solid_count: 1, volume_mm3: 1000 }] })
+      if (url.endsWith('/demo/robot-cad/front_shell.glb')) return new Response(new ArrayBuffer(0), { status: 200 })
       throw new Error(`Unexpected request: ${url}`)
     }))
     render(<MemoryRouter><BuildSessionPage /></MemoryRouter>)
@@ -97,7 +99,8 @@ describe('BuildSessionPage', () => {
     expect(screen.getByDisplayValue(/Decompose the robot into separately manufactured/)).toBeInTheDocument()
     expect(screen.getByText(/does not run generated code or create R1/i)).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Save Design plan' }))
-    expect(await screen.findByRole('heading', { name: 'Codex has prepared the next build step.' })).toBeInTheDocument()
-    expect(screen.getByText(/No CAD worker ran/i)).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Inspect the robot CAD parts' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Front Shell.*Valid solid/i })).toBeInTheDocument()
+    expect(screen.getByText(/still needs per-part dimensions/i)).toBeInTheDocument()
   })
 })

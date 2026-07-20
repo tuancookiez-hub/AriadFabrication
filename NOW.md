@@ -6,7 +6,9 @@
 
 ## Immediate objective
 
-The truthful hackathon demo checkpoint is complete. Expand beyond the Golden Part one bounded functional family at a time. The original two-servo robot casing is now the flagship direction; the smaller L-bracket remains a useful qualification exercise. Unqualified families stay unavailable to browser execution. Printer control and physical claims remain outside this checkpoint.
+Close the broken middle of the Guided Build Session with one honest robot vertical slice. After the user approves a Design plan, the same project must continue into a trusted nine-part CadQuery build, an interactive part/assembly preview, deterministic geometry and printability findings, real profile-specific slicing, and a downloadable fabrication package. The concept sheet is optional visual intent, never the terminal output or a substitute for CAD.
+
+The first executable slice is deliberately bounded to the original two-servo robot family. Plain-language revisions must change explicit parameters or assembly decisions, create a new project revision, and rerun every affected downstream gate. Unsupported prompts may still reach planning, but they must not imply that CAD exists. Unrestricted generated-code execution remains unavailable until its sandbox boundary is qualified. Printer control and physical-success claims remain outside this milestone.
 
 The Guided Build Session now composes universal intake, editable local defaults, project creation, clarification-draft persistence, explicit R0 approval, Codex Design-proposal retrieval, editable fallback Design planning, and explicit plan persistence into one React route. The beginner sees Describe → Confirm → Design → Verify → Simulate → Package while the existing backend boundaries remain unchanged. Draft preparation, R0 approval, and Design-plan saving remain separate user actions. Unavailable model classification or proposal retrieval falls back to visibly local defaults and useful product questions rather than technical setup instructions. CAD execution, automatic repair, verification, simulation, and packaging remain future stages, not simulated progress.
 

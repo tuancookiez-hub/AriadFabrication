@@ -4,6 +4,8 @@ import type { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 
 import type { Artifact } from './types'
 
+export type ModelArtifact = Pick<Artifact, 'download_url' | 'size_bytes' | 'checksum_sha256'>
+
 const MAX_MODEL_BYTES = 64 * 1024 * 1024
 const MAX_MODEL_TRIANGLES = 2_000_000
 
@@ -35,7 +37,7 @@ function formatBytes(value: number | null): string {
   return `${(value / (1024 * 1024)).toFixed(1)} MiB`
 }
 
-export function ModelInspector({ artifact }: { artifact: Artifact | null }) {
+export function ModelInspector({ artifact }: { artifact: ModelArtifact | null }) {
   const canvasHostRef = useRef<HTMLDivElement>(null)
   const resetCameraRef = useRef<(() => void) | null>(null)
   const instructionsId = useId()

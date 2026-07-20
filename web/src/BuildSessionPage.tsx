@@ -1,7 +1,7 @@
 import { type FormEvent, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
-import { AssemblyBlueprint } from './AssemblyBlueprint'
+import { RobotCadWorkspace } from './RobotCadWorkspace'
 import {
   ApiError,
   captureIdea,
@@ -66,7 +66,7 @@ function fallbackDesignPlan(prompt: string): ProjectDesignPlanRequest {
   }
 }
 
-const stageLabels = ['Idea', 'Confirm', 'Plan']
+const stageLabels = ['Idea', 'Confirm', 'CAD', 'Verify', 'Slice', 'Package']
 
 export function BuildSessionPage() {
   const [step, setStep] = useState<SessionStep>('describe')
@@ -229,10 +229,12 @@ export function BuildSessionPage() {
         </form>
       </section> : null}
 
-      {step === 'planned' && project ? <section className="build-complete-card">
-        <div className="completion-mark">✓</div><p className="eyebrow">Design thread prepared</p><h2>Codex has prepared the next build step.</h2><p>Ariad has a structured Design strategy, features, interfaces, constraints, and open decisions. No CAD worker ran, so R1, geometry verification, simulation, and printability remain unavailable.</p><AssemblyBlueprint compact />
+      {step === 'planned' && project && !prompt.toLowerCase().includes('robot') ? <section className="build-complete-card">
+        <div className="completion-mark">✓</div><p className="eyebrow">Design plan saved</p><h2>This idea needs a qualified CAD family.</h2><p>Ariad will not invent printable geometry for an unsupported family. The approved robot example is currently the first connected CAD path.</p>
         <div className="next-actions"><Link className="primary-action" to={`/projects/${encodeURIComponent(project.project_id)}`}>Review project thread</Link><Link className="secondary-action" to={`/chat?project=${encodeURIComponent(project.project_id)}`}>Discuss open decisions with Codex</Link></div>
       </section> : null}
+
+      {step === 'planned' && project && prompt.toLowerCase().includes('robot') ? <RobotCadWorkspace projectId={project.project_id} /> : null}
 
       {error ? <div className="build-error" role="alert">{error}</div> : null}
     </div>
