@@ -30,8 +30,8 @@ describe('BuildSessionPage', () => {
     }))
     render(<MemoryRouter><BuildSessionPage /></MemoryRouter>)
 
-    expect(screen.getByText('Codex carries the technical thread.')).toBeInTheDocument()
-    expect(screen.getByText('Codex will turn your description into a short build brief, surface only blocking questions, and prepare a staged design plan for your approval.')).toBeInTheDocument()
+    expect(screen.getByText('Codex will guide this build.')).toBeInTheDocument()
+    expect(screen.getByText('Ask only what matters')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Use robot example' }))
     expect(screen.getByLabelText('What should Ariad help you make?')).toHaveValue('Make a cute two-servo robot with long rotating side limbs that can recover when it falls. Design it as separate, serviceable parts with accessible fasteners.')
   })
@@ -52,10 +52,10 @@ describe('BuildSessionPage', () => {
     expect(screen.getByDisplayValue('PETG')).toBeInTheDocument()
     expect(screen.getByText('Which exact servo, camera, compute board, and battery should define the enclosure?')).toBeInTheDocument()
     expect(screen.queryByText(/configure GPT/i)).not.toBeInTheDocument()
-    expect(screen.getByText(/no CAD or evidence/i)).toBeInTheDocument()
+    expect(screen.getByText(/does not create CAD yet/i)).toBeInTheDocument()
   })
 
-  it('keeps draft preparation and R0 approval as separate user actions', async () => {
+  it('records one explicit approval without forcing a second confirmation screen', async () => {
     vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input)
       if (url.endsWith('/api/v1/session')) return response({ schema_version: '1.19.0', session_token: 'browser-secret' })
@@ -68,13 +68,7 @@ describe('BuildSessionPage', () => {
 
     fireEvent.change(screen.getByLabelText('What should Ariad help you make?'), { target: { value: 'Make a robot.' } })
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
-    fireEvent.click(await screen.findByRole('button', { name: 'Save project and prepare brief' }))
-
-    const approve = await screen.findByRole('button', { name: 'Approve brief' })
-    expect(approve).toBeDisabled()
-    expect(screen.getByText(/does not generate CAD, slice, print/i)).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('checkbox'))
-    fireEvent.click(approve)
+    fireEvent.click(await screen.findByRole('button', { name: 'Approve and continue' }))
 
     expect(await screen.findByRole('heading', { name: 'Your idea is ready for the Design stage' })).toBeInTheDocument()
     expect(screen.getByText(/CAD is still absent/i)).toBeInTheDocument()
@@ -96,10 +90,7 @@ describe('BuildSessionPage', () => {
 
     fireEvent.change(screen.getByLabelText('What should Ariad help you make?'), { target: { value: 'Make a robot.' } })
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
-    fireEvent.click(await screen.findByRole('button', { name: 'Save project and prepare brief' }))
-    await screen.findByRole('button', { name: 'Approve brief' })
-    fireEvent.click(screen.getByRole('checkbox'))
-    fireEvent.click(screen.getByRole('button', { name: 'Approve brief' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Approve and continue' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Prepare Design plan' }))
 
     expect(await screen.findByText('Local fallback')).toBeInTheDocument()

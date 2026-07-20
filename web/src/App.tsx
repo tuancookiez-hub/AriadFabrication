@@ -104,21 +104,14 @@ function AppShell({
         Skip to main content
       </a>
       <aside className="app-sidebar" aria-label="Ariad workspace navigation">
-        <Link className="brand" to="/" aria-label="Ariad Fabrication home">
+        <Link className="brand" to="/build" aria-label="Ariad Fabrication home">
           <img src={logoUrl} alt="Ariad Fabrication" />
         </Link>
         <nav className="primary-navigation" aria-label="Primary navigation">
-          <Link className={navClass('/')} to="/"><span aria-hidden="true">◇</span> Journey</Link>
-          <Link className={navClass('/new')} to="/new"><span aria-hidden="true">＋</span> New idea</Link>
-          <Link className={navClass('/build')} to="/build"><span aria-hidden="true">→</span> Build session</Link>
-          <Link className={navClass('/chat')} to="/chat"><span aria-hidden="true">◌</span> Codex</Link>
-          <Link className={navClass('/projects')} to="/projects"><span aria-hidden="true">▤</span> Projects</Link>
-          <Link className={navClass('/assembly')} to="/assembly"><span aria-hidden="true">A</span> Robot assembly</Link>
-          <span className="nav-item nav-item-disabled"><span aria-hidden="true">◇</span> Parts library</span>
-          <span className="nav-item nav-item-disabled"><span aria-hidden="true">▱</span> Printers</span>
-          <span className="nav-item nav-item-disabled"><span aria-hidden="true">◫</span> Materials</span>
-          <span className="nav-item nav-item-disabled"><span aria-hidden="true">◎</span> Agents</span>
-          <span className="nav-item nav-item-disabled"><span aria-hidden="true">▧</span> Reports</span>
+          <Link className={navClass('/build')} to="/build"><span aria-hidden="true">＋</span> Make something</Link>
+          <Link className={navClass('/projects')} to="/projects"><span aria-hidden="true">▤</span> My builds</Link>
+          <Link className={navClass('/chat')} to="/chat"><span aria-hidden="true">◌</span> Ask Codex</Link>
+          <Link className={navClass('/evidence')} to="/evidence"><span aria-hidden="true">◇</span> Evidence & details</Link>
         </nav>
         <div className="sidebar-status">
           <span className="status-avatar" aria-hidden="true">A</span>
@@ -132,14 +125,14 @@ function AppShell({
       </aside>
       <div className="workspace-shell">
         <header className="topbar">
-          <div className="project-context"><small>Project</small><strong>Fabrication Journey</strong></div>
+          <div className="project-context"><small>Ariad Fabrication</small><strong>Make something useful</strong></div>
           <div className="topbar-actions">
             <div className={`system-pill codex-${codex?.status ?? 'checking'}`}>
               <i /> {codex === null ? 'Checking Codex…' : codex.conversation_available ? 'Codex conversation ready' : 'Codex unavailable'}
             </div>
             <Link className="new-project-button" to="/build">+ New build</Link>
         <div className="boundary-pill">
-          Read-only · hardware disconnected
+        Hardware off
         </div>
           </div>
         </header>
@@ -562,7 +555,7 @@ export function JourneyView({ detail }: { detail: RevisionDetail }) {
       ) : null}
       <section className="detail-header">
         <div>
-          <Link className="back-link" to="/">
+          <Link className="back-link" to="/evidence">
             ← All revisions
           </Link>
           <p className="eyebrow">Revision {detail.revision.number}</p>
@@ -705,7 +698,8 @@ const router = createBrowserRouter([
       </>
     ),
     children: [
-      { path: '/', element: <JourneyIndexPage /> },
+      { path: '/', element: <Navigate to="/build" replace /> },
+      { path: '/evidence', element: <JourneyIndexPage /> },
       { path: '/new', element: <AppShell pageTitle="New fabrication idea"><NewIdeaPage /></AppShell> },
       { path: '/build', element: <AppShell pageTitle="Guided Build Session"><BuildSessionPage /></AppShell> },
       { path: '/chat', element: <AppShell pageTitle="Conversation with Codex"><CodexChatPage /></AppShell> },

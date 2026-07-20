@@ -14,7 +14,7 @@ import {
 } from './api'
 import type { IntakeResponse, ProjectBrief, ProjectDesignPlanRequest, ProjectDraftRequest, ProjectIntent } from './types'
 
-type SessionStep = 'describe' | 'review' | 'approve' | 'ready' | 'design' | 'planned'
+type SessionStep = 'describe' | 'review' | 'ready' | 'design' | 'planned'
 
 function suggestedTitle(prompt: string): string {
   const first = prompt.trim().split(/[.!?\n]/)[0]?.trim() ?? 'New fabrication project'
@@ -66,7 +66,7 @@ function fallbackDesignPlan(prompt: string): ProjectDesignPlanRequest {
   }
 }
 
-const stageLabels = ['Describe', 'Confirm', 'Design', 'Verify', 'Simulate', 'Package']
+const stageLabels = ['Idea', 'Confirm', 'Plan']
 
 export function BuildSessionPage() {
   const [step, setStep] = useState<SessionStep>('describe')
@@ -78,7 +78,6 @@ export function BuildSessionPage() {
   const [brief, setBrief] = useState<ProjectBrief | null>(null)
   const [designPlan, setDesignPlan] = useState<ProjectDesignPlanRequest>(() => fallbackDesignPlan(''))
   const [planSource, setPlanSource] = useState<'codex' | 'local' | null>(null)
-  const [approved, setApproved] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -88,7 +87,7 @@ export function BuildSessionPage() {
     return () => controller.abort()
   }, [])
 
-  const activeIndex = useMemo(() => step === 'describe' ? 0 : step === 'review' || step === 'approve' ? 1 : 2, [step])
+  const activeIndex = useMemo(() => step === 'describe' ? 0 : step === 'review' ? 1 : 2, [step])
   const localFallback = intake?.provider.configured === false
   const reviewSummary = localFallback ? suggestedPartType(prompt) : intake?.route.summary
   const reviewReason = localFallback
@@ -118,7 +117,7 @@ export function BuildSessionPage() {
     setDraft((current) => ({ ...current, [name]: value ? Number(value) : null }))
   }
 
-  async function prepareBrief() {
+  async function approveRecommendedBrief() {
     if (!token) { setError('The local Ariad session is unavailable.'); return }
     setBusy(true); setError(null)
     try {
@@ -129,20 +128,10 @@ export function BuildSessionPage() {
         setError(`Ariad still needs: ${saved.missing_fields.join(', ')}.`)
         return
       }
-      setStep('approve')
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'The project brief could not be prepared.')
-    } finally { setBusy(false) }
-  }
-
-  async function approveBrief() {
-    if (!token || !project || !approved) return
-    setBusy(true); setError(null)
-    try {
-      setBrief(await confirmProjectBrief(project.project_id, token))
+      setBrief(await confirmProjectBrief(created.project_id, token))
       setStep('ready')
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'The brief could not be approved.')
+      setError(reason instanceof Error ? reason.message : 'The project brief could not be prepared.')
     } finally { setBusy(false) }
   }
 
@@ -180,13 +169,13 @@ export function BuildSessionPage() {
 
   return (
     <div className="build-session">
-      <header className="build-session-header">
-        <div><p className="eyebrow">Guided Build Session</p><h1 data-route-heading tabIndex={-1}>Build from intent to evidence.</h1><p>Codex guides the build while Ariad keeps dimensions, parts, checks, and artifacts on one traceable thread.</p></div>
-        <div className="build-session-status"><span>Evidence state</span><strong>{brief ? 'R0 · Brief confirmed' : 'Planning only'}</strong><small><i /> Local workspace · hardware off</small></div>
+      <header className={`build-session-header${step === 'describe' ? ' build-session-header-intake' : ''}`}>
+        <div><p className="eyebrow">Make something</p><h1 data-route-heading tabIndex={-1}>Tell Codex what you need.</h1><p>Ariad will guide the design and keep the technical work available when you want to inspect it.</p></div>
+        <div className="build-session-status"><span>Current step</span><strong>{brief ? 'Brief approved' : 'Describe your idea'}</strong><small><i /> Codex is ready</small></div>
       </header>
 
       <ol className="build-stage-rail" aria-label="Build stages">
-        {stageLabels.map((label, index) => <li className={`${index < activeIndex ? 'stage-done' : index === activeIndex ? 'stage-active' : ''}${index > 2 ? ' stage-locked' : ''}`} key={label}><span>{index < activeIndex ? '✓' : index > 2 ? '—' : index + 1}</span>{label}{index > 2 ? <small>later</small> : null}</li>)}
+        {stageLabels.map((label, index) => <li className={index < activeIndex ? 'stage-done' : index === activeIndex ? 'stage-active' : ''} key={label}><span>{index < activeIndex ? '✓' : index + 1}</span>{label}</li>)}
       </ol>
 
       {step === 'describe' ? <section className="build-start-workspace">
@@ -194,21 +183,19 @@ export function BuildSessionPage() {
           <div className="conversation-label"><span className="conversation-avatar">C</span><div><strong>Start with what you need</strong><small>Codex will turn intent into an editable fabrication brief.</small></div></div>
           <h2>What should Ariad help you make?</h2>
           <form onSubmit={understand}><textarea aria-label="What should Ariad help you make?" required rows={6} value={prompt} onChange={(event) => setPrompt(event.target.value)} placeholder="Describe the object, how it should work, and anything it must fit. You can stay in plain language." /><div className="prompt-suggestion"><span>Try the demo idea</span><button type="button" onClick={() => setPrompt('Make a cute two-servo robot with long rotating side limbs that can recover when it falls. Design it as separate, serviceable parts with accessible fasteners.')}>Use robot example</button></div><button aria-label="Continue" className="primary-action" disabled={busy || !prompt.trim()}>{busy ? 'Understanding…' : 'Begin guided build →'}</button></form>
-          <div className="build-promise"><span><b>01</b> Codex guides</span><span><b>02</b> Ariad verifies</span><span><b>03</b> You approve</span></div>
         </div>
         <aside className="build-preview-panel">
-          <div className="preview-panel-heading"><div><p className="eyebrow">Your build companion</p><h2>Codex carries the technical thread.</h2></div><span className="live-indicator"><i /> Ready to guide</span></div>
-          <div className="codex-guide-card"><div className="guide-avatar">C</div><div><strong>What happens next</strong><p>Codex will turn your description into a short build brief, surface only blocking questions, and prepare a staged design plan for your approval.</p></div></div>
-          <ol className="guide-steps"><li><b>01</b><span><strong>Understand</strong><small>Extract the outcome and constraints</small></span></li><li><b>02</b><span><strong>Clarify</strong><small>Ask only what cannot be safely assumed</small></span></li><li><b>03</b><span><strong>Prepare</strong><small>Plan parts and evidence before geometry</small></span></li></ol>
-          <div className="guide-boundary"><span>Human input</span><strong>You approve the brief.</strong><small>Codex handles the planning detail.</small></div>
+          <div className="preview-panel-heading"><div><p className="eyebrow">Your build companion</p><h2>Codex will guide this build.</h2></div><span className="live-indicator"><i /> Ready</span></div>
+          <ol className="guide-steps guide-steps-simple"><li><b>01</b><span><strong>Understand your idea</strong></span></li><li><b>02</b><span><strong>Ask only what matters</strong></span></li><li><b>03</b><span><strong>Prepare the plan</strong></span></li></ol>
+          <div className="guide-boundary"><strong>You approve. Codex handles the detail.</strong></div>
         </aside>
       </section> : null}
 
       {step === 'review' ? <section className="build-review-grid">
         <div className="build-focus-card">
           <p className="eyebrow">Suggested build brief</p><h2>Review the choices that shape the result</h2>
-          <p className="gentle-note">These are editable defaults, not hidden decisions. Saving creates a project and draft only—no CAD or evidence.</p>
-          <details className="advanced-details"><summary>Show technical details</summary><div className="build-fields">
+          <p className="gentle-note">Codex prepared this recommendation. Approving it records your intent and moves to planning; it does not create CAD yet.</p>
+          <details className="advanced-details"><summary>Optional technical details</summary><div className="build-fields">
             <label>Project name<input value={draft.name ?? ''} onChange={(e) => text('name', e.target.value)} /></label>
             <label>Purpose<input value={draft.purpose ?? ''} onChange={(e) => text('purpose', e.target.value)} /></label>
             <label>Product type<input value={draft.part_type ?? ''} onChange={(e) => text('part_type', e.target.value)} /></label>
@@ -217,20 +204,13 @@ export function BuildSessionPage() {
             <label>Fit allowance (mm)<input type="number" min="0.05" step="0.05" value={draft.tolerance_mm ?? ''} onChange={(e) => number('tolerance_mm', e.target.value)} /></label>
             <label>Supports<select value={draft.support_policy ?? 'avoid'} onChange={(e) => text('support_policy', e.target.value)}><option value="avoid">Avoid where practical</option><option value="allowed">Allowed</option><option value="required">Expected</option></select></label>
           </div></details>
-          <button className="primary-action" disabled={busy || !token} onClick={prepareBrief}>{busy ? 'Preparing…' : 'Save project and prepare brief'}</button>
+          <button className="primary-action" disabled={busy || !token} onClick={approveRecommendedBrief}>{busy ? 'Preparing your build…' : 'Approve and continue'}</button>
         </div>
         <aside className="build-context-card build-codex-summary">
           <div className="summary-agent"><span className="guide-avatar">C</span><div><p className="eyebrow">Codex understood</p><h3>{reviewSummary}</h3></div></div><p>{reviewReason}</p>
           <div className="assumption-list"><strong>Working assumptions</strong><span>FDM process</span><span>General-use safety class</span><span>Printer selected later</span></div>
           {reviewQuestion ? <div className="blocking-question"><strong>Decision to revisit</strong><p>{reviewQuestion}</p></div> : null}
         </aside>
-      </section> : null}
-
-      {step === 'approve' ? <section className="build-focus-card approval-focus">
-        <p className="eyebrow">Human checkpoint</p><h2>Approve this brief for Design</h2><p>The project and complete draft are saved. Approval creates R0 evidence, but does not generate CAD, slice, print, or contact hardware.</p>
-        <dl className="brief-summary"><div><dt>Project</dt><dd>{draft.name}</dd></div><div><dt>Envelope</dt><dd>{draft.size_x_mm} × {draft.size_y_mm} × {draft.size_z_mm} mm</dd></div><div><dt>Material</dt><dd>{draft.material}</dd></div><div><dt>Fit allowance</dt><dd>{draft.tolerance_mm} mm</dd></div></dl>
-        <label className="approval-check"><input type="checkbox" checked={approved} onChange={(event) => setApproved(event.target.checked)} /> I reviewed these assumptions and approve this Brief for Design.</label>
-        <button className="primary-action" disabled={!approved || busy} onClick={approveBrief}>{busy ? 'Recording approval…' : 'Approve brief'}</button>
       </section> : null}
 
       {step === 'ready' && brief && project ? <section className="build-complete-card">
