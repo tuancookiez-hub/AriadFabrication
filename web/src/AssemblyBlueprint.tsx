@@ -29,8 +29,13 @@ export function AssemblyBlueprint({ compact = false }: AssemblyBlueprintProps) {
           <i className="explode-line explode-line-a" />
           <i className="explode-line explode-line-b" />
         </div>
+        <div className="model-sheet-views" aria-hidden="true">
+          <div className="model-sheet-view"><span className="mini-robot mini-front"><i /></span><b>Front</b></div>
+          <div className="model-sheet-view"><span className="mini-robot mini-side"><i /></span><b>Side</b></div>
+          <div className="model-sheet-view"><span className="mini-robot mini-rear"><i /></span><b>Rear</b></div>
+        </div>
       </div>
-      <figcaption><strong>Assembly planning preview</strong><span>Separate parts and interfaces—not generated CAD.</span></figcaption>
+      <figcaption><strong>Concept model sheet</strong><span>Multi-view planning reference · not generated CAD.</span></figcaption>
     </figure>
   )
 }

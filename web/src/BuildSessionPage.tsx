@@ -181,7 +181,7 @@ export function BuildSessionPage() {
   return (
     <div className="build-session">
       <header className="build-session-header">
-        <div><p className="eyebrow">Guided Build Session</p><h1 data-route-heading tabIndex={-1}>From an idea to evidence, one visible decision at a time.</h1><p>Codex guides the build. Ariad keeps dimensions, parts, checks, and artifacts attached to the same thread.</p></div>
+        <div><p className="eyebrow">Guided Build Session</p><h1 data-route-heading tabIndex={-1}>Build from intent to evidence.</h1><p>Codex guides the build while Ariad keeps dimensions, parts, checks, and artifacts on one traceable thread.</p></div>
         <div className="build-session-status"><span>Evidence state</span><strong>{brief ? 'R0 · Brief confirmed' : 'Planning only'}</strong><small><i /> Local workspace · hardware off</small></div>
       </header>
 
@@ -197,7 +197,7 @@ export function BuildSessionPage() {
           <div className="build-promise"><span><b>01</b> Codex guides</span><span><b>02</b> Ariad verifies</span><span><b>03</b> You approve</span></div>
         </div>
         <aside className="build-preview-panel">
-          <div className="preview-panel-heading"><div><p className="eyebrow">Example outcome</p><h2>Designed as parts, not a picture</h2></div><span className="live-indicator"><i /> Planning preview</span></div>
+          <div className="preview-panel-heading"><div><p className="eyebrow">Example model sheet</p><h2>One design, checked across views</h2></div><span className="live-indicator"><i /> Planning reference</span></div>
           <AssemblyBlueprint compact />
           <div className="preview-evidence-row"><span><strong>9</strong> planned parts</span><span><strong>7</strong> interfaces</span><span><strong>0</strong> hidden claims</span></div>
         </aside>

@@ -190,6 +190,7 @@ For a compact interface-only demonstration, replace `runs` with `benchmarks/inte
 ## Documentation index
 
 - [Product and principles](docs/PRODUCT.md)
+- [Concept model-sheet visual guide](docs/MODEL_SHEET_GUIDE.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [No-hardware execution contract](docs/EXECUTION.md)
 - [Reliability and validation](docs/RELIABILITY.md)
