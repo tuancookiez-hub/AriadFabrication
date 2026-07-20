@@ -18,6 +18,8 @@ import { CodexChatPage } from './CodexChatPage'
 import { ProjectsPage } from './ProjectsPage'
 import { ProjectClarifyPage } from './ProjectClarifyPage'
 import { NewIdeaPage } from './NewIdeaPage'
+import { AssemblyPage } from './AssemblyPage'
+import { BuildSessionPage } from './BuildSessionPage'
 import type {
   Finding,
   RevisionComparison,
@@ -83,6 +85,8 @@ function AppShell({
   pageTitle: string
 }) {
   const [codex, setCodex] = useState<LocalCodexStatus | null>(null)
+  const location = useLocation()
+  const navClass = (path: string) => `nav-item${location.pathname === path ? ' nav-item-active' : ''}`
 
   useEffect(() => {
     document.title = pageDocumentTitle(pageTitle)
@@ -104,10 +108,12 @@ function AppShell({
           <img src={logoUrl} alt="Ariad Fabrication" />
         </Link>
         <nav className="primary-navigation" aria-label="Primary navigation">
-          <Link className="nav-item nav-item-active" to="/"><span aria-hidden="true">◇</span> Journey</Link>
-          <Link className="nav-item" to="/new"><span aria-hidden="true">＋</span> New idea</Link>
-          <Link className="nav-item" to="/chat"><span aria-hidden="true">◌</span> Codex</Link>
-          <Link className="nav-item" to="/projects"><span aria-hidden="true">▤</span> Projects</Link>
+          <Link className={navClass('/')} to="/"><span aria-hidden="true">◇</span> Journey</Link>
+          <Link className={navClass('/new')} to="/new"><span aria-hidden="true">＋</span> New idea</Link>
+          <Link className={navClass('/build')} to="/build"><span aria-hidden="true">→</span> Build session</Link>
+          <Link className={navClass('/chat')} to="/chat"><span aria-hidden="true">◌</span> Codex</Link>
+          <Link className={navClass('/projects')} to="/projects"><span aria-hidden="true">▤</span> Projects</Link>
+          <Link className={navClass('/assembly')} to="/assembly"><span aria-hidden="true">A</span> Robot assembly</Link>
           <span className="nav-item nav-item-disabled"><span aria-hidden="true">◇</span> Parts library</span>
           <span className="nav-item nav-item-disabled"><span aria-hidden="true">▱</span> Printers</span>
           <span className="nav-item nav-item-disabled"><span aria-hidden="true">◫</span> Materials</span>
@@ -131,7 +137,7 @@ function AppShell({
             <div className={`system-pill codex-${codex?.status ?? 'checking'}`}>
               <i /> {codex?.conversation_available ? 'Codex conversation ready' : 'Codex disconnected'}
             </div>
-            <Link className="new-project-button" to="/new">+ New idea</Link>
+            <Link className="new-project-button" to="/build">+ New build</Link>
         <div className="boundary-pill">
           Read-only · hardware disconnected
         </div>
@@ -702,8 +708,10 @@ const router = createBrowserRouter([
     children: [
       { path: '/', element: <JourneyIndexPage /> },
       { path: '/new', element: <AppShell pageTitle="New fabrication idea"><NewIdeaPage /></AppShell> },
+      { path: '/build', element: <AppShell pageTitle="Guided Build Session"><BuildSessionPage /></AppShell> },
       { path: '/chat', element: <AppShell pageTitle="Conversation with Codex"><CodexChatPage /></AppShell> },
       { path: '/projects', element: <AppShell pageTitle="Confirmed project intents"><ProjectsPage /></AppShell> },
+      { path: '/assembly', element: <AppShell pageTitle="Robot assembly foundation"><AssemblyPage /></AppShell> },
       { path: '/projects/:projectId', element: <AppShell pageTitle="Clarify project requirements"><ProjectClarifyPage /></AppShell> },
       { path: '/jobs/:jobId/revisions/:revisionId', element: <JourneyDetailPage /> },
       {

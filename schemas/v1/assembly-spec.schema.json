@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ariad.local/schemas/v1/assembly-spec.schema.json",
+  "title": "Ariad assembly-first fabrication specification",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "assembly_id", "name", "purpose", "status", "parts", "component_envelopes", "interfaces", "assembly_constraints", "unresolved_questions", "claim_boundary", "hardware_actions", "physical_validation"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "assembly_id": {"type": "string", "minLength": 1, "maxLength": 128},
+    "name": {"type": "string", "minLength": 1, "maxLength": 256},
+    "purpose": {"type": "string", "minLength": 1, "maxLength": 2048},
+    "status": {"enum": ["draft", "confirmed"]},
+    "parts": {"type": "array", "minItems": 1, "maxItems": 100, "items": {"$ref": "#/$defs/part"}},
+    "component_envelopes": {"type": "array", "maxItems": 100, "items": {"$ref": "#/$defs/component"}},
+    "interfaces": {"type": "array", "maxItems": 300, "items": {"$ref": "#/$defs/interface"}},
+    "assembly_constraints": {"$ref": "#/$defs/stringList"},
+    "unresolved_questions": {"$ref": "#/$defs/stringList"},
+    "claim_boundary": {"type": "string", "minLength": 1, "maxLength": 4096},
+    "hardware_actions": {"const": false},
+    "physical_validation": {"const": false}
+  },
+  "$defs": {
+    "stringList": {"type": "array", "maxItems": 200, "uniqueItems": true, "items": {"type": "string", "minLength": 1, "maxLength": 1024}},
+    "dimensions": {
+      "type": "object", "additionalProperties": false,
+      "required": ["length", "width", "height"],
+      "properties": {
+        "length": {"type": "number", "exclusiveMinimum": 0},
+        "width": {"type": "number", "exclusiveMinimum": 0},
+        "height": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "part": {
+      "type": "object", "additionalProperties": false,
+      "required": ["part_id", "name", "role", "quantity", "separately_manufactured", "manufacturing_process", "material", "notes"],
+      "properties": {
+        "part_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "name": {"type": "string", "minLength": 1, "maxLength": 256},
+        "role": {"type": "string", "minLength": 1, "maxLength": 512},
+        "quantity": {"type": "integer", "minimum": 1, "maximum": 100},
+        "separately_manufactured": {"type": "boolean"},
+        "manufacturing_process": {"type": "string", "minLength": 1, "maxLength": 128},
+        "material": {"type": "string", "minLength": 1, "maxLength": 128},
+        "notes": {"type": "string", "minLength": 1, "maxLength": 2048}
+      }
+    },
+    "component": {
+      "type": "object", "additionalProperties": false,
+      "required": ["component_id", "name", "quantity", "evidence", "dimensions_mm", "mass_g", "source"],
+      "properties": {
+        "component_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "name": {"type": "string", "minLength": 1, "maxLength": 256},
+        "quantity": {"type": "integer", "minimum": 1, "maximum": 100},
+        "evidence": {"enum": ["placeholder", "manufacturer", "measured"]},
+        "dimensions_mm": {"$ref": "#/$defs/dimensions"},
+        "mass_g": {"type": ["number", "null"], "exclusiveMinimum": 0},
+        "source": {"type": "string", "minLength": 1, "maxLength": 2048}
+      }
+    },
+    "interface": {
+      "type": "object", "additionalProperties": false,
+      "required": ["interface_id", "name", "kind", "participants", "clearance_mm", "axis", "requirements"],
+      "properties": {
+        "interface_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "name": {"type": "string", "minLength": 1, "maxLength": 256},
+        "kind": {"enum": ["fastened", "rotating", "removable_panel", "captured", "clearance"]},
+        "participants": {"type": "array", "minItems": 2, "maxItems": 10, "uniqueItems": true, "items": {"type": "string", "pattern": "^(part|component):[^:]+$"}},
+        "clearance_mm": {"type": ["number", "null"], "minimum": 0},
+        "axis": {"type": ["string", "null"], "minLength": 1, "maxLength": 256},
+        "requirements": {"$ref": "#/$defs/stringList"}
+      }
+    }
+  }
+}

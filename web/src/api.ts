@@ -9,6 +9,7 @@ import type {
   ProjectIntentList,
   ProjectDesignPlan,
   ProjectDesignPlanRequest,
+  ProjectDesignProposal,
   ProjectDetail,
   ProjectDraft,
   ProjectDraftRequest,
@@ -16,6 +17,7 @@ import type {
   RevisionComparison,
   RevisionDetail,
   RevisionListResponse,
+  AssemblySpec,
 } from './types'
 
 const apiRoot = (import.meta.env.VITE_ARIAD_API_ROOT ?? '').replace(/\/$/, '')
@@ -65,6 +67,10 @@ export function captureIdea(prompt: string, signal?: AbortSignal): Promise<Intak
 
 export function getLocalCodexStatus(signal?: AbortSignal): Promise<LocalCodexStatus> {
   return requestJson('/api/v1/codex/status', signal)
+}
+
+export function getRobotAssembly(signal?: AbortSignal): Promise<AssemblySpec> {
+  return requestJson('/api/v1/assemblies/robot-concept', signal)
 }
 
 export function getBrowserSession(signal?: AbortSignal): Promise<BrowserSession> {
@@ -146,6 +152,12 @@ export function confirmProjectBrief(projectId: string, sessionToken: string, sig
 export function saveProjectDesignPlan(projectId: string, plan: ProjectDesignPlanRequest, sessionToken: string, signal?: AbortSignal): Promise<ProjectDesignPlan> {
   return requestJson(`/api/v1/projects/${encodeURIComponent(projectId)}/design-plan`, signal, {
     method: 'PUT', body: JSON.stringify(plan), headers: { 'X-Ariad-Session': sessionToken },
+  })
+}
+
+export function getProjectDesignProposal(projectId: string, sessionToken: string, signal?: AbortSignal): Promise<ProjectDesignProposal> {
+  return requestJson(`/api/v1/projects/${encodeURIComponent(projectId)}/design-proposal`, signal, {
+    headers: { 'X-Ariad-Session': sessionToken },
   })
 }
 

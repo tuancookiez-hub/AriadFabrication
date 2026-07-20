@@ -6,7 +6,15 @@
 
 ## Immediate objective
 
-Let local Codex propose the closed fields for a confirmed project's Design plan while preserving explicit user review and zero execution authority. Ariad persists only what the user separately saves; browser/Codex-triggered CAD execution remains unavailable until provider and isolation evidence exists.
+The truthful hackathon demo checkpoint is complete. Expand beyond the Golden Part one bounded functional family at a time. The original two-servo robot casing is now the flagship direction; the smaller L-bracket remains a useful qualification exercise. Unqualified families stay unavailable to browser execution. Printer control and physical claims remain outside this checkpoint.
+
+The Guided Build Session now composes universal intake, editable local defaults, project creation, clarification-draft persistence, explicit R0 approval, Codex Design-proposal retrieval, editable fallback Design planning, and explicit plan persistence into one React route. The beginner sees Describe → Confirm → Design → Verify → Simulate → Package while the existing backend boundaries remain unchanged. Draft preparation, R0 approval, and Design-plan saving remain separate user actions. Unavailable model classification or proposal retrieval falls back to visibly local defaults and useful product questions rather than technical setup instructions. CAD execution, automatic repair, verification, simulation, and packaging remain future stages, not simulated progress.
+
+The L-bracket foundation now has a closed seven-parameter contract, editable CadQuery source, a committed parameter fixture, invalid-margin rejection, and one-real-solid/envelope checks. It is deliberately not registered for R1/R2 execution yet. Five focused family and sealed-target checks pass after regenerating the application-bound CAD runtime manifest. The complete suite exceeded its three-minute command window, so the previously verified 241-test whole-suite baseline remains the latest whole-suite claim.
+
+The owner-approved robot-casing concept now builds nine separate kernel-valid CadQuery prototype solids matching the assembly decomposition: front shell, electronics tray, service panel, two rotating limbs, two servo adapters, camera bezel, and electronics carrier. Each exports independently to STEP, STL, and SVG with checksums under `runs/concepts/robot-parts-v1`. The Feetech SCS009 envelope is manufacturer-sourced; its printed spline fit plus the compute-board, camera, battery, fasteners, collision, balance, slicing, and physical behavior remain unverified. These artifacts are prototype geometry outside Journey evidence, not R1/R2 or print-success evidence.
+
+The assembly-first correction is implemented at the domain and read-only interface boundaries. `AssemblySpec` 1.0.0 and `assembly-spec.schema.json` describe nine separately manufactured robot parts, one manufacturer-sourced and three placeholder component envelopes, seven interfaces, and six unresolved decisions. API 1.19.0 exposes the validated planning fixture and React presents it beside the approved visual concept with explicit no-Journey-CAD/no-simulation/no-hardware claims. The Journey repository does not yet accept assembly evidence.
 
 ## M4-A through M4-P implemented
 
@@ -44,14 +52,17 @@ Let local Codex propose the closed fields for a confirmed project's Design plan 
 - API 1.15.0 adds a separate authenticated PartSpec approval action. It runs the complete draft through the existing Brief gate, records the user decision, publishes a checksum-bound R0 Journey revision, and freezes the approved draft. It performs no CAD, slicing, fabrication, or hardware action.
 - API 1.16.0 adds a persisted Design-planning workspace after R0. The closed plan records a lane, geometry strategy, critical features, assembly interfaces, constraints, and unresolved questions; binds them to the confirmed Brief checksum; derives `needs_input` or `planning_complete`; and explicitly keeps R1 evidence, CAD generation, fabrication, and hardware absent.
 - API 1.17.0 and agent-tool contract 1.1.0 add `ariad.propose_design_plan` as the fourth non-mutating Codex tool. It can return an R0-bound `model_proposal`, but cannot persist the plan; the React handoff pre-addresses Codex with the project ID and returns the user to Ariad for review and saving.
+- API 1.18.0 retains only the closed, validated proposal snapshot in process memory, rechecks its R0 job/revision/checksum binding when read, and exposes it through an authenticated project-scoped endpoint. React shows the claim boundary and requires an explicit Import click before copying fields into the editable form; import and Save remain separate actions, so neither Codex nor retrieval persists the Design plan.
+- Added a non-production WSL2/Bubblewrap qualification experiment. On the development host it hides Windows mounts, permits one bound workspace, and denies external networking for a trivial process. It explicitly leaves CAD, slicer, registered execution, and hardware qualification false; WSL currently lacks the pinned CPython 3.11/CadQuery/OCP/PrusaSlicer lane.
 - A real locally authenticated Codex 0.145.0-alpha.18 turn called the proposal tool for a confirmed R0 project, returned `needs_input`, disclosed that the result was unpersisted with no CAD/R1 evidence, and left the existing saved Design-plan bytes unchanged.
-- The ordinary suite passes 235 backend tests with 14 optional CAD/slicer skips. After regenerating the application-bound CAD runtime manifest, 14 focused pinned registry and real sealed R2/R4 tests pass; the monolithic pinned run exceeded its four-minute command window, so no new whole-suite pass is claimed. OpenAPI/generated-type drift, TypeScript, ESLint, nineteen deterministic frontend tests, and the production build pass.
+- Current backend verification passes 264 tests: 262 ordinary/contract tests plus two separately run sealed R4 integrations. OpenAPI/generated-type drift, TypeScript, ESLint, 24 deterministic frontend tests with two optional real-artifact skips, and the production build pass. Live rehearsals cover the Guided Build Session, assembly screen, real R4 evidence, failure fixture, and revision comparison without browser warnings or errors.
 - Added the approved Ariad workshop shell: a dark persistent navigation rail, compact project/status bar, warm technical workspace, red journey accent, responsive mobile navigation, and paper-like evidence cards. Live in-app-browser QA now passes the complete project-to-R0-to-Design-plan flow and the real Golden R4 Model, Evidence, and Toolpath views at desktop and mobile widths. The R4 walkthrough also verifies layer stepping and Arrow/Home/End keyboard tab navigation. These inspections found and fixed an unreadable confirmation panel and mobile page-level horizontal overflow. Assistive-technology testing remains pending.
 - Added and connected a manifest-backed Python import guard. The real worker starts with `-I -B -S`, replaces `sys.path` with four approved roots, verifies each imported source/native module by exact path and SHA-256, rejects unlisted origins and bytecode-only substitutions, and confines namespace locations. The registry-built configuration contains the complete importable code/native inventory of the 18 traced dependency distributions: 2,285 files / 653,201,326 bytes, plus 613 curated CPython files and the accepted Ariad source bundle. A real sealed/supervised R2 run reaches `geometry_verified`, persists Journey/manifest records and 15 artifacts, and records no Manufacturing stage.
 - Added an internal registered execution service that starts only the store's oldest queued R2/R4 plan, shares one cancellation token and deadline across CAD and slicing, renews the fenced lease, binds Journey identity once, and commits stage-snapshot events only after bounded files pass schema/identity/status checks and are hashed. Missing evidence fails closed; active cancellation reaches the sealed adapter and terminates as `cancelled`. This service has no HTTP or hardware surface.
 - Added universal prompt-capture and capability-routing contracts. Any bounded non-empty UTF-8 fabrication idea can enter intake, but semantic proposals remain non-evidentiary. Only the exact registered Golden Part exposes real R2/R4 demo targets; general functional CAD, organic mesh, missing-information, and unsupported routes remain explicitly unavailable or `needs_input`, with hardware and physical-validation fields fixed false.
 - Added authenticated loopback conversation routes and the React Codex workspace on top of the read-only adapter. Codex CLI 0.144.5 completed a real GPT-5.6 Sol text turn through the operator's ChatGPT authentication; the older global 0.137.0 runtime is classified incompatible. The browser receives only an ephemeral Ariad process-session token, never Codex credentials. The adapter uses a dedicated empty workspace, read-only sandbox, disabled web/MCP configuration, zero Ariad tools, one active turn, bounded curated text/lifecycle events, cancellation, and a 120-second watchdog.
 - Added a submission workspace with the current Developer Tools story, judge setup path, under-three-minute demo script, official requirement matrix, allowed/prohibited claims, and remaining external blockers.
+- Added a curated hackathon showcase builder and operator runbook. The default demo workspace combines one valid local real R4 revision with all six fixture scenarios, omits duplicate/invalid development runs, permits a new live R0 confirmation, and falls back honestly to fixtures when no real R4 exists. A live browser rehearsal passed the authenticated Codex idea-capture turn, real GLB viewport, 250-layer G-code player, failed Geometry fixture, and 12-change revision comparison.
 - Recorded anime.js, Motion.dev, Kokonut UI, Bklit UI, and Manus.im as deferred visual references rather than installed dependencies.
 
 ## M3 completed
@@ -72,10 +83,10 @@ Let local Codex propose the closed fields for a confirmed project's Design plan 
 
 ## Next actions
 
-1. Turn the assistant's bounded proposal summary into an explicit user-controlled form import without exposing raw tool arguments/results or silently persisting state.
-2. Establish enforceable filesystem isolation and network denial for generated CAD and the registered native CAD/slicer lane, or keep every CAD-executing Codex tool unregistered.
-3. Add authenticated POST/cancel/SSE contracts only after the isolation boundary passes; connect browser Run and repair progress last.
-4. Finish assistive-technology QA; retain fixture mode for judges without local Codex authentication.
+1. Replace robot component placeholders with measured or manufacturer-controlled envelopes and freeze a confirmed robot-casing PartSpec.
+2. Add geometry checks for cavity, wall, camera, servo, connector, panel, fastener, and assembly clearances before granting R1/R2 evidence.
+3. Rehearse clean-checkout setup, record the demo, obtain `/feedback`, and complete the external Devpost/repository tasks.
+4. Continue sandbox qualification before exposing browser-triggered CAD execution.
 
 ## Exit gate for M4
 
@@ -93,7 +104,7 @@ Let local Codex propose the closed fields for a confirmed project's Design plan 
 - Do not add model-driven CAD generation before the deterministic interface has real contracts to call.
 - Do not add hosted mesh providers, Blender, FEA, or robotics simulation to the critical path.
 - Do not call R4 “physically printable,” “strong,” “safe,” calibrated, or physically validated.
-- Do not optimize for a submission date.
+- Do not weaken evidence, isolation, or hardware boundaries for the submission date.
 
 ## Known gaps
 

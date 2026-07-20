@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from collections import OrderedDict
 import json
+from threading import Lock
 from typing import Any, Mapping
 
 from ..agent_tools import exposed_codex_tools
@@ -12,6 +14,7 @@ from .repository import InvalidRevisionError, JourneyRepository, RevisionNotFoun
 
 
 MAX_AGENT_TOOL_OUTPUT_BYTES = 256 * 1024
+MAX_EPHEMERAL_DESIGN_PROPOSALS = 100
 
 
 class AgentToolCallError(RuntimeError):
@@ -25,6 +28,8 @@ class ReadOnlyAgentToolRuntime:
         self._repository = repository
         self._project_store = project_store
         self._descriptors = {item.name: item for item in exposed_codex_tools()}
+        self._proposal_lock = Lock()
+        self._design_proposals: OrderedDict[str, dict[str, Any]] = OrderedDict()
 
     @property
     def tool_specs(self) -> tuple[dict[str, Any], ...]:
@@ -153,7 +158,7 @@ class ReadOnlyAgentToolRuntime:
             if lane == "undecided" or proposal["unresolved_questions"]
             else "planning_complete"
         )
-        return {
+        result = {
             "tool_contract": "1.1.0",
             "project_id": project_id,
             "job_id": brief.job_id,
@@ -169,10 +174,41 @@ class ReadOnlyAgentToolRuntime:
             "hardware_actions": False,
             "claim_boundary": "Codex proposed Design-plan fields only; the user must review and save them in Ariad. No CAD or R1 evidence exists.",
         }
+        # Retain only the closed, validated proposal snapshot. Raw Codex protocol
+        # messages and tool arguments remain private to the conversation adapter.
+        with self._proposal_lock:
+            self._design_proposals.pop(project_id, None)
+            self._design_proposals[project_id] = json.loads(json.dumps(result))
+            while len(self._design_proposals) > MAX_EPHEMERAL_DESIGN_PROPOSALS:
+                self._design_proposals.popitem(last=False)
+        return result
+
+    def latest_design_proposal(self, project_id: str) -> dict[str, Any] | None:
+        """Return a defensive copy of the current R0-bound ephemeral proposal."""
+
+        with self._proposal_lock:
+            proposal = self._design_proposals.get(project_id)
+            snapshot = json.loads(json.dumps(proposal)) if proposal is not None else None
+        if snapshot is None:
+            return None
+        try:
+            brief = self._project_store.get_brief(project_id)
+        except ProjectStoreError:
+            return None
+        if brief is None or (
+            snapshot["job_id"] != brief.job_id
+            or snapshot["revision_id"] != brief.revision_id
+            or snapshot["brief_draft_sha256"] != brief.draft_sha256
+        ):
+            with self._proposal_lock:
+                self._design_proposals.pop(project_id, None)
+            return None
+        return snapshot
 
 
 __all__ = [
     "AgentToolCallError",
+    "MAX_EPHEMERAL_DESIGN_PROPOSALS",
     "MAX_AGENT_TOOL_OUTPUT_BYTES",
     "ReadOnlyAgentToolRuntime",
 ]

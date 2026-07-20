@@ -105,7 +105,10 @@ def snapshot_from_account_response(
         "chatgpt": "chatgpt",
         "apiKey": "api_key",
     }.get(account_type, "other")
-    match = re.fullmatch(r"codex-cli (\d+)\.(\d+)\.(\d+)", cli_version)
+    match = re.fullmatch(
+        r"codex-cli (\d+)\.(\d+)\.(\d+)(?:-[0-9A-Za-z][0-9A-Za-z.-]*)?",
+        cli_version,
+    )
     compatible = bool(
         match and tuple(int(item) for item in match.groups()) >= MINIMUM_CONVERSATION_VERSION
     )

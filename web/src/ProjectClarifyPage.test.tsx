@@ -7,13 +7,33 @@ import { ProjectClarifyPage } from './ProjectClarifyPage'
 afterEach(() => vi.restoreAllMocks())
 
 describe('ProjectClarifyPage', () => {
+  it('imports a validated Codex proposal only after an explicit click', async () => {
+    const projectId = 'project_12345678901234567890123456789012'
+    const brief = { schema_version: '1.0.0', project_id: projectId, job_id: 'job_demo', revision_id: 'rev_demo', draft_sha256: 'a'.repeat(64), confirmed_at: '2026-07-18T00:01:00Z', confirmed_by: 'user', evidence_level: 'R0', status: 'ready_for_design', fabrication_started: false, hardware_actions: false }
+    const proposal = { lane: 'hybrid', geometry_strategy: 'Build a parametric chassis with a decorative mesh shell.', critical_features: ['Stable base'], assembly_interfaces: ['Chassis tabs'], constraints: ['Confirmed envelope'], unresolved_questions: ['Choose shell style'] }
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      const url = String(input)
+      let body: unknown
+      if (url.endsWith('/api/v1/session')) body = { schema_version: '1.18.0', session_token: 'browser-secret' }
+      else if (url.endsWith('/design-proposal')) body = { tool_contract: '1.1.0', project_id: projectId, job_id: 'job_demo', revision_id: 'rev_demo', brief_draft_sha256: 'a'.repeat(64), proposal, status: 'needs_input', persisted: false, evidence_mode: 'model_proposal', design_evidence_level: null, cad_generated: false, fabrication_started: false, hardware_actions: false, claim_boundary: 'Proposal only; no CAD or R1 evidence exists.' }
+      else body = { schema_version: '1.18.0', project: { schema_version: '1.0.0', project_id: projectId, title: 'Hybrid airship', prompt: 'A model', prompt_sha256: 'a'.repeat(64), confirmed_at: '2026-07-18T00:00:00Z', confirmed_by: 'user', status: 'intent_confirmed', evidence_mode: 'user_confirmed', brief_evidence_level: null, fabrication_started: false, hardware_actions: false }, draft: null, brief, design_plan: null, fabrication_started: false, hardware_actions: false }
+      return new Response(JSON.stringify(body), { status: 200, headers: { 'Content-Type': 'application/json' } })
+    })
+    render(<MemoryRouter initialEntries={[`/projects/${projectId}`]}><Routes><Route path="/projects/:projectId" element={<ProjectClarifyPage />} /></Routes></MemoryRouter>)
+    await screen.findByText('Review before importing')
+    expect(screen.getByLabelText('Geometry strategy')).toHaveValue('')
+    fireEvent.click(screen.getByRole('button', { name: 'Import proposal into editable form' }))
+    expect(screen.getByLabelText('Geometry strategy')).toHaveValue(proposal.geometry_strategy)
+    expect(screen.getByText('Proposal imported for review. It is still not saved.')).toBeInTheDocument()
+  })
+
   it('saves nullable unknowns without claiming R0 evidence', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
       const url = String(input)
       let body: unknown
-      if (url.endsWith('/api/v1/session')) body = { schema_version: '1.17.0', session_token: 'browser-secret' }
+      if (url.endsWith('/api/v1/session')) body = { schema_version: '1.18.0', session_token: 'browser-secret' }
       else if (init?.method === 'PUT') body = { schema_version: '1.0.0', project_id: 'project_12345678901234567890123456789012', name: 'Airship', purpose: null, part_type: null, size_x_mm: null, size_y_mm: null, size_z_mm: null, material: null, tolerance_mm: null, support_policy: null, manufacturing_process: 'FDM', safety_class: 'general', updated_at: '2026-07-18T00:00:00Z', status: 'needs_input', missing_fields: ['purpose', 'size_x_mm'], brief_evidence_level: null, fabrication_started: false, hardware_actions: false }
-      else body = { schema_version: '1.17.0', project: { schema_version: '1.0.0', project_id: 'project_12345678901234567890123456789012', title: 'Floating airship', prompt: 'A model', prompt_sha256: 'a'.repeat(64), confirmed_at: '2026-07-18T00:00:00Z', confirmed_by: 'user', status: 'intent_confirmed', evidence_mode: 'user_confirmed', brief_evidence_level: null, fabrication_started: false, hardware_actions: false }, draft: null, brief: null, fabrication_started: false, hardware_actions: false }
+      else body = { schema_version: '1.18.0', project: { schema_version: '1.0.0', project_id: 'project_12345678901234567890123456789012', title: 'Floating airship', prompt: 'A model', prompt_sha256: 'a'.repeat(64), confirmed_at: '2026-07-18T00:00:00Z', confirmed_by: 'user', status: 'intent_confirmed', evidence_mode: 'user_confirmed', brief_evidence_level: null, fabrication_started: false, hardware_actions: false }, draft: null, brief: null, fabrication_started: false, hardware_actions: false }
       return new Response(JSON.stringify(body), { status: 200, headers: { 'Content-Type': 'application/json' } })
     })
     render(<MemoryRouter initialEntries={['/projects/project_12345678901234567890123456789012']}><Routes><Route path="/projects/:projectId" element={<ProjectClarifyPage />} /></Routes></MemoryRouter>)
@@ -29,10 +49,10 @@ describe('ProjectClarifyPage', () => {
       const url = String(input)
       const draft = { schema_version: '1.0.0', project_id: 'project_12345678901234567890123456789012', name: 'Airship', purpose: 'Desk display', part_type: 'decorative model', size_x_mm: 120, size_y_mm: 45, size_z_mm: 35, material: 'PLA', tolerance_mm: 0.2, support_policy: 'allowed', manufacturing_process: 'FDM', safety_class: 'general', updated_at: '2026-07-18T00:00:00Z', status: 'ready_for_confirmation', missing_fields: [], brief_evidence_level: null, fabrication_started: false, hardware_actions: false }
       let body: unknown
-      if (url.endsWith('/api/v1/session')) body = { schema_version: '1.17.0', session_token: 'browser-secret' }
+      if (url.endsWith('/api/v1/session')) body = { schema_version: '1.18.0', session_token: 'browser-secret' }
       else if (init?.method === 'POST') body = { schema_version: '1.0.0', project_id: draft.project_id, job_id: 'job_demo', revision_id: 'rev_demo', draft_sha256: 'a'.repeat(64), confirmed_at: '2026-07-18T00:01:00Z', confirmed_by: 'user', evidence_level: 'R0', status: 'ready_for_design', fabrication_started: false, hardware_actions: false }
       else if (init?.method === 'PUT') body = { schema_version: '1.0.0', project_id: draft.project_id, job_id: 'job_demo', revision_id: 'rev_demo', brief_draft_sha256: 'a'.repeat(64), lane: 'organic_mesh', geometry_strategy: 'Build a watertight decorative hull.', critical_features: ['Stable base'], assembly_interfaces: [], constraints: ['Confirmed envelope'], unresolved_questions: [], updated_at: '2026-07-18T00:02:00Z', authored_by: 'user', status: 'planning_complete', evidence_mode: 'planning_only', design_evidence_level: null, cad_generated: false, fabrication_started: false, hardware_actions: false }
-      else body = { schema_version: '1.17.0', project: { schema_version: '1.0.0', project_id: draft.project_id, title: 'Floating airship', prompt: 'A model', prompt_sha256: 'a'.repeat(64), confirmed_at: '2026-07-18T00:00:00Z', confirmed_by: 'user', status: 'intent_confirmed', evidence_mode: 'user_confirmed', brief_evidence_level: null, fabrication_started: false, hardware_actions: false }, draft, brief: null, design_plan: null, fabrication_started: false, hardware_actions: false }
+      else body = { schema_version: '1.18.0', project: { schema_version: '1.0.0', project_id: draft.project_id, title: 'Floating airship', prompt: 'A model', prompt_sha256: 'a'.repeat(64), confirmed_at: '2026-07-18T00:00:00Z', confirmed_by: 'user', status: 'intent_confirmed', evidence_mode: 'user_confirmed', brief_evidence_level: null, fabrication_started: false, hardware_actions: false }, draft, brief: null, design_plan: null, fabrication_started: false, hardware_actions: false }
       return new Response(JSON.stringify(body), { status: init?.method === 'POST' ? 201 : 200, headers: { 'Content-Type': 'application/json' } })
     })
     render(<MemoryRouter initialEntries={['/projects/project_12345678901234567890123456789012']}><Routes><Route path="/projects/:projectId" element={<ProjectClarifyPage />} /></Routes></MemoryRouter>)

@@ -202,11 +202,13 @@ The GET-only API and read-only browser remain unchanged until all of these are i
 2. [x] A target registry that snapshots and re-verifies all R2/R4 identities before acceptance and launch. M4-P implements acceptance and explicit `reverify`; the future adapter must call it at launch.
 3. [x] The registered CAD worker and every R4 PrusaSlicer command run through Windows Job supervision with cancellable process-tree execution, bounded stdout/stderr, one shared execution deadline, per-command ceilings, launch-time accepted-plan re-verification, and deterministic descendant cleanup.
 4. [~] Aggregate memory and active-process limits are enforced by the Windows Job Object. D-036 permits bounded polling plus a final workspace scan. Python imports use exact hashes, command-shell probing is suppressed, and slicer exports force four threads. Filesystem isolation and network denial remain incomplete.
-5. [ ] Atomic Journey snapshot and execution-event coordination with retained partial evidence.
+5. [x] Ordered Journey snapshot and execution-event coordination with retained partial evidence. D-039 implements filesystem-first publication plus checksum-verified SQLite projection; this is recoverable ordering, not a distributed transaction.
 6. [ ] Adapter-level recovery, cancellation-race, resource-exhaustion, and crash-injection tests. Store-level admission, race, rollback, stale-lease, corruption, and concurrent-open tests already pass.
 7. [ ] JSON-only same-origin mutation authentication plus an anti-CSRF capability.
 8. [ ] Versioned POST/cancel/SSE OpenAPI contracts and generated browser types.
 9. [ ] A browser control that exposes queue, cancellation, failure, and claim boundaries without invented progress.
 10. [ ] The existing read, CAD, slicer, packaging, frontend, wheel, and live HTTP gates continuing to pass after the adapter is connected.
+
+The WSL2/Bubblewrap probe under `experiments/wsl_bubblewrap/` is not part of this adapter. Its 2026-07-19 host experiment demonstrated hidden Windows host mounts, one writable workspace, and denied external networking for a trivial Linux process. It has not reproduced or qualified the pinned CAD/slicer toolchains, resource controls, or R2/R4 evidence path and therefore changes no execution-readiness checkbox.
 
 Until then, `schemas/v1/execution-*.schema.json` and `ariad_fabrication.execution` are a tested contract, registry, admission path, and internal control store—not a working background job service.

@@ -4,6 +4,23 @@
  */
 
 export interface paths {
+    "/api/v1/assemblies/robot-concept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Robot Concept Assembly */
+        get: operations["robot_concept_assembly_api_v1_assemblies_robot_concept_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/codex/cancel": {
         parameters: {
             query?: never;
@@ -178,6 +195,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/projects/{project_id}/design-proposal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Project Design Proposal */
+        get: operations["project_design_proposal_api_v1_projects__project_id__design_proposal_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/projects/{project_id}/draft": {
         parameters: {
             query?: never;
@@ -342,6 +376,116 @@ export interface components {
             /** Stage Run Id */
             stage_run_id: string;
         };
+        /** AssemblyDimensionsView */
+        AssemblyDimensionsView: {
+            /** Height */
+            height: number;
+            /** Length */
+            length: number;
+            /** Width */
+            width: number;
+        };
+        /** AssemblyInterfaceView */
+        AssemblyInterfaceView: {
+            /** Axis */
+            axis: string | null;
+            /** Clearance Mm */
+            clearance_mm: number | null;
+            /** Interface Id */
+            interface_id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "fastened" | "rotating" | "removable_panel" | "captured" | "clearance";
+            /** Name */
+            name: string;
+            /** Participants */
+            participants: string[];
+            /** Requirements */
+            requirements: string[];
+        };
+        /** AssemblyPartView */
+        AssemblyPartView: {
+            /** Manufacturing Process */
+            manufacturing_process: string;
+            /** Material */
+            material: string;
+            /** Name */
+            name: string;
+            /** Notes */
+            notes: string;
+            /** Part Id */
+            part_id: string;
+            /** Quantity */
+            quantity: number;
+            /** Role */
+            role: string;
+            /** Separately Manufactured */
+            separately_manufactured: boolean;
+        };
+        /** AssemblySpecResponse */
+        AssemblySpecResponse: {
+            /** Assembly Constraints */
+            assembly_constraints: string[];
+            /** Assembly Id */
+            assembly_id: string;
+            /**
+             * Cad Generated
+             * @constant
+             */
+            cad_generated: false;
+            /** Claim Boundary */
+            claim_boundary: string;
+            /** Component Envelopes */
+            component_envelopes: components["schemas"]["ComponentEnvelopeView"][];
+            /**
+             * Contract Version
+             * @constant
+             */
+            contract_version: "1.0.0";
+            /**
+             * Evidence Mode
+             * @constant
+             */
+            evidence_mode: "planning_fixture";
+            /**
+             * Hardware Actions
+             * @constant
+             */
+            hardware_actions: false;
+            /** Interfaces */
+            interfaces: components["schemas"]["AssemblyInterfaceView"][];
+            /** Name */
+            name: string;
+            /** Parts */
+            parts: components["schemas"]["AssemblyPartView"][];
+            /**
+             * Physical Validation
+             * @constant
+             */
+            physical_validation: false;
+            /** Purpose */
+            purpose: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "1.19.0";
+            /**
+             * Simulation Run
+             * @constant
+             */
+            simulation_run: false;
+            status: components["schemas"]["AssemblyStatus"];
+            /** Unresolved Questions */
+            unresolved_questions: string[];
+        };
+        /**
+         * AssemblyStatus
+         * @enum {string}
+         */
+        AssemblyStatus: "draft" | "confirmed";
         /** BrowserSessionResponse */
         BrowserSessionResponse: {
             /**
@@ -358,7 +502,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.17.0";
+            schema_version: "1.19.0";
             /** Session Token */
             session_token: string;
         };
@@ -515,6 +659,25 @@ export interface components {
             /** Title */
             title: string;
         };
+        /** ComponentEnvelopeView */
+        ComponentEnvelopeView: {
+            /** Component Id */
+            component_id: string;
+            dimensions_mm: components["schemas"]["AssemblyDimensionsView"];
+            /**
+             * Evidence
+             * @enum {string}
+             */
+            evidence: "placeholder" | "manufacturer" | "measured";
+            /** Mass G */
+            mass_g: number | null;
+            /** Name */
+            name: string;
+            /** Quantity */
+            quantity: number;
+            /** Source */
+            source: string;
+        };
         /** ConversationCancelResponse */
         ConversationCancelResponse: {
             /** Accepted */
@@ -528,7 +691,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.17.0";
+            schema_version: "1.19.0";
         };
         /** ConversationEventsResponse */
         ConversationEventsResponse: {
@@ -547,7 +710,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.17.0";
+            schema_version: "1.19.0";
             /**
              * Tools Registered
              * @constant
@@ -602,7 +765,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.17.0";
+            schema_version: "1.19.0";
             /**
              * Tools Registered
              * @constant
@@ -779,7 +942,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.17.0";
+            schema_version: "1.19.0";
             /**
              * Service
              * @constant
@@ -1012,7 +1175,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.17.0";
+            schema_version: "1.19.0";
         };
         /** IntentProviderView */
         IntentProviderView: {
@@ -1102,7 +1265,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.17.0";
+            schema_version: "1.19.0";
             status: components["schemas"]["LocalCodexStatus"];
             /**
              * Tools Registered
@@ -1278,6 +1441,57 @@ export interface components {
              */
             updated_at: string;
         };
+        /** ProjectDesignProposalView */
+        ProjectDesignProposalView: {
+            /** Brief Draft Sha256 */
+            brief_draft_sha256: string;
+            /**
+             * Cad Generated
+             * @constant
+             */
+            cad_generated: false;
+            /** Claim Boundary */
+            claim_boundary: string;
+            /** Design Evidence Level */
+            design_evidence_level: null;
+            /**
+             * Evidence Mode
+             * @constant
+             */
+            evidence_mode: "model_proposal";
+            /**
+             * Fabrication Started
+             * @constant
+             */
+            fabrication_started: false;
+            /**
+             * Hardware Actions
+             * @constant
+             */
+            hardware_actions: false;
+            /** Job Id */
+            job_id: string;
+            /**
+             * Persisted
+             * @constant
+             */
+            persisted: false;
+            /** Project Id */
+            project_id: string;
+            proposal: components["schemas"]["ProjectDesignPlanRequest"];
+            /** Revision Id */
+            revision_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "needs_input" | "planning_complete";
+            /**
+             * Tool Contract
+             * @constant
+             */
+            tool_contract: "1.1.0";
+        };
         /** ProjectDetailResponse */
         ProjectDetailResponse: {
             brief: components["schemas"]["ProjectBriefView"] | null;
@@ -1298,7 +1512,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.17.0";
+            schema_version: "1.19.0";
         };
         /** ProjectDraftRequest */
         ProjectDraftRequest: {
@@ -1411,7 +1625,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.17.0";
+            schema_version: "1.19.0";
         };
         /** ProjectIntentView */
         ProjectIntentView: {
@@ -1493,7 +1707,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.17.0";
+            schema_version: "1.19.0";
             /** Summaries */
             summaries: components["schemas"]["ComparisonAreaSummaryView"][];
             /** Total Change Count */
@@ -1512,7 +1726,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.17.0";
+            schema_version: "1.19.0";
             source: components["schemas"]["SourceView"];
             /** Stages */
             stages: components["schemas"]["StageView"][];
@@ -1526,7 +1740,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.17.0";
+            schema_version: "1.19.0";
             window: components["schemas"]["RevisionListWindowView"];
         };
         /** RevisionListWindowView */
@@ -1707,6 +1921,26 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    robot_concept_assembly_api_v1_assemblies_robot_concept_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssemblySpecResponse"];
+                };
+            };
+        };
+    };
     cancel_codex_turn_api_v1_codex_cancel_post: {
         parameters: {
             query?: never;
@@ -2041,6 +2275,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProjectDesignPlanView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    project_design_proposal_api_v1_projects__project_id__design_proposal_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-ariad-session"?: string | null;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectDesignProposalView"];
                 };
             };
             /** @description Validation Error */

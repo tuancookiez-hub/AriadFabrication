@@ -103,6 +103,27 @@ class ReadOnlyAgentToolRuntimeTests(unittest.TestCase):
         self.assertFalse(result["persisted"])
         self.assertFalse(result["cad_generated"])
         self.assertIsNone(self.project_store.get_design_plan(project.project_id))
+        self.assertEqual(
+            self.runtime.latest_design_proposal(project.project_id)["proposal"],
+            result["proposal"],
+        )
+
+    def test_design_proposal_snapshot_is_defensive_and_project_scoped(self):
+        self.assertIsNone(
+            self.runtime.latest_design_proposal("project_00000000000000000000000000000000")
+        )
+        existing = next(
+            project.project_id
+            for project in self.project_store.list()
+            if self.runtime.latest_design_proposal(project.project_id) is not None
+        )
+        snapshot = self.runtime.latest_design_proposal(existing)
+        self.assertIsNotNone(snapshot)
+        snapshot["proposal"]["geometry_strategy"] = "mutated by caller"
+        self.assertNotEqual(
+            self.runtime.latest_design_proposal(existing)["proposal"]["geometry_strategy"],
+            "mutated by caller",
+        )
 
     def test_rejects_unknown_tools_widened_arguments_and_wrong_scalar_types(self):
         calls = (

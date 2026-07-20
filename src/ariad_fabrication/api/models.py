@@ -8,6 +8,7 @@ from typing import Annotated, Any, Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from ..domain import (
+    AssemblyStatus,
     ApprovalStatus,
     DecisionActor,
     EvidenceLevel,
@@ -22,8 +23,8 @@ from ..intake import CapabilityLane, RouteStatus
 from ..local_codex import LocalCodexStatus
 
 
-InterfaceApiVersion = Literal["1.17.0"]
-INTERFACE_API_VERSION: InterfaceApiVersion = "1.17.0"
+InterfaceApiVersion = Literal["1.19.0"]
+INTERFACE_API_VERSION: InterfaceApiVersion = "1.19.0"
 Timestamp = Annotated[str, Field(json_schema_extra={"format": "date-time"})]
 
 
@@ -78,6 +79,63 @@ class HealthResponse(ApiModel):
 
 class ErrorResponse(ApiModel):
     detail: str
+
+
+class AssemblyDimensionsView(ApiModel):
+    length: float = Field(gt=0)
+    width: float = Field(gt=0)
+    height: float = Field(gt=0)
+
+
+class AssemblyPartView(ApiModel):
+    part_id: str
+    name: str
+    role: str
+    quantity: int = Field(ge=1)
+    separately_manufactured: bool
+    manufacturing_process: str
+    material: str
+    notes: str
+
+
+class ComponentEnvelopeView(ApiModel):
+    component_id: str
+    name: str
+    quantity: int = Field(ge=1)
+    evidence: Literal["placeholder", "manufacturer", "measured"]
+    dimensions_mm: AssemblyDimensionsView
+    mass_g: float | None = Field(gt=0)
+    source: str
+
+
+class AssemblyInterfaceView(ApiModel):
+    interface_id: str
+    name: str
+    kind: Literal["fastened", "rotating", "removable_panel", "captured", "clearance"]
+    participants: list[str]
+    clearance_mm: float | None = Field(ge=0)
+    axis: str | None
+    requirements: list[str]
+
+
+class AssemblySpecResponse(ApiModel):
+    schema_version: InterfaceApiVersion
+    contract_version: Literal["1.0.0"]
+    assembly_id: str
+    name: str
+    purpose: str
+    status: AssemblyStatus
+    parts: list[AssemblyPartView]
+    component_envelopes: list[ComponentEnvelopeView]
+    interfaces: list[AssemblyInterfaceView]
+    assembly_constraints: list[str]
+    unresolved_questions: list[str]
+    claim_boundary: str
+    evidence_mode: Literal["planning_fixture"]
+    cad_generated: Literal[False]
+    simulation_run: Literal[False]
+    hardware_actions: Literal[False]
+    physical_validation: Literal[False]
 
 
 class LocalCodexStatusResponse(ApiModel):
@@ -244,6 +302,23 @@ class ProjectDesignPlanView(ProjectDesignPlanRequest):
     cad_generated: Literal[False]
     fabrication_started: Literal[False]
     hardware_actions: Literal[False]
+
+
+class ProjectDesignProposalView(ApiModel):
+    tool_contract: Literal["1.1.0"]
+    project_id: str
+    job_id: str
+    revision_id: str
+    brief_draft_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    proposal: ProjectDesignPlanRequest
+    status: Literal["needs_input", "planning_complete"]
+    persisted: Literal[False]
+    evidence_mode: Literal["model_proposal"]
+    design_evidence_level: None
+    cad_generated: Literal[False]
+    fabrication_started: Literal[False]
+    hardware_actions: Literal[False]
+    claim_boundary: str
 
 
 class ProjectDetailResponse(ApiModel):

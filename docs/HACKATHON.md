@@ -1,6 +1,6 @@
 # OpenAI Build Week submission workspace
 
-**Status:** working draft, not a claim that the submission is complete  
+**Status:** local guided-build and full-evidence demo gates passed on 2026-07-20; external submission incomplete
 **Track:** Developer Tools  
 **Official deadline:** July 21, 2026 at 5:00 PM Pacific Time
 
@@ -50,7 +50,7 @@ documented PrusaSlicer 2.9.6 portable toolchain for the full R4 path.
 uv sync --extra test --extra cad
 pnpm --dir web install --frozen-lockfile
 
-# One-command fixture demo (hardware remains disabled)
+# One-command curated demo: one local real R4 revision when available plus fixtures.
 .\scripts\start_demo.ps1
 
 # Live project clarification and R0 confirmation use the mutable runs workspace.
@@ -67,7 +67,7 @@ pnpm --dir web install --frozen-lockfile
 pnpm --dir web dev
 ```
 
-For a lightweight UI-only evaluation, use `benchmarks/interface` as the API
+The default `showcase` mode prepares ignored `runs/showcase/` with one valid real R4 revision when available and all six committed fixtures. It allows the live project-to-R0 flow and removes duplicate/invalid development runs from the recording surface. For a lightweight UI-only evaluation, use `benchmarks/interface` as the API
 runs root. Those records are visibly marked as fixtures and provide no
 fabrication evidence. R0 project confirmation is disabled in this mode so the
 committed fixture cannot be mutated; use `-Evidence runs` for the live project flow.
@@ -149,18 +149,20 @@ developer-tool installation/testing instructions.
 
 | Requirement | Evidence | State |
 |---|---|---|
-| Working project | Codex-to-R0 flow, R0-bound Design planning, real R2/R4 benchmark, and React evidence explorer | Ready for local demo; arbitrary CAD remains unavailable |
+| Working project | Guided prompt-to-R0-to-Design flow, robot assembly foundation, real R2/R4 benchmark, React evidence explorer, curated showcase | Live full-demo rehearsal passed; arbitrary CAD remains unavailable |
 | Category | Developer Tools | Ready |
 | Project description | Draft above | Draft |
-| Public demo under 3 minutes | Script above | Not recorded |
-| Repository URL and judge access | Must be supplied in Devpost | Missing |
+| Public demo under 3 minutes | Script and `DEMO_RUNBOOK.md` | Not recorded |
+| Repository URL and judge access | Private repository: `tuancookiez-hub/AriadFabrication` | Repository identified; judge access still pending |
 | Public license or private judge sharing | Durable decision required | Missing |
 | README setup instructions | Root README | Present; final clean-machine audit pending |
 | Sample data | `benchmarks/interface/` and Golden Part benchmark | Present |
-| Codex contribution explanation | Description and demo script | Draft |
+| Codex contribution explanation | Factual description and timed demo narration | Ready for owner rewrite/rehearsal |
 | GPT-5.6 working use | Real local Codex turns called `ariad.capture_idea` and the R0-bound `ariad.propose_design_plan` without persisting CAD or plan state | Ready on the builder's authenticated machine; judges use their own Codex authentication |
-| `/feedback` session ID | Submission form field | Missing; do not substitute a thread ID without verification |
-| Judge test path without rebuild | `scripts/start_demo.ps1` with fixture evidence | Ready on documented Windows environment; clean-machine audit pending |
+| `/feedback` session ID | Submission form field | Missing; do not substitute a task/thread ID without verification |
+| Judge test path without rebuilding artifacts | README judge quickstart and `scripts/start_demo.ps1`; fixture fallback when no local R4 exists | Local showcase rehearsal passed; clean-machine audit pending |
+
+Live rehearsal evidence through 2026-07-20: authenticated Codex completed real `ariad.capture_idea` and R0-bound Design-proposal turns; the Guided Build Session passed prompt → draft → explicit R0 → editable Design planning; the curated catalog contained one real R4 and six valid fixtures; the real GLB viewport and 250-layer G-code player loaded without browser errors; failed Geometry stopped at its gate; and revision comparison returned 12 bounded changes. The backend passes 264 tests: 262 ordinary/contract tests plus two separately run sealed R4 integrations. Twenty-four deterministic frontend tests, generated-type drift, lint, and production build pass.
 
 ## Claims allowed in the submission
 
@@ -182,11 +184,10 @@ developer-tool installation/testing instructions.
 
 ## Final submission blockers
 
-1. Finish assistive-technology checks. The project-to-R0 path and real Golden
-   R4 Model, Evidence, and Toolpath views now pass live desktop/mobile browser
-   walkthroughs, including layer stepping and keyboard tab navigation.
-2. Run the documented setup on a clean Windows checkout.
-3. Select a repository license or configure private judge access.
-4. Start the Devpost submission, add and confirm any teammates, and verify judge access.
+1. Run the documented setup on a clean Windows checkout.
+2. Share the private GitHub repository with `testing@devpost.com` and `build-week-event@openai.com`, or explicitly select and commit a public license.
+3. Create the Ariad Devpost draft. The authenticated account is registered for OpenAI Build Week but had no Ariad project draft when audited on 2026-07-19.
+4. Add and confirm any teammates and verify judge access.
 5. Record/upload the demo, obtain the verified `/feedback` session ID, and enter
    repository/video URLs in Devpost.
+6. Complete assistive-technology checks after the submission-critical path; current keyboard, contrast, reduced-motion, desktop, and mobile checks already pass their stated bounds.

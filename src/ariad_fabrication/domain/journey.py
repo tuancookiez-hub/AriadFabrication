@@ -909,6 +909,10 @@ class FabricationJourney:
             status=run.status,
             message=message,
             sequence=len(self.events) + 1,
+            # Terminal events describe the transition that established the
+            # completion boundary. Anchor them to that boundary instead of a
+            # later wall-clock read that persisted replay must reject.
+            timestamp=run.completed_at or utc_now(),
             data=data or {},
         )
         if any(item.event_id == event.event_id for item in self.events):

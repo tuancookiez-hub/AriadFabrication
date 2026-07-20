@@ -45,6 +45,26 @@ def confirmed_spec() -> PartSpec:
 
 
 class JourneyContractTests(unittest.TestCase):
+    def test_event_emitted_from_terminal_snapshot_uses_completion_boundary(self):
+        journey = FabricationJourney.create("Complete a Brief")
+        run = journey.add_stage_run(FabricationStage.BRIEF)
+        run = journey.replace_stage_run(
+            transition_stage_run(run, StageStatus.RUNNING, at="2026-07-16T00:00:00+00:00")
+        )
+        run = journey.replace_stage_run(
+            transition_stage_run(
+                run,
+                StageStatus.PASSED,
+                evidence_level=EvidenceLevel.R0,
+                at="2026-07-16T00:01:00+00:00",
+            )
+        )
+
+        event = journey.emit_event(run.stage_run_id, "spec_validated", "Brief passed")
+
+        self.assertEqual(event.timestamp, run.completed_at)
+        self.assertEqual(event.status, StageStatus.PASSED)
+
     def test_events_and_manifest_are_traceable_and_schema_valid(self):
         journey = FabricationJourney.create("Build the trace fixture")
         revision = journey.add_revision(confirmed_spec(), reason="Initial confirmed spec")

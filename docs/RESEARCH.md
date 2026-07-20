@@ -1,8 +1,24 @@
 # Research and references
 
-**Last reviewed:** 2026-07-16
+**Last reviewed:** 2026-07-19
 
 This is a curated reference index, not a list of dependencies or purchase recommendations. Prices, licenses, availability, APIs, and model capabilities can change; re-verify them before integration or spending money.
+
+## GrowBot V0 reference review
+
+- [Primary GrowBot repository](https://github.com/britcruise9/GrowBot) — reviewed 2026-07-19.
+- GrowBot V0 is a small two-servo biped built around a Raspberry Pi Zero 2 W, two Feetech SCS0009 serial servos, a camera, IMU, microphone, speaker, LED ring, and battery/power electronics.
+- Its author labels V0 a hacky research snapshot rather than a beginner-ready build and publishes it under CC BY-NC 4.0.
+- Ariad uses only the high-level minimal two-servo architecture as inspiration. The Ariad casing geometry is original and retains placeholder component envelopes until exact parts are selected and measured.
+- This reference provides no evidence that Ariad's concept fits components, balances, walks, prints successfully, or is electrically safe.
+
+## Execution isolation
+
+- [Microsoft AppContainer isolation](https://learn.microsoft.com/en-us/windows/win32/secauthz/appcontainer-isolation) — supported Windows isolation boundary for files, credentials, devices, processes, windows, and capability-granted networking.
+- [Microsoft AppContainer launch guidance](https://learn.microsoft.com/en-us/windows/win32/secauthz/implementing-an-appcontainer) — profile, SID, capability, and process-attribute requirements for launching a Win32 AppContainer.
+- [Bubblewrap repository](https://github.com/containers/bubblewrap) — Linux namespace sandbox candidate available inside the development machine's WSL2 distribution.
+
+Research conclusion on 2026-07-19: AppContainer remains the Windows-native candidate, but safely staging the approximately 1 GiB CAD runtime and approved slicer with correct ACLs needs substantial implementation and cleanup evidence. A separate WSL2/Bubblewrap experiment passed host-mount hiding, dedicated-workspace writing, and external-network denial for a trivial process. It is not yet an Ariad runtime because WSL has Python 3.14.4 rather than the pinned CPython 3.11 lane and currently lacks CadQuery/OCP and PrusaSlicer. Do not expose browser execution until one candidate passes the real sealed R2/R4 and resource/cancellation gates.
 
 ## OpenAI application architecture
 
@@ -245,3 +261,8 @@ For every later provider or purchase decision, record:
 7. New failure modes and exit strategy.
 
 A tool is adopted because it improves measured project evidence, not because it produces the most impressive demo clip.
+### Robot prototype component references — reviewed 2026-07-20
+
+- Raspberry Pi Zero 2 W: official Raspberry Pi product and mechanical documentation establish the 65 × 30 mm board outline; fitted headers, connectors, cable bends, and actual part revision still require envelope verification.
+- Feetech SCS009: manufacturer specification V1.0 records a 23.2 × 12 × 25.5 mm case, 12.5 g mass, and 20T/4.8 mm output spline. Ariad uses the case envelope only; the generated adapter is not a qualified spline fit.
+- Camera and battery remain placeholders until exact purchasable variants are selected.

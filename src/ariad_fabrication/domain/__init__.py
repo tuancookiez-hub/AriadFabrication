@@ -1,5 +1,16 @@
 """Versioned domain contracts for the Ariad Fabrication Journey."""
 
+from .assembly import (
+    ASSEMBLY_SCHEMA_VERSION,
+    AssemblyInterface,
+    AssemblyPart,
+    AssemblySpec,
+    AssemblyStatus,
+    ComponentEnvelope,
+    EnvelopeEvidence,
+    InterfaceKind,
+)
+
 from .journey import (
     Approval,
     ApprovalStatus,
@@ -44,14 +55,21 @@ from .spec import (
 )
 
 __all__ = [
+    "ASSEMBLY_SCHEMA_VERSION",
     "Approval",
     "ApprovalStatus",
+    "AssemblyInterface",
+    "AssemblyPart",
+    "AssemblySpec",
+    "AssemblyStatus",
     "Artifact",
     "ArtifactManifest",
     "BoundingBox",
+    "ComponentEnvelope",
     "Decision",
     "DecisionActor",
     "EnvironmentSpec",
+    "EnvelopeEvidence",
     "EvidenceLevel",
     "EvidenceMode",
     "FABRICATION_STAGES",
@@ -62,6 +80,7 @@ __all__ = [
     "FindingSeverity",
     "Job",
     "JobStatus",
+    "InterfaceKind",
     "JOURNEY_SCHEMA_VERSION",
     "LoadCase",
     "MatingRequirement",

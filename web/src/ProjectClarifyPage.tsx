@@ -1,8 +1,8 @@
 import { type FormEvent, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
-import { confirmProjectBrief, getBrowserSession, getProjectDetail, saveProjectDesignPlan, saveProjectDraft } from './api'
-import type { ProjectDesignPlanRequest, ProjectDetail, ProjectDraftRequest } from './types'
+import { ApiError, confirmProjectBrief, getBrowserSession, getProjectDesignProposal, getProjectDetail, saveProjectDesignPlan, saveProjectDraft } from './api'
+import type { ProjectDesignPlanRequest, ProjectDesignProposal, ProjectDetail, ProjectDraftRequest } from './types'
 
 const emptyDraft: ProjectDraftRequest = { name: null, purpose: null, part_type: null, size_x_mm: null, size_y_mm: null, size_z_mm: null, material: null, tolerance_mm: null, support_policy: null, manufacturing_process: 'FDM', safety_class: 'general' }
 const emptyDesignPlan: ProjectDesignPlanRequest = { lane: 'undecided', geometry_strategy: '', critical_features: [], assembly_interfaces: [], constraints: [], unresolved_questions: [] }
@@ -17,16 +17,27 @@ export function ProjectClarifyPage() {
   const [approvalChecked, setApprovalChecked] = useState(false)
   const [designPlan, setDesignPlan] = useState<ProjectDesignPlanRequest>(emptyDesignPlan)
   const [planSaved, setPlanSaved] = useState(false)
+  const [proposal, setProposal] = useState<ProjectDesignProposal | null>(null)
+  const [proposalImported, setProposalImported] = useState(false)
 
   useEffect(() => {
     const controller = new AbortController()
+    let loadedToken = ''
     getBrowserSession(controller.signal).then((session) => {
+      loadedToken = session.session_token
       setToken(session.session_token)
       return getProjectDetail(projectId, session.session_token, controller.signal)
-    }).then((result) => {
+    }).then(async (result) => {
       setDetail(result)
       if (result.draft) setDraft(result.draft)
       if (result.design_plan) setDesignPlan(result.design_plan)
+      if (result.brief) {
+        try {
+          setProposal(await getProjectDesignProposal(projectId, loadedToken, controller.signal))
+        } catch (reason) {
+          if (!(reason instanceof ApiError && reason.status === 404)) throw reason
+        }
+      }
     }).catch((reason: unknown) => {
       if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : 'Project could not load.')
     })
@@ -108,6 +119,22 @@ export function ProjectClarifyPage() {
         <h2 id="design-planning-title">Plan the Design stage</h2>
         <p>Describe how this confirmed requirement should become geometry. This plan is bound to the R0 Brief, but no CAD provider runs and no geometry evidence is awarded.</p>
         <Link className="secondary-action" to={`/chat?project=${encodeURIComponent(projectId)}`}>Ask Codex for a Design-plan proposal</Link>
+        {proposal ? <section className="proposal-import" aria-labelledby="proposal-import-title">
+          <p className="eyebrow">Codex proposal · not saved</p>
+          <h3 id="proposal-import-title">Review before importing</h3>
+          <p>{proposal.claim_boundary}</p>
+          <dl>
+            <div><dt>Lane</dt><dd>{proposal.proposal.lane}</dd></div>
+            <div><dt>Status</dt><dd>{proposal.status.replace('_', ' ')}</dd></div>
+            <div><dt>Geometry strategy</dt><dd>{proposal.proposal.geometry_strategy}</dd></div>
+            <div><dt>Critical features</dt><dd>{proposal.proposal.critical_features.length ? proposal.proposal.critical_features.join('; ') : 'None proposed'}</dd></div>
+            <div><dt>Assembly interfaces</dt><dd>{proposal.proposal.assembly_interfaces.length ? proposal.proposal.assembly_interfaces.join('; ') : 'None proposed'}</dd></div>
+            <div><dt>Constraints</dt><dd>{proposal.proposal.constraints.length ? proposal.proposal.constraints.join('; ') : 'None proposed'}</dd></div>
+            <div><dt>Unresolved questions</dt><dd>{proposal.proposal.unresolved_questions.length ? proposal.proposal.unresolved_questions.join('; ') : 'None proposed'}</dd></div>
+          </dl>
+          <button className="secondary-action" type="button" onClick={() => { setDesignPlan(proposal.proposal); setProposalImported(true); setPlanSaved(false) }}>Import proposal into editable form</button>
+          {proposalImported ? <div className="draft-status" role="status">Proposal imported for review. It is still not saved.</div> : null}
+        </section> : <p className="proposal-unavailable">No Codex proposal is currently available for this Brief.</p>}
         <form onSubmit={submitDesignPlan}>
           <label>Design lane<select value={designPlan.lane} onChange={(event) => setDesignPlan((current) => ({ ...current, lane: event.target.value as ProjectDesignPlanRequest['lane'] }))}><option value="undecided">Undecided</option><option value="functional_parametric">Functional parametric CAD</option><option value="organic_mesh">Organic or decorative mesh</option><option value="hybrid">Hybrid CAD and mesh</option></select></label>
           <label>Geometry strategy<textarea required rows={4} value={designPlan.geometry_strategy} onChange={(event) => setDesignPlan((current) => ({ ...current, geometry_strategy: event.target.value }))} placeholder="Example: Build a dimension-driven shell and removable lid around the confirmed envelope." /></label>

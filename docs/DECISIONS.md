@@ -565,9 +565,77 @@ This file records accepted project-level decisions. Change an accepted decision 
 
 **Decision:** Register `ariad.propose_design_plan` only as a bounded, non-mutating tool. It accepts the closed Design-plan field set, requires an existing confirmed R0 project, binds its result to the Brief job, revision, and draft checksum, and returns `model_proposal` evidence with persistence, R1, CAD, fabrication, and hardware fields false. The user must review and save any accepted fields through Ariad's separate Design workspace.
 
-**Evidence:** Agent-tool contract 1.1.0 and API 1.17.0 expose four non-mutating functions. Runtime tests prove the R0 gate, checksum binding, field and output ceilings, planning status, and absence of persisted Design records. The React R0 workspace links to a pre-addressed Codex proposal conversation and provides a return path for explicit review. A real locally authenticated Codex 0.145.0-alpha.18 turn called `ariad.propose_design_plan`, retained an unresolved question, stated that the proposal was unpersisted and had no CAD/R1 evidence, completed cleanly, and left the existing Design-plan bytes unchanged.
+**Evidence:** Agent-tool contract 1.1.0 and API 1.18.0 expose four non-mutating functions. Runtime tests prove the R0 gate, checksum binding, field and output ceilings, planning status, and absence of persisted Design records. The validated proposal is retained only in process memory, rechecked against the current Brief identity, and exposed through an authenticated project-scoped read. React changes no form fields until the user explicitly imports the proposal, and import still does not save it. A real locally authenticated Codex 0.145.0-alpha.18 turn called `ariad.propose_design_plan`, retained an unresolved question, stated that the proposal was unpersisted and had no CAD/R1 evidence, completed cleanly, and left the existing Design-plan bytes unchanged.
 
 **Consequence:** Codex can help author the next step without becoming the source of Design evidence or silently changing project state. Generated CAD submission, pipeline execution, and hardware remain unavailable.
+
+### D-048 - Evaluate WSL2/Bubblewrap as an isolated execution lane
+
+**Status:** Proposed experiment on 2026-07-19; not accepted as production architecture or execution evidence.
+
+**Proposal:** Evaluate a Linux lane inside WSL2 using Bubblewrap mount and network namespaces. Bind only a dedicated writable workspace, expose a checksum-pinned toolchain read-only, clear ambient environment state, unshare networking, and retain Ariad's outer execution store, deadlines, cancellation, log, memory, process, and artifact gates. Keep AppContainer as the Windows-native candidate until comparative evidence exists.
+
+**Current evidence:** The reproducible `experiments/wsl_bubblewrap/qualify.py` probe passes on the development host with Bubblewrap 0.11.1: Windows host mounts are absent, the dedicated workspace is writable, and an external connection is denied. The JSON report fixes CAD runtime, slicer runtime, registered execution, and hardware fields false.
+
+**Missing evidence:** WSL currently provides Python 3.14.4, not the pinned CPython 3.11 environment, and has neither the approved CadQuery/OCP lane nor PrusaSlicer installed. No real R2/R4 pipeline, import guard, toolchain checksum, outer WSL process-tree cancellation, memory ceiling, or crash-injection test has passed in this boundary. WSL and Bubblewrap availability also cannot silently become an undeclared end-user dependency.
+
+**Consequence:** The experiment retires uncertainty about whether a supported namespace mechanism exists on this host, but authorizes no browser Run control and does not supersede D-037 through D-039. The next decision requires a pinned Linux R2 reproduction and a documented installation/removal path.
+
+### D-049 - Treat Build Week as a truthful full-demo checkpoint
+
+**Status:** Accepted by the project owner on 2026-07-19.
+
+**Decision:** Prioritize a coherent hackathon demo over completing arbitrary CAD or physical manufacturing. The checkpoint must show a real authenticated Codex tool turn, explicit user-controlled requirements and Design planning, one real registered Golden Part R4 journey, real model/toolpath inspection, visible physical unknowns, and fixture-only failure/revision behavior. It may use a curated ignored showcase workspace, but it must preserve every evidence classification and work without a printer.
+
+**Evidence:** The live showcase rehearsal passed all named surfaces in one React application. The default demo builder selects one valid real R4 revision when locally available, combines it with six committed fixtures, and falls back visibly to fixture-only mode. Automated verification passes 241 backend tests with 14 optional skips, 20 deterministic frontend tests with two optional real-artifact skips, generated API drift, lint, and production build.
+
+**Consequence:** Filesystem/network isolation, arbitrary CAD providers, browser Run, physical calibration, and printer integration remain post-checkpoint work. Submission polish cannot broaden claims or turn fixtures into evidence.
+
+### D-050 - Expand prompt-to-CAD through qualified part families
+
+**Decision:** Ariad will broaden CAD coverage one bounded functional family at a time instead of routing unrestricted prompts into generated CAD code. The next family is a parametric L-bracket. A family may appear in intake and planning before qualification, but it cannot be offered as an executable R1/R2 target until its input contract, editable source, frozen expected geometry, deterministic validator, and sealed execution identity pass.
+
+**Why:** “Any prompt” is a useful intake promise but not credible manufacturing evidence. Family qualification allows broad natural-language use while preserving explicit assumptions, deterministic geometry, repairable source, and honest unsupported states.
+
+**Current evidence:** `ariad_l_bracket_v1` has a closed seven-parameter boundary, editable CadQuery construction, a committed parameter fixture, rejection tests for invalid dimensions, and a real one-solid/envelope check. It is not registered, sliced, printable, or physically validated.
+
+### D-051 - Make an original two-servo robot casing the flagship family
+
+**Decision:** Ariad will develop an original cute two-servo robot enclosure as its recognizable long-term model. GrowBot is architectural inspiration for a minimal two-servo embodied robot, not a geometry source. No GrowBot mesh or dimensions are imported. The first Ariad concept consists of a separate rounded body shell and removable rear panel with bounded camera, servo, connector, cavity, wall, and panel-clearance interfaces.
+
+**Licensing boundary:** GrowBot V0 is published under CC BY-NC 4.0. Ariad therefore treats its files as research references only and creates independent geometry. Any later reuse must be separately reviewed for attribution and non-commercial restrictions.
+
+**Current evidence:** Four focused robot-family tests pass, including real CadQuery construction of four valid solids. Ignored concept exports include STEP/STL for the body, panel, and two rotating limbs plus a structurally valid assembled GLB preview. Component fit, center of mass, balance, gait, self-righting, strength, printability, thermal behavior, electrical safety, and physical operation are unknown.
+
+### D-052 - Design the two limbs for recoverability, not static standing
+
+**Decision:** Fixed feet and bottom-mounted limbs are rejected for the flagship robot. Each servo drives one long rounded capsule limb mounted outside a left or right body wall about a shared transverse axis. The shape must retain contact surfaces through a wide angular sweep so later control policies can investigate rocking, locomotion, and recovery after a fall.
+
+**Evidence boundary:** The current CAD proves only that two valid limb solids and their axle openings exist. A rendered pose is not motion evidence. Self-righting requires collision-aware rigid-body simulation with mass and actuator limits, followed eventually by physical fall-and-recovery tests.
+
+### D-053 - Approve the Ariad Robot Concept V1 visual direction
+
+**Decision:** The owner approved `assets/ariad-robot-concept-v1.png` as the visual target on 2026-07-19. It fixes the fundamental silhouette: softly rounded body, central camera eye, small speaker grille, removable rear panel, and exactly two long rounded limbs mounted outside the side walls on aligned transverse pivots.
+
+**Boundary:** The generated sheet is visual intent, not dimensionally consistent CAD evidence. Mechanical reconstruction may adjust details to satisfy component envelopes, clearances, manufacturing constraints, and simulation, while preserving the approved silhouette. Blender is currently unavailable on the development host, so no Blender reconstruction is claimed.
+
+### D-054 - Make assembly decomposition a gate before multi-part CAD
+
+**Decision:** Ariad will not treat a multi-part product as one generated model. After visual intent, the workflow must identify separately manufactured parts, purchased-component envelopes, and interfaces before CAD execution. Each part receives independent geometry/printability/slicing evidence; the assembly receives separate fit, clearance, service-access, collision, mass-property, and simulation evidence.
+
+**Evidence:** `AssemblySpec` 1.0.0, its Draft 2020-12 schema, contract tests, and the draft robot fixture encode nine parts, one manufacturer-sourced and three placeholder component envelopes, and seven interfaces. Prototype source 0.2.0 exports nine independent kernel-valid STEP/STL solids, but they remain outside Journey evidence and carry no fit, slicing, simulation, or physical claim.
+
+### D-055 - Expose the robot foundation as a read-only planning story
+
+**Decision:** API 1.19.0 may expose the validated robot `AssemblySpec` fixture through a dedicated read-only endpoint. React may place it beside the approved visual concept only when the page labels every component-envelope confidence and states that CAD, simulation, hardware action, and physical validation are absent. This planning surface creates no Journey evidence.
+
+**Evidence:** The endpoint and generated OpenAPI contract report nine parts, one manufacturer-sourced and three placeholder envelopes, seven interfaces, six unresolved decisions, and literal-false capability fields. The frontend regression test protects the concept-versus-CAD distinction. Current backend verification passes 264 tests across the ordinary/contract and sealed R4 groups; frontend types, lint, and production build pass. Live browser rehearsal loaded the page without console warnings or errors and also found and fixed custom-port proxy drift in the demo launcher.
+
+### D-056 - Present reliability through one guided Build Session
+
+**Decision:** Beginners should encounter one continuous Describe → Confirm → Design → Verify → Simulate → Package experience. The interface may suggest editable local defaults and hide routine machinery, but it must preserve explicit project and R0 approvals, label absent evidence, and expose assumptions or blocking questions. A smooth interface must not manufacture progress for stages that did not run.
+
+**Evidence:** The `/build` React route composes existing intake, session, project-intent, draft, Brief-confirmation, Design-proposal, and Design-plan contracts without expanding backend authority. Three focused tests prove editable defaults, visible blockers, separate save/approve/save-plan actions, Codex-proposal fallback, and absent-CAD language. Live browser rehearsal passes prompt → draft → R0 → editable Design planning with no console warnings or errors and correct route highlighting.
 
 ## Deferred decisions
 

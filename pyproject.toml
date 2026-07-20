@@ -29,6 +29,7 @@ ariad = "ariad_fabrication.cli:main"
 ariad-interface-api = "ariad_fabrication.api.app:main"
 ariad-interface-fixture = "ariad_fabrication.api.fixture:main"
 ariad-interface-openapi = "ariad_fabrication.api.openapi:main"
+ariad-showcase-workspace = "ariad_fabrication.api.showcase:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

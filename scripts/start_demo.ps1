@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
-    [ValidateSet("fixture", "runs")]
-    [string]$Evidence = "fixture",
+    [ValidateSet("showcase", "fixture", "runs")]
+    [string]$Evidence = "showcase",
     [string]$HostAddress = "127.0.0.1",
     [ValidateRange(1, 65535)]
     [int]$ApiPort = 8000,
@@ -14,15 +14,24 @@ $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 $api = Join-Path $root ".venv\Scripts\ariad-interface-api.exe"
 $web = Join-Path $root "web"
-$runsRoot = if ($Evidence -eq "fixture") {
-    Join-Path $root "benchmarks\interface"
-} else {
-    Join-Path $root "runs"
+$runsRoot = switch ($Evidence) {
+    "fixture" { Join-Path $root "benchmarks\interface" }
+    "runs" { Join-Path $root "runs" }
+    default { Join-Path $root "runs\showcase" }
 }
 $projectsRoot = Join-Path $root "runs\projects"
 
 if (-not (Test-Path -LiteralPath $api -PathType Leaf)) {
     throw "Ariad API is not installed. Run: uv sync --extra test --extra cad"
+}
+if ($Evidence -eq "showcase") {
+    & (Join-Path $root ".venv\Scripts\python.exe") -m ariad_fabrication.api.showcase `
+        --runtime-root (Join-Path $root "runs") `
+        --fixture-root (Join-Path $root "benchmarks\interface") `
+        --output-root $runsRoot
+    if ($LASTEXITCODE -ne 0) {
+        throw "Ariad could not prepare the curated showcase workspace."
+    }
 }
 if (-not (Get-Command pnpm -ErrorAction SilentlyContinue)) {
     throw "pnpm is required. Install the repository's pinned package manager first."
@@ -78,6 +87,7 @@ try {
     Write-Host "Evidence root: $runsRoot"
     Write-Host "Hardware actions: disabled"
     Write-Host "Codex conversation: $(if ($null -eq $CodexBin) { 'not configured' } else { 'configured (read-only)' })"
+    $env:ARIAD_API_PROXY = "http://${HostAddress}:${ApiPort}"
     & pnpm --dir $web dev --host $HostAddress --port $WebPort
 } finally {
     if (-not $apiProcess.HasExited) {

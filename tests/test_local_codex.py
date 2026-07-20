@@ -44,6 +44,19 @@ class LocalCodexContractTests(unittest.TestCase):
         self.assertIsNone(snapshot.authentication)
         self.assertFalse(snapshot.conversation_available)
 
+    def test_supported_prerelease_cli_is_accepted_by_numeric_version(self):
+        snapshot = snapshot_from_account_response(
+            "codex-cli 0.145.0-alpha.18",
+            {
+                "result": {
+                    "account": {"type": "chatgpt"},
+                    "requiresOpenaiAuth": True,
+                }
+            },
+        )
+        self.assertEqual(snapshot.status, LocalCodexStatus.READY)
+        self.assertTrue(snapshot.conversation_available)
+
     def test_authenticated_old_cli_is_incompatible_not_ready(self):
         snapshot = snapshot_from_account_response(
             "codex-cli 0.137.0",

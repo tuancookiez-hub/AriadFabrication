@@ -25,6 +25,7 @@ class OpenApiContractTests(unittest.TestCase):
         self.assertEqual(
             set(document["paths"]),
             {
+                "/api/v1/assemblies/robot-concept",
                 "/api/v1/health",
                 "/api/v1/codex/status",
                 "/api/v1/codex/cancel",
@@ -37,6 +38,7 @@ class OpenApiContractTests(unittest.TestCase):
                 "/api/v1/projects/{project_id}/draft",
                 "/api/v1/projects/{project_id}/brief-confirmation",
                 "/api/v1/projects/{project_id}/design-plan",
+                "/api/v1/projects/{project_id}/design-proposal",
                 "/api/v1/revision-comparison",
                 "/api/v1/revisions",
                 "/api/v1/revisions/{job_id}/{revision_id}",
@@ -66,13 +68,17 @@ class OpenApiContractTests(unittest.TestCase):
         self.assertEqual(capabilities["properties"]["hardware_actions"]["const"], False)
 
         health = document["components"]["schemas"]["HealthResponse"]["properties"]
-        self.assertEqual(health["schema_version"]["const"], "1.17.0")
+        self.assertEqual(health["schema_version"]["const"], "1.19.0")
         self.assertEqual(health["service"]["const"], "ariad-interface-api")
         self.assertEqual(health["status"]["const"], "ok")
 
     def test_response_models_do_not_hide_guaranteed_fields_as_optional(self):
         schemas = generate_openapi_document()["components"]["schemas"]
         response_models = {
+            "AssemblyDimensionsView",
+            "AssemblyInterfaceView",
+            "AssemblyPartView",
+            "AssemblySpecResponse",
             "ApprovalView",
             "ArtifactView",
             "BrowserSessionResponse",
@@ -84,6 +90,7 @@ class OpenApiContractTests(unittest.TestCase):
             "ConversationEventsResponse",
             "ConversationEventView",
             "ConversationTurnResponse",
+            "ComponentEnvelopeView",
             "DecisionView",
             "EventView",
             "ErrorResponse",

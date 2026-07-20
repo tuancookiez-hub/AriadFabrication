@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 from hmac import compare_digest
+import json
 from pathlib import Path
 from secrets import token_urlsafe
 from threading import Lock
@@ -14,10 +15,12 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Query, Response
 from ..codex_conversation import LocalCodexConversation
 from ..intake import CapabilityLane, CurrentCapabilityRouter, IntentProposal, PromptIntake
 from ..local_codex import LocalCodexSnapshot, LocalCodexStatus, probe_local_codex
+from ..domain import AssemblySpec
 from .agent_tool_runtime import ReadOnlyAgentToolRuntime
 
 from .models import (
     BrowserSessionResponse,
+    AssemblySpecResponse,
     ConversationCancelResponse,
     ConversationEventsResponse,
     ConversationTurnRequest,
@@ -36,6 +39,7 @@ from .models import (
     ProjectDraftView,
     ProjectDesignPlanRequest,
     ProjectDesignPlanView,
+    ProjectDesignProposalView,
     ProjectIntentListResponse,
     ProjectIntentView,
     RevisionComparisonResponse,
@@ -106,6 +110,7 @@ def create_app(
     codex_executable: Path | None = None,
     codex_workspace: Path | None = None,
     projects_root: Path | str = Path("runs/projects"),
+    assembly_spec_path: Path | str = Path("benchmarks/robot_casing/assembly_spec.json"),
 ) -> FastAPI:
     repository = JourneyRepository(runs_root)
     app = FastAPI(
@@ -135,6 +140,13 @@ def create_app(
     app.state.codex_conversation = None
     app.state.codex_conversation_lock = Lock()
     app.state.browser_session_token = token_urlsafe(32)
+    try:
+        assembly_value = json.loads(
+            Path(assembly_spec_path).read_text(encoding="utf-8")
+        )
+        app.state.assembly_spec = AssemblySpec.from_mapping(assembly_value)
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        raise RuntimeError("The configured AssemblySpec is unavailable or invalid.") from exc
 
     def configured_codex_snapshot() -> LocalCodexSnapshot:
         snapshot: LocalCodexSnapshot | None = app.state.codex_snapshot
@@ -207,6 +219,20 @@ def create_app(
             service="ariad-interface-api",
             status="ok",
             capabilities=read_only_capabilities(),
+        )
+
+    @app.get("/api/v1/assemblies/robot-concept", response_model=AssemblySpecResponse)
+    def robot_concept_assembly() -> AssemblySpecResponse:
+        assembly: AssemblySpec = app.state.assembly_spec
+        value = assembly.to_dict()
+        value.pop("schema_version")
+        return AssemblySpecResponse(
+            schema_version=INTERFACE_API_VERSION,
+            contract_version="1.0.0",
+            **value,
+            evidence_mode="planning_fixture",
+            cad_generated=False,
+            simulation_run=False,
         )
 
     @app.get("/api/v1/codex/status", response_model=LocalCodexStatusResponse)
@@ -383,6 +409,23 @@ def create_app(
         except ProjectStoreError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
         return ProjectDesignPlanView(**plan.to_dict())
+
+    @app.get(
+        "/api/v1/projects/{project_id}/design-proposal",
+        response_model=ProjectDesignProposalView,
+    )
+    def project_design_proposal(
+        project_id: str,
+        _: None = Depends(require_browser_session),
+    ) -> ProjectDesignProposalView:
+        runtime: ReadOnlyAgentToolRuntime = app.state.agent_tool_runtime
+        proposal = runtime.latest_design_proposal(project_id)
+        if proposal is None:
+            raise HTTPException(
+                status_code=404,
+                detail="No current Codex Design proposal is available for this R0 Brief.",
+            )
+        return ProjectDesignProposalView(**proposal)
 
     @app.post(
         "/api/v1/intake",

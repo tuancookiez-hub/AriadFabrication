@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0.0",
+  "assembly_id": "ariad_two_servo_robot_v1",
+  "name": "Ariad Two-Servo Robot V1",
+  "purpose": "A small serviceable two-servo embodied-AI robot enclosure with two side-mounted rotating limbs and separately printable parts.",
+  "status": "draft",
+  "parts": [
+    {"part_id": "front_shell", "name": "Front body shell", "role": "Protect electronics and establish the approved rounded exterior and camera face.", "quantity": 1, "separately_manufactured": true, "manufacturing_process": "FDM", "material": "PETG", "notes": "Separate shell; exact split line and print orientation remain unresolved."},
+    {"part_id": "electronics_tray", "name": "Rear electronics tray", "role": "Carry electronics and provide the primary serviceable assembly structure.", "quantity": 1, "separately_manufactured": true, "manufacturing_process": "FDM", "material": "PETG", "notes": "Must allow wiring and tool access before the shell closes."},
+    {"part_id": "service_panel", "name": "Rear service panel", "role": "Provide repeatable access to power and replaceable electronics.", "quantity": 1, "separately_manufactured": true, "manufacturing_process": "FDM", "material": "PETG", "notes": "Fastener type and battery access strategy are unresolved."},
+    {"part_id": "left_limb", "name": "Left rotating limb", "role": "Provide a rounded ground-contact surface through the left servo rotation envelope.", "quantity": 1, "separately_manufactured": true, "manufacturing_process": "FDM", "material": "PETG", "notes": "No self-righting or gait claim until simulation and physical tests."},
+    {"part_id": "right_limb", "name": "Right rotating limb", "role": "Provide a rounded ground-contact surface through the right servo rotation envelope.", "quantity": 1, "separately_manufactured": true, "manufacturing_process": "FDM", "material": "PETG", "notes": "Mirrored assembly role; geometry may share a source only if interfaces remain unambiguous."},
+    {"part_id": "left_servo_adapter", "name": "Left servo adapter", "role": "Transmit servo torque to the left limb through a replaceable interface.", "quantity": 1, "separately_manufactured": true, "manufacturing_process": "FDM", "material": "PETG", "notes": "Spline geometry requires the selected servo drawing or measured horn."},
+    {"part_id": "right_servo_adapter", "name": "Right servo adapter", "role": "Transmit servo torque to the right limb through a replaceable interface.", "quantity": 1, "separately_manufactured": true, "manufacturing_process": "FDM", "material": "PETG", "notes": "Spline geometry requires the selected servo drawing or measured horn."},
+    {"part_id": "camera_bezel", "name": "Camera bezel", "role": "Locate and protect the camera while providing the approved expressive eye treatment.", "quantity": 1, "separately_manufactured": true, "manufacturing_process": "FDM", "material": "PETG", "notes": "May use a contrasting color; optical field-of-view clearance is unverified."},
+    {"part_id": "electronics_carrier", "name": "Internal electronics carrier", "role": "Locate the compute board, IMU, audio modules, and cable restraints independently of the cosmetic shell.", "quantity": 1, "separately_manufactured": true, "manufacturing_process": "FDM", "material": "PETG", "notes": "Board-hole patterns and connector keep-outs require verified component sources."}
+  ],
+  "component_envelopes": [
+    {"component_id": "compute_board", "name": "Raspberry Pi Zero 2 W", "quantity": 1, "evidence": "placeholder", "dimensions_mm": {"length": 65.0, "width": 30.0, "height": 12.0}, "mass_g": null, "source": "Planning placeholder; replace with an official mechanical drawing and the actual fitted-header envelope."},
+    {"component_id": "serial_servo", "name": "Feetech SCS009 serial bus servo", "quantity": 2, "evidence": "manufacturer", "dimensions_mm": {"length": 23.2, "width": 12.0, "height": 25.5}, "mass_g": 12.5, "source": "Feetech SCS009 V1.0 product specification. The 20T/4.8 mm spline is documented, but the supplied horn and printed adapter fit remain unverified."},
+    {"component_id": "camera", "name": "Small CSI camera module", "quantity": 1, "evidence": "placeholder", "dimensions_mm": {"length": 25.0, "width": 24.0, "height": 12.0}, "mass_g": null, "source": "Planning placeholder; board, lens, ribbon bend, and field-of-view envelopes remain unverified."},
+    {"component_id": "battery", "name": "Single-cell battery", "quantity": 1, "evidence": "placeholder", "dimensions_mm": {"length": 60.0, "width": 35.0, "height": 10.0}, "mass_g": null, "source": "Configurable placeholder; no battery has been selected or authorized."}
+  ],
+  "interfaces": [
+    {"interface_id": "shell_tray", "name": "Front shell to electronics tray", "kind": "fastened", "participants": ["part:front_shell", "part:electronics_tray"], "clearance_mm": 0.3, "axis": null, "requirements": ["Seam must remain accessible without removing either limb.", "Fasteners must not enter component keep-out volumes."]},
+    {"interface_id": "service_access", "name": "Service panel access", "kind": "removable_panel", "participants": ["part:service_panel", "part:electronics_tray"], "clearance_mm": 0.3, "axis": null, "requirements": ["Panel must be removable with the robot resting on any body face.", "Power must remain off during service."]},
+    {"interface_id": "left_rotary_joint", "name": "Left side rotary joint", "kind": "rotating", "participants": ["part:front_shell", "part:left_servo_adapter", "part:left_limb", "component:serial_servo"], "clearance_mm": 0.5, "axis": "Shared transverse X axis through the left body wall", "requirements": ["Limb sweep must not collide with the body shell.", "Adapter must be replaceable independently of the limb."]},
+    {"interface_id": "right_rotary_joint", "name": "Right side rotary joint", "kind": "rotating", "participants": ["part:front_shell", "part:right_servo_adapter", "part:right_limb", "component:serial_servo"], "clearance_mm": 0.5, "axis": "Shared transverse X axis through the right body wall", "requirements": ["Limb sweep must not collide with the body shell.", "Adapter must be replaceable independently of the limb."]},
+    {"interface_id": "camera_mount", "name": "Camera and bezel stack", "kind": "captured", "participants": ["part:front_shell", "part:camera_bezel", "component:camera"], "clearance_mm": 0.2, "axis": null, "requirements": ["Lens and ribbon must not be compressed.", "The shell and bezel must not obstruct the required field of view."]},
+    {"interface_id": "carrier_tray", "name": "Electronics carrier to tray", "kind": "fastened", "participants": ["part:electronics_carrier", "part:electronics_tray", "component:compute_board"], "clearance_mm": 0.3, "axis": null, "requirements": ["USB, microSD, GPIO, camera ribbon, and power connections require service clearance.", "The compute board must not carry structural servo loads."]},
+    {"interface_id": "battery_restraint", "name": "Battery restraint", "kind": "captured", "participants": ["part:electronics_carrier", "component:battery"], "clearance_mm": 0.5, "axis": null, "requirements": ["Battery must not contact sharp edges or rotating hardware.", "Battery swelling allowance and restraint material remain unresolved."]}
+  ],
+  "assembly_constraints": [
+    "Exactly two independently actuated limbs are mounted outside the left and right body walls.",
+    "Every separately manufactured part receives its own geometry, printability, orientation, slice, and artifact records.",
+    "The complete assembly receives separate interface, collision, service-access, mass-property, and motion-simulation records.",
+    "No structural load may be routed through the camera or compute board.",
+    "The robot must remain serviceable without destructive adhesive on replaceable electronics.",
+    "Hardware remains disconnected and physical success remains unclaimed."
+  ],
+  "unresolved_questions": [
+    "Which exact servo and supplied horn will define the adapter interface?",
+    "Which battery format and protection board will be used?",
+    "Which camera module and lens field of view will be used?",
+    "Should the body split into front/rear shells or upper shell/lower tray for best printing and service access?",
+    "Which fasteners or heat-set inserts are appropriate for repeated service?",
+    "What mass distribution and limb length are required for simulated self-righting?"
+  ],
+  "claim_boundary": "This draft decomposes the approved visual concept into parts, component envelopes, and interfaces. The servo envelope is manufacturer-sourced; the compute board, camera, and battery remain placeholders. Prototype CAD exists outside Journey evidence, but fit, collision, simulation, printability, slicing, electrical-safety, self-righting, and physical evidence remain absent.",
+  "hardware_actions": false,
+  "physical_validation": false
+}

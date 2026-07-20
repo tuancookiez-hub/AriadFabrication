@@ -79,7 +79,7 @@ class JourneyRepositoryTests(unittest.TestCase):
         self.assertEqual(len(detail.stages[3].findings), 2)
         self.assertTrue(all(stage.evidence_mode == "fixture" for stage in detail.stages))
         self.assertFalse(detail.capabilities.hardware_actions)
-        self.assertEqual(detail.schema_version, "1.17.0")
+        self.assertEqual(detail.schema_version, "1.19.0")
         self.assertEqual(
             [report.report_kind for report in detail.inspection.reports],
             ["geometry", "printability", "gcode_preflight"],
@@ -1007,6 +1007,25 @@ class InterfaceHttpTests(unittest.TestCase):
         self.assertTrue(response.json()["capabilities"]["project_intent_persistence"])
         self.assertFalse(response.json()["capabilities"]["fabrication_execution"])
 
+    def test_robot_assembly_exposes_parts_interfaces_and_placeholder_boundaries(self):
+        response = self.client.get("/api/v1/assemblies/robot-concept")
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["schema_version"], "1.19.0")
+        self.assertEqual(payload["contract_version"], "1.0.0")
+        self.assertEqual(payload["evidence_mode"], "planning_fixture")
+        self.assertEqual(len(payload["parts"]), 9)
+        self.assertEqual(len(payload["component_envelopes"]), 4)
+        self.assertEqual(len(payload["interfaces"]), 7)
+        self.assertEqual(
+            [item["evidence"] for item in payload["component_envelopes"]],
+            ["placeholder", "manufacturer", "placeholder", "placeholder"],
+        )
+        self.assertFalse(payload["cad_generated"])
+        self.assertFalse(payload["simulation_run"])
+        self.assertFalse(payload["hardware_actions"])
+        self.assertFalse(payload["physical_validation"])
+
     def test_project_intent_requires_session_and_explicit_confirmation(self):
         payload = {
             "title": "Floating airship",
@@ -1106,7 +1125,7 @@ class InterfaceHttpTests(unittest.TestCase):
             journey = client.get(
                 f"/api/v1/revisions/{confirmed.json()['job_id']}/{confirmed.json()['revision_id']}"
             )
-            self.assertEqual(journey.status_code, 200)
+            self.assertEqual(journey.status_code, 200, journey.text)
             self.assertEqual(journey.json()["job"]["status"], "ready_for_design")
             self.assertEqual(journey.json()["stages"][0]["evidence_level"], "R0")
             plan_payload = {
@@ -1132,6 +1151,23 @@ class InterfaceHttpTests(unittest.TestCase):
                 detail["design_plan"]["brief_draft_sha256"], confirmed.json()["draft_sha256"]
             )
 
+            missing_proposal = client.get(
+                f"/api/v1/projects/{project_id}/design-proposal", headers=headers
+            )
+            self.assertEqual(missing_proposal.status_code, 404)
+            runtime = client.app.state.agent_tool_runtime
+            runtime.execute(
+                "ariad.propose_design_plan",
+                {"project_id": project_id, **plan_payload},
+            )
+            proposal = client.get(
+                f"/api/v1/projects/{project_id}/design-proposal", headers=headers
+            )
+            self.assertEqual(proposal.status_code, 200)
+            self.assertEqual(proposal.json()["proposal"], plan_payload)
+            self.assertFalse(proposal.json()["persisted"])
+            self.assertEqual(proposal.json()["evidence_mode"], "model_proposal")
+
     def test_committed_fixture_mode_cannot_publish_project_r0_records(self):
         token = self.client.get("/api/v1/session").json()["session_token"]
         response = self.client.post(
@@ -1146,7 +1182,7 @@ class InterfaceHttpTests(unittest.TestCase):
         response = self.client.get("/api/v1/codex/status")
         self.assertEqual(response.status_code, 200)
         payload = response.json()
-        self.assertEqual(payload["schema_version"], "1.17.0")
+        self.assertEqual(payload["schema_version"], "1.19.0")
         self.assertEqual(payload["status"], "unavailable")
         self.assertIsNone(payload["authentication"])
         self.assertFalse(payload["conversation_available"])
@@ -1238,7 +1274,7 @@ class InterfaceHttpTests(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 200)
         payload = response.json()
-        self.assertEqual(payload["schema_version"], "1.17.0")
+        self.assertEqual(payload["schema_version"], "1.19.0")
         self.assertEqual(payload["intake"]["prompt"], "Create a decorative floating air warship ✨")
         self.assertEqual(len(payload["intake"]["prompt_sha256"]), 64)
         self.assertFalse(payload["provider"]["configured"])
@@ -1289,7 +1325,7 @@ class InterfaceHttpTests(unittest.TestCase):
         detail = self.client.get(f"/api/v1/revisions/{JOB_ID}/{REVISION_ID}")
         self.assertEqual(detail.status_code, 200)
         payload = detail.json()
-        self.assertEqual(payload["schema_version"], "1.17.0")
+        self.assertEqual(payload["schema_version"], "1.19.0")
         self.assertEqual(
             [stage["stage"] for stage in payload["stages"]],
             [item[0] for item in STAGES],
