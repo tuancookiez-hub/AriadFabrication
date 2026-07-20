@@ -88,7 +88,7 @@ export function BuildSessionPage() {
     return () => controller.abort()
   }, [])
 
-  const activeIndex = useMemo(() => step === 'describe' ? 0 : step === 'review' || step === 'approve' ? 1 : step === 'ready' || step === 'design' ? 2 : 3, [step])
+  const activeIndex = useMemo(() => step === 'describe' ? 0 : step === 'review' || step === 'approve' ? 1 : 2, [step])
   const localFallback = intake?.provider.configured === false
   const reviewSummary = localFallback ? suggestedPartType(prompt) : intake?.route.summary
   const reviewReason = localFallback
@@ -186,7 +186,7 @@ export function BuildSessionPage() {
       </header>
 
       <ol className="build-stage-rail" aria-label="Build stages">
-        {stageLabels.map((label, index) => <li className={index < activeIndex ? 'stage-done' : index === activeIndex ? 'stage-active' : ''} key={label}><span>{index < activeIndex ? '✓' : index + 1}</span>{label}</li>)}
+        {stageLabels.map((label, index) => <li className={`${index < activeIndex ? 'stage-done' : index === activeIndex ? 'stage-active' : ''}${index > 2 ? ' stage-locked' : ''}`} key={label}><span>{index < activeIndex ? '✓' : index > 2 ? '—' : index + 1}</span>{label}{index > 2 ? <small>later</small> : null}</li>)}
       </ol>
 
       {step === 'describe' ? <section className="build-start-workspace">
@@ -251,7 +251,7 @@ export function BuildSessionPage() {
 
       {step === 'planned' && project ? <section className="build-complete-card">
         <div className="completion-mark">✓</div><p className="eyebrow">Design thread prepared</p><h2>Codex has prepared the next build step.</h2><p>Ariad has a structured Design strategy, features, interfaces, constraints, and open decisions. No CAD worker ran, so R1, geometry verification, simulation, and printability remain unavailable.</p><AssemblyBlueprint compact />
-        <div className="next-actions"><Link className="primary-action" to={`/projects/${encodeURIComponent(project.project_id)}`}>Open project details</Link><Link className="secondary-action" to={`/chat?project=${encodeURIComponent(project.project_id)}`}>Discuss open decisions with Codex</Link></div>
+        <div className="next-actions"><Link className="primary-action" to={`/projects/${encodeURIComponent(project.project_id)}`}>Review project thread</Link><Link className="secondary-action" to={`/chat?project=${encodeURIComponent(project.project_id)}`}>Discuss open decisions with Codex</Link></div>
       </section> : null}
 
       {error ? <div className="build-error" role="alert">{error}</div> : null}

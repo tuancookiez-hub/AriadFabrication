@@ -2368,6 +2368,9 @@ main {
 .build-stage-rail .stage-active span { color: white; background: #c62e25; }
 .build-stage-rail .stage-done { color: #245a42; }
 .build-stage-rail .stage-done span { color: white; background: #2e7655; }
+.build-stage-rail .stage-locked { color: #a49a90; background: rgba(226, 218, 207, .42); }
+.build-stage-rail .stage-locked span { color: #978d83; background: #d9d0c5; font-size: .8rem; }
+.build-stage-rail .stage-locked small { margin-left: auto; color: #a49a90; font-size: .62rem; text-transform: none; letter-spacing: 0; }
 .build-focus-card { max-width: 900px; margin: 0 auto; padding: 2rem; border: 1px solid #d8d0c4; border-radius: 1rem; background: #fffdf9; box-shadow: 0 22px 60px #3b2f2614; }
 .build-focus-card h2 { margin: .3rem 0 .75rem; font: 500 clamp(1.8rem, 3vw, 3rem)/1.1 Georgia, serif; }
 .build-focus-card form { display: grid; gap: 1rem; }
@@ -2478,6 +2481,7 @@ main {
 .advanced-details { margin: 1rem 0; border: 1px solid #ded5ca; border-radius: .65rem; background: #f5f0e9; }.advanced-details summary { padding: .75rem .85rem; color: #5e574f; cursor: pointer; font-size: .8rem; font-weight: 800; }.advanced-details[open] summary { border-bottom: 1px solid #ded5ca; }.advanced-details .build-fields { margin: 1rem; }
 .design-plan-summary { margin-top: 1rem; padding: 1rem; border-left: 3px solid #c72e25; background: #fff7eb; }.design-plan-summary h3 { margin: .35rem 0 .8rem; color: #4f463e; font-size: 1.1rem; line-height: 1.45; }.plan-chip-row { display: flex; flex-wrap: wrap; gap: .45rem; }.plan-chip-row span { padding: .35rem .5rem; border-radius: 999px; color: #64594f; background: #eadfce; font-size: .72rem; }.design-advanced { margin-top: 1rem; }
 .build-complete-card .assembly-blueprint { max-width: 640px; margin: 1.5rem auto 0; text-align: left; color: #eee; background: #171615; }.build-complete-card .assembly-blueprint figcaption { color: #8f8880; }
+.build-complete-card::after { display: block; max-width: 52ch; margin: 1.2rem auto 0; color: #bcb1a6; content: "Verify, Simulate, and Package become available when an approved CAD/evidence run exists. This planning session does not claim those stages ran."; font-size: .78rem; line-height: 1.5; }
 
 .assembly-blueprint { min-width: 0; margin: 0; border: 1px solid #34312e; border-radius: .85rem; overflow: hidden; color: #efe9df; background: #111211; }
 .blueprint-toolbar { display: flex; justify-content: space-between; align-items: center; padding: .65rem .8rem; border-bottom: 1px solid #34312e; color: #aaa39b; font: 650 .68rem/1.2 ui-monospace, monospace; text-transform: uppercase; letter-spacing: .06em; }
