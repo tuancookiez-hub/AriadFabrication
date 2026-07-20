@@ -21,6 +21,29 @@ $runsRoot = switch ($Evidence) {
 }
 $projectsRoot = Join-Path $root "runs\projects"
 
+function Assert-TcpPortAvailable {
+    param(
+        [string]$Address,
+        [int]$Port,
+        [string]$ParameterName
+    )
+
+    $listener = [System.Net.Sockets.TcpListener]::new(
+        [System.Net.IPAddress]::Parse($Address),
+        $Port
+    )
+    try {
+        $listener.Start()
+    } catch [System.Net.Sockets.SocketException] {
+        throw "${Address}:${Port} is already in use. Stop the conflicting service or rerun with -${ParameterName} <free-port>."
+    } finally {
+        $listener.Stop()
+    }
+}
+
+Assert-TcpPortAvailable -Address $HostAddress -Port $ApiPort -ParameterName "ApiPort"
+Assert-TcpPortAvailable -Address $HostAddress -Port $WebPort -ParameterName "WebPort"
+
 if (-not (Test-Path -LiteralPath $api -PathType Leaf)) {
     throw "Ariad API is not installed. Run: uv sync --extra test --extra cad"
 }
