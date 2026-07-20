@@ -31,7 +31,7 @@ describe('BuildSessionPage', () => {
     render(<MemoryRouter><BuildSessionPage /></MemoryRouter>)
 
     expect(screen.getByText('One design, checked across views')).toBeInTheDocument()
-    expect(screen.getByText('Multi-view planning reference · not generated CAD.')).toBeInTheDocument()
+    expect(screen.getByText('Generated concept sheet · not generated CAD.')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Use robot example' }))
     expect(screen.getByLabelText('What should Ariad help you make?')).toHaveValue('Make a cute two-servo robot with long rotating side limbs that can recover when it falls. Design it as separate, serviceable parts with accessible fasteners.')
   })

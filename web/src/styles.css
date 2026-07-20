@@ -2417,8 +2417,8 @@ main {
 .build-session-header h1 {
   max-width: 760px;
   margin: .2rem 0 .4rem;
-  font-size: clamp(2rem, 3vw, 3.35rem);
-  line-height: 1;
+  font-size: clamp(1.75rem, 2.35vw, 2.65rem);
+  line-height: 1.05;
 }
 .build-session-header > div:first-child > p:last-child { margin: 0; font-size: .95rem; }
 .build-session-status { position: relative; overflow: hidden; background: rgba(255, 253, 249, .82); backdrop-filter: blur(12px); }
@@ -2428,8 +2428,8 @@ main {
 .build-stage-rail li { min-height: 3.45rem; padding: .65rem .8rem; }
 
 .build-start-workspace { display: grid; grid-template-columns: minmax(420px, .86fr) minmax(500px, 1.14fr); gap: 1rem; align-items: stretch; }
-.build-prompt-card { display: flex; max-width: none; min-height: 490px; margin: 0; flex-direction: column; justify-content: center; padding: clamp(1.4rem, 2.3vw, 2.2rem); }
-.build-prompt-card h2 { max-width: 16ch; margin: 1rem 0; font-size: clamp(1.8rem, 2.35vw, 2.65rem); letter-spacing: -.03em; }
+.build-prompt-card { display: flex; max-width: none; min-height: 430px; margin: 0; flex-direction: column; justify-content: center; padding: clamp(1.25rem, 2vw, 1.8rem); }
+.build-prompt-card h2 { max-width: 19ch; margin: .8rem 0; font-size: clamp(1.55rem, 1.9vw, 2.05rem); letter-spacing: -.025em; }
 .conversation-label { display: flex; gap: .75rem; align-items: center; }
 .conversation-label > div { display: grid; gap: .15rem; }
 .conversation-label small { color: #756c63; }
@@ -2498,6 +2498,11 @@ main {
 .build-context-card > .assembly-blueprint { border: 0; border-radius: 0; border-bottom: 1px solid #393532; }
 .build-context-card .blueprint-canvas { min-height: 290px; }
 .assembly-hero > .assembly-blueprint { box-shadow: 0 18px 50px #46362b24; }
+.model-sheet-image-wrap { position: relative; overflow: hidden; background: #f5f4f1; }
+.model-sheet-image-wrap img { display: block; width: 100%; height: auto; }
+.assembly-blueprint-compact .model-sheet-image-wrap { max-height: none; }
+.assembly-blueprint-compact .model-sheet-image-wrap img { height: auto; object-fit: contain; object-position: center; }
+.build-context-card .model-sheet-image-wrap img { height: auto; object-fit: contain; }
 .model-sheet-views { position: absolute; top: 1rem; right: 1rem; bottom: 1rem; display: grid; width: 22%; grid-template-rows: repeat(3, 1fr); gap: .55rem; z-index: 3; }
 .model-sheet-view { position: relative; display: grid; place-items: center; overflow: hidden; border: 1px solid #394039; border-radius: .35rem; background: rgba(11, 13, 12, .8); }
 .model-sheet-view b { position: absolute; right: .4rem; bottom: .35rem; color: #89938c; font: 700 .54rem/1 ui-monospace, monospace; text-transform: uppercase; letter-spacing: .08em; }

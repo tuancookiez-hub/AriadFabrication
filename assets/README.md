@@ -33,6 +33,8 @@ The owner's designation establishes project usage, not trademark clearance or a 
 
 `ariad-robot-concept-v1.png` is a 1536 x 1024 generated multiview design candidate for the original two-servo Ariad robot. It is a visual reference, not CAD, simulation, fabrication evidence, or an approved final design. GrowBot informed only the high-level side-mounted two-limb architecture; the generation brief explicitly prohibited copying its geometry and identity.
 
+`ariad-robot-model-sheet-v2.png` is the dashboard-scale successor: five consistent product views, a nine-callout exploded assembly, provisional envelope dimensions, and an explicit `PLANNING REFERENCE · NOT GENERATED CAD` label. It remains concept imagery only and cannot provide geometry, printability, simulation, or physical evidence.
+
 | Property | Value |
 |---|---|
 | Status | Approved visual direction by the project owner on 2026-07-19 |
