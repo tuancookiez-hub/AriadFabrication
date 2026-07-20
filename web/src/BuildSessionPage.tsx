@@ -197,9 +197,10 @@ export function BuildSessionPage() {
           <div className="build-promise"><span><b>01</b> Codex guides</span><span><b>02</b> Ariad verifies</span><span><b>03</b> You approve</span></div>
         </div>
         <aside className="build-preview-panel">
-          <div className="preview-panel-heading"><div><p className="eyebrow">Example model sheet</p><h2>One design, checked across views</h2></div><span className="live-indicator"><i /> Planning reference</span></div>
-          <AssemblyBlueprint compact />
-          <div className="preview-evidence-row"><span><strong>9</strong> planned parts</span><span><strong>7</strong> interfaces</span><span><strong>0</strong> hidden claims</span></div>
+          <div className="preview-panel-heading"><div><p className="eyebrow">Your build companion</p><h2>Codex carries the technical thread.</h2></div><span className="live-indicator"><i /> Ready to guide</span></div>
+          <div className="codex-guide-card"><div className="guide-avatar">C</div><div><strong>What happens next</strong><p>Codex will turn your description into a short build brief, surface only blocking questions, and prepare a staged design plan for your approval.</p></div></div>
+          <ol className="guide-steps"><li><b>01</b><span><strong>Understand</strong><small>Extract the outcome and constraints</small></span></li><li><b>02</b><span><strong>Clarify</strong><small>Ask only what cannot be safely assumed</small></span></li><li><b>03</b><span><strong>Prepare</strong><small>Plan parts and evidence before geometry</small></span></li></ol>
+          <div className="guide-boundary"><span>Human input</span><strong>You approve the brief.</strong><small>Codex handles the planning detail.</small></div>
         </aside>
       </section> : null}
 
@@ -207,7 +208,7 @@ export function BuildSessionPage() {
         <div className="build-focus-card">
           <p className="eyebrow">Suggested build brief</p><h2>Review the choices that shape the result</h2>
           <p className="gentle-note">These are editable defaults, not hidden decisions. Saving creates a project and draft only—no CAD or evidence.</p>
-          <div className="build-fields">
+          <details className="advanced-details"><summary>Show technical details</summary><div className="build-fields">
             <label>Project name<input value={draft.name ?? ''} onChange={(e) => text('name', e.target.value)} /></label>
             <label>Purpose<input value={draft.purpose ?? ''} onChange={(e) => text('purpose', e.target.value)} /></label>
             <label>Product type<input value={draft.part_type ?? ''} onChange={(e) => text('part_type', e.target.value)} /></label>
@@ -215,13 +216,12 @@ export function BuildSessionPage() {
             <label>Material<select value={draft.material ?? ''} onChange={(e) => text('material', e.target.value)}><option>PETG</option><option>PLA</option><option>TPU</option></select></label>
             <label>Fit allowance (mm)<input type="number" min="0.05" step="0.05" value={draft.tolerance_mm ?? ''} onChange={(e) => number('tolerance_mm', e.target.value)} /></label>
             <label>Supports<select value={draft.support_policy ?? 'avoid'} onChange={(e) => text('support_policy', e.target.value)}><option value="avoid">Avoid where practical</option><option value="allowed">Allowed</option><option value="required">Expected</option></select></label>
-          </div>
+          </div></details>
           <button className="primary-action" disabled={busy || !token} onClick={prepareBrief}>{busy ? 'Preparing…' : 'Save project and prepare brief'}</button>
         </div>
-        <aside className="build-context-card">
-          <AssemblyBlueprint compact />
-          <p className="eyebrow">Ariad understood</p><h3>{reviewSummary}</h3><p>{reviewReason}</p>
-          <div className="assumption-list"><strong>Visible assumptions</strong><span>FDM process</span><span>General-use safety class</span><span>Printer selected later</span></div>
+        <aside className="build-context-card build-codex-summary">
+          <div className="summary-agent"><span className="guide-avatar">C</span><div><p className="eyebrow">Codex understood</p><h3>{reviewSummary}</h3></div></div><p>{reviewReason}</p>
+          <div className="assumption-list"><strong>Working assumptions</strong><span>FDM process</span><span>General-use safety class</span><span>Printer selected later</span></div>
           {reviewQuestion ? <div className="blocking-question"><strong>Decision to revisit</strong><p>{reviewQuestion}</p></div> : null}
         </aside>
       </section> : null}
@@ -243,13 +243,14 @@ export function BuildSessionPage() {
         <form onSubmit={persistDesign}>
           <label>Design lane<select value={designPlan.lane} onChange={(event) => setDesignPlan((current) => ({ ...current, lane: event.target.value as ProjectDesignPlanRequest['lane'] }))}><option value="functional_parametric">Functional parametric CAD</option><option value="organic_mesh">Organic mesh</option><option value="hybrid">Hybrid CAD and mesh</option><option value="undecided">Undecided</option></select></label>
           <label>Geometry strategy<textarea required rows={4} value={designPlan.geometry_strategy} onChange={(event) => setDesignPlan((current) => ({ ...current, geometry_strategy: event.target.value }))} /></label>
-          <div className="design-session-grid"><label>Critical features<textarea rows={6} value={designPlan.critical_features.join('\n')} onChange={(event) => planLines('critical_features', event.target.value)} /></label><label>Assembly interfaces<textarea rows={6} value={designPlan.assembly_interfaces.join('\n')} onChange={(event) => planLines('assembly_interfaces', event.target.value)} /></label><label>Constraints<textarea rows={6} value={designPlan.constraints.join('\n')} onChange={(event) => planLines('constraints', event.target.value)} /></label><label>Open decisions<textarea rows={6} value={designPlan.unresolved_questions.join('\n')} onChange={(event) => planLines('unresolved_questions', event.target.value)} /></label></div>
+          <div className="design-plan-summary"><p className="eyebrow">Codex prepared</p><h3>{designPlan.geometry_strategy}</h3><div className="plan-chip-row">{designPlan.critical_features.slice(0, 3).map((item) => <span key={item}>{item}</span>)}</div></div>
+          <details className="advanced-details design-advanced"><summary>Inspect the full Design plan</summary><div className="design-session-grid"><label>Critical features<textarea rows={6} value={designPlan.critical_features.join('\n')} onChange={(event) => planLines('critical_features', event.target.value)} /></label><label>Assembly interfaces<textarea rows={6} value={designPlan.assembly_interfaces.join('\n')} onChange={(event) => planLines('assembly_interfaces', event.target.value)} /></label><label>Constraints<textarea rows={6} value={designPlan.constraints.join('\n')} onChange={(event) => planLines('constraints', event.target.value)} /></label><label>Open decisions<textarea rows={6} value={designPlan.unresolved_questions.join('\n')} onChange={(event) => planLines('unresolved_questions', event.target.value)} /></label></div></details>
           <div className="design-save-row"><p>Saving records planning only. It does not run generated code or create R1.</p><button className="primary-action" disabled={busy}>{busy ? 'Saving plan…' : 'Save Design plan'}</button></div>
         </form>
       </section> : null}
 
       {step === 'planned' && project ? <section className="build-complete-card">
-        <div className="completion-mark">✓</div><p className="eyebrow">Design thread prepared</p><h2>The plan is saved; execution remains gated</h2><p>Ariad has a structured Design strategy, features, interfaces, constraints, and open decisions. No CAD worker ran, so R1, geometry verification, simulation, and printability remain unavailable.</p>
+        <div className="completion-mark">✓</div><p className="eyebrow">Design thread prepared</p><h2>Codex has prepared the next build step.</h2><p>Ariad has a structured Design strategy, features, interfaces, constraints, and open decisions. No CAD worker ran, so R1, geometry verification, simulation, and printability remain unavailable.</p><AssemblyBlueprint compact />
         <div className="next-actions"><Link className="primary-action" to={`/projects/${encodeURIComponent(project.project_id)}`}>Open project details</Link><Link className="secondary-action" to={`/chat?project=${encodeURIComponent(project.project_id)}`}>Discuss open decisions with Codex</Link></div>
       </section> : null}
 

@@ -2465,6 +2465,19 @@ main {
 .preview-evidence-row span { display: grid; gap: .1rem; padding: .75rem; color: #a9a198; font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; }
 .preview-evidence-row span + span { border-left: 1px solid #383431; }
 .preview-evidence-row strong { color: #fff9f2; font: 650 1.15rem/1 ui-monospace, monospace; }
+.codex-guide-card { display: flex; gap: .8rem; align-items: flex-start; margin: 1.1rem .5rem; padding: 1rem; border: 1px solid #3d3935; border-radius: .7rem; background: #201e1c; }
+.guide-avatar { display: grid; flex: 0 0 auto; width: 2rem; height: 2rem; place-items: center; border-radius: .55rem; color: #171615; background: #f3eee6; font: 800 .75rem/1 ui-monospace, monospace; }
+.codex-guide-card strong, .guide-steps strong { color: #fff8ef; }
+.codex-guide-card p { margin: .35rem 0 0; color: #c3bbb2; font-size: .82rem; line-height: 1.5; }
+.guide-steps { display: grid; gap: .75rem; margin: 0 .5rem; padding: 0; list-style: none; }
+.guide-steps li { display: flex; gap: .7rem; align-items: center; }
+.guide-steps li > b { color: #d46259; font: 700 .65rem/1 ui-monospace, monospace; }
+.guide-steps span { display: grid; gap: .15rem; }.guide-steps small { color: #98918a; font-size: .72rem; }
+.guide-boundary { display: grid; gap: .25rem; margin: 1.2rem .5rem .5rem; padding: .8rem; border-top: 1px solid #3b3733; }.guide-boundary span { color: #d46259; font: 700 .65rem/1 ui-monospace, monospace; text-transform: uppercase; }.guide-boundary strong { color: #f1e9df; font-size: .8rem; }.guide-boundary small { color: #98918a; }
+.build-codex-summary { padding: 1.2rem; }.summary-agent { display: flex; gap: .7rem; align-items: center; }.summary-agent h3 { margin: .2rem 0 0; }.build-codex-summary > p:not(.eyebrow) { margin: 1rem 0; }
+.advanced-details { margin: 1rem 0; border: 1px solid #ded5ca; border-radius: .65rem; background: #f5f0e9; }.advanced-details summary { padding: .75rem .85rem; color: #5e574f; cursor: pointer; font-size: .8rem; font-weight: 800; }.advanced-details[open] summary { border-bottom: 1px solid #ded5ca; }.advanced-details .build-fields { margin: 1rem; }
+.design-plan-summary { margin-top: 1rem; padding: 1rem; border-left: 3px solid #c72e25; background: #fff7eb; }.design-plan-summary h3 { margin: .35rem 0 .8rem; color: #4f463e; font-size: 1.1rem; line-height: 1.45; }.plan-chip-row { display: flex; flex-wrap: wrap; gap: .45rem; }.plan-chip-row span { padding: .35rem .5rem; border-radius: 999px; color: #64594f; background: #eadfce; font-size: .72rem; }.design-advanced { margin-top: 1rem; }
+.build-complete-card .assembly-blueprint { max-width: 640px; margin: 1.5rem auto 0; text-align: left; color: #eee; background: #171615; }.build-complete-card .assembly-blueprint figcaption { color: #8f8880; }
 
 .assembly-blueprint { min-width: 0; margin: 0; border: 1px solid #34312e; border-radius: .85rem; overflow: hidden; color: #efe9df; background: #111211; }
 .blueprint-toolbar { display: flex; justify-content: space-between; align-items: center; padding: .65rem .8rem; border-bottom: 1px solid #34312e; color: #aaa39b; font: 650 .68rem/1.2 ui-monospace, monospace; text-transform: uppercase; letter-spacing: .06em; }
