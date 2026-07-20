@@ -1690,10 +1690,12 @@ main {
 }
 
 .app-sidebar .brand img {
-  width: 142px;
+  width: 136px;
+  height: auto;
   border: 0;
   border-radius: 0;
-  mix-blend-mode: screen;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.28));
 }
 
 .primary-navigation {

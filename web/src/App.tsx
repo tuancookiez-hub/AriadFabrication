@@ -10,7 +10,7 @@ import {
   useParams,
 } from 'react-router-dom'
 
-import logoUrl from '../../assets/ariad-fabrication-official-logo.jpg'
+import logoUrl from '../../assets/ariad-fabrication-official-logo-v2.png'
 import { getLocalCodexStatus, getRevision, getRevisionComparison, listRevisions } from './api'
 import { ArtifactInspector } from './ArtifactInspector'
 import { ComparisonView } from './ComparisonView'
