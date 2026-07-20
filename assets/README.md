@@ -4,7 +4,9 @@ This directory separates approved project identity from explanatory artwork. A f
 
 ## Official logo
 
-`ariad-fabrication-official-logo.jpg` is the primary logo approved by the project owner on 2026-07-16.
+`ariad-fabrication-official-logo-transparent.png` is the primary transparent-background logo used by the project. It is a tightly cropped background extraction of the owner-approved source and does not intentionally alter the mark, lettering, or colors.
+
+`ariad-fabrication-official-logo.jpg` is the original owner-approved source retained for provenance and future higher-fidelity extraction work.
 
 | Property | Value |
 |---|---|

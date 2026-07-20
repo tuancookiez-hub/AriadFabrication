@@ -1,6 +1,6 @@
 # Ariad Fabrication
 
-![Ariad Fabrication official logo](assets/ariad-fabrication-official-logo.jpg)
+![Ariad Fabrication official logo](assets/ariad-fabrication-official-logo-transparent.png)
 
 **Ariad Fabrication**, shortened to **Ariad**, is a local-first visual fabrication workspace for Codex. A locally authenticated Codex agent converses with the user while Ariad supplies constrained tools that turn confirmed requirements into editable parametric CAD, validate geometry and printability, slice against real printer profiles, and produce an auditable fabrication package.
 
