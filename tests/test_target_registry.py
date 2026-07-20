@@ -50,6 +50,7 @@ def file_sha256(path: Path) -> str:
 
 
 def tree_value(base: Path, paths) -> dict:
+    base = base.resolve()
     entries = []
     for path in sorted(
         {item.resolve() for item in paths},
