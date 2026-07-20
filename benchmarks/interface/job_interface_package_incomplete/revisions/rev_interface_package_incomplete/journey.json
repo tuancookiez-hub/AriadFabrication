@@ -1,0 +1,482 @@
+{
+  "approvals": [],
+  "artifacts": [],
+  "decisions": [],
+  "events": [
+    {
+      "data": {
+        "classification": "interface_fixture",
+        "scenario": "package_incomplete"
+      },
+      "event_id": "evt_fixture_package_incomplete_brief",
+      "event_type": "fixture_stage_replayed",
+      "job_id": "job_interface_package_incomplete",
+      "message": "Confirmed fixture specification passed the Brief shape",
+      "revision_id": "rev_interface_package_incomplete",
+      "sequence": 1,
+      "stage": "brief",
+      "stage_run_id": "run_fixture_package_incomplete_brief",
+      "status": "passed",
+      "timestamp": "2026-07-16T08:00:00+00:00"
+    },
+    {
+      "data": {
+        "classification": "interface_fixture",
+        "scenario": "package_incomplete"
+      },
+      "event_id": "evt_fixture_package_incomplete_design",
+      "event_type": "fixture_stage_replayed",
+      "job_id": "job_interface_package_incomplete",
+      "message": "Fixture design stage exposes editable-source metadata",
+      "revision_id": "rev_interface_package_incomplete",
+      "sequence": 2,
+      "stage": "design",
+      "stage_run_id": "run_fixture_package_incomplete_design",
+      "status": "passed",
+      "timestamp": "2026-07-16T08:00:00+00:00"
+    },
+    {
+      "data": {
+        "classification": "interface_fixture",
+        "scenario": "package_incomplete"
+      },
+      "event_id": "evt_fixture_package_incomplete_geometry_validation",
+      "event_type": "fixture_stage_replayed",
+      "job_id": "job_interface_package_incomplete",
+      "message": "Fixture geometry stage exposes deterministic check events",
+      "revision_id": "rev_interface_package_incomplete",
+      "sequence": 3,
+      "stage": "geometry_validation",
+      "stage_run_id": "run_fixture_package_incomplete_geometry_validation",
+      "status": "passed",
+      "timestamp": "2026-07-16T08:00:00+00:00"
+    },
+    {
+      "data": {
+        "classification": "interface_fixture",
+        "scenario": "package_incomplete"
+      },
+      "event_id": "evt_fixture_package_incomplete_printability_validation",
+      "event_type": "fixture_stage_replayed",
+      "job_id": "job_interface_package_incomplete",
+      "message": "Fixture printability stage retains unresolved physical unknowns",
+      "revision_id": "rev_interface_package_incomplete",
+      "sequence": 4,
+      "stage": "printability_validation",
+      "stage_run_id": "run_fixture_package_incomplete_printability_validation",
+      "status": "passed_with_warnings",
+      "timestamp": "2026-07-16T08:00:00+00:00"
+    },
+    {
+      "data": {
+        "classification": "interface_fixture",
+        "scenario": "package_incomplete"
+      },
+      "event_id": "evt_fixture_package_incomplete_slicing",
+      "event_type": "fixture_stage_replayed",
+      "job_id": "job_interface_package_incomplete",
+      "message": "Fixture slicing stage exposes toolpath metadata",
+      "revision_id": "rev_interface_package_incomplete",
+      "sequence": 5,
+      "stage": "slicing",
+      "stage_run_id": "run_fixture_package_incomplete_slicing",
+      "status": "passed",
+      "timestamp": "2026-07-16T08:00:00+00:00"
+    },
+    {
+      "data": {
+        "classification": "interface_fixture",
+        "scenario": "package_incomplete"
+      },
+      "event_id": "evt_fixture_package_incomplete_fabrication_package",
+      "event_type": "fixture_gate_stopped",
+      "job_id": "job_interface_package_incomplete",
+      "message": "Fixture Package assembly stopped before manifest publication",
+      "revision_id": "rev_interface_package_incomplete",
+      "sequence": 6,
+      "stage": "fabrication_package",
+      "stage_run_id": "run_fixture_package_incomplete_fabrication_package",
+      "status": "running",
+      "timestamp": "2026-07-16T08:00:00+00:00"
+    }
+  ],
+  "findings": [
+    {
+      "affected_geometry": null,
+      "code": "fixture.package.manifest_not_published",
+      "created_at": "2026-07-16T08:00:00+00:00",
+      "data": {
+        "classification": "interface_fixture",
+        "scenario": "package_incomplete"
+      },
+      "evidence": "The fixture journey was persisted before package assembly completed.",
+      "evidence_mode": "fixture",
+      "finding_id": "finding_fixture_package_incomplete",
+      "job_id": "job_interface_package_incomplete",
+      "remediation": "Resume package assembly and publish a complete checksummed manifest.",
+      "resolution": null,
+      "resolved": false,
+      "revision_id": "rev_interface_package_incomplete",
+      "severity": "warning",
+      "stage_run_id": "run_fixture_package_incomplete_fabrication_package",
+      "title": "Package manifest is not available"
+    }
+  ],
+  "job": {
+    "created_at": "2026-07-16T08:00:00+00:00",
+    "current_revision_id": "rev_interface_package_incomplete",
+    "job_id": "job_interface_package_incomplete",
+    "metadata": {
+      "classification": "interface_fixture",
+      "physical_validation": false,
+      "scenario": "package_incomplete"
+    },
+    "request": "Demonstrate the package incomplete interface gate with fixture data.",
+    "status": "active",
+    "title": "Ariad gate fixture — package incomplete",
+    "updated_at": "2026-07-16T08:00:00+00:00"
+  },
+  "revisions": [
+    {
+      "created_at": "2026-07-16T08:00:00+00:00",
+      "job_id": "job_interface_package_incomplete",
+      "number": 1,
+      "parent_revision_id": null,
+      "reason": "Deterministic M4 package_incomplete fixture",
+      "revision_id": "rev_interface_package_incomplete",
+      "spec": {
+        "assembly_method": "Flex the split clamp over the stake, then attach the electronics plate or board with two M3 fasteners.",
+        "assumptions": [
+          "The 12 mm stake is sufficiently round and its actual diameter will be measured before physical qualification.",
+          "The 10 N load is a preliminary benchmark input and is not a statement of proven strength.",
+          "The 12 month lifetime is a design target and has not been physically qualified.",
+          "The first CAD revision will orient the stake axis parallel to Z and avoid generated supports.",
+          "Food contact, electrical enclosure certification, and outdoor UV lifetime are outside this benchmark."
+        ],
+        "bounding_box_mm": {
+          "height": 50.0,
+          "length": 30.0,
+          "width": 24.6
+        },
+        "datums": {
+          "A": "lower Z face",
+          "B": "stake bore axis",
+          "C": "electronics mounting face"
+        },
+        "environment": {
+          "food_contact": false,
+          "location": "sheltered growing area",
+          "max_temp_c": 45.0,
+          "min_temp_c": 5.0,
+          "moisture_exposure": true,
+          "uv_exposure": false
+        },
+        "expected_lifetime_months": 12,
+        "features": [
+          {
+            "dimensions_mm": {
+              "depth": 50.0,
+              "diameter": 12.6
+            },
+            "feature_id": "stake_bore",
+            "kind": "cylindrical_mating_bore",
+            "notes": "Axis is parallel to Z; nominal diametral clearance is 0.6 mm over a 12 mm stake.",
+            "quantity": 1,
+            "required": true,
+            "tolerance_mm": 0.2
+          },
+          {
+            "dimensions_mm": {
+              "thickness": 4.0
+            },
+            "feature_id": "clamp_wall",
+            "kind": "minimum_radial_wall",
+            "notes": "Minimum wall surrounding the stake bore before transition geometry.",
+            "quantity": 1,
+            "required": true,
+            "tolerance_mm": 0.2
+          },
+          {
+            "dimensions_mm": {
+              "height": 50.0,
+              "radial_depth": 4.0,
+              "width": 3.0
+            },
+            "feature_id": "split_gap",
+            "kind": "clamp_relief_gap",
+            "notes": "Open radial split allows compliant installation onto the stake.",
+            "quantity": 1,
+            "required": true,
+            "tolerance_mm": 0.2
+          },
+          {
+            "dimensions_mm": {
+              "height": 50.0,
+              "thickness": 4.0,
+              "width": 30.0
+            },
+            "feature_id": "mounting_plate",
+            "kind": "flat_electronics_mounting_interface",
+            "notes": "Flat plate is integrated tangentially with the clamp body.",
+            "quantity": 1,
+            "required": true,
+            "tolerance_mm": 0.2
+          },
+          {
+            "dimensions_mm": {
+              "center_spacing": 26.0,
+              "diameter": 3.4
+            },
+            "feature_id": "m3_mounting_holes",
+            "kind": "through_hole",
+            "notes": "Hole axes are parallel to Y and centers are separated along Z.",
+            "quantity": 2,
+            "required": true,
+            "tolerance_mm": 0.2
+          },
+          {
+            "dimensions_mm": {
+              "depth": 4.0,
+              "diameter": 4.0
+            },
+            "feature_id": "cable_channel",
+            "kind": "cable_routing_hole",
+            "notes": "Separate routing feature through the mounting plate.",
+            "quantity": 1,
+            "required": true,
+            "tolerance_mm": 0.2
+          },
+          {
+            "dimensions_mm": {
+              "radius": 2.0
+            },
+            "feature_id": "transition_fillets",
+            "kind": "stress_relief_fillet",
+            "notes": "Blend the mounting plate into the clamp body.",
+            "quantity": 2,
+            "required": true,
+            "tolerance_mm": 0.2
+          }
+        ],
+        "infill_pct": 30,
+        "load_cases": [
+          {
+            "description": "Static lateral load applied at the mounting plate as an initial design input, not a verified capacity claim.",
+            "direction": "radial from the stake axis toward the mounting plate",
+            "force_n": 10.0,
+            "name": "Preliminary radial service load"
+          }
+        ],
+        "manufacturing_process": "FDM",
+        "material": "PETG",
+        "mating_requirements": [
+          {
+            "clearance_mm": 0.6,
+            "component": "Nominal 12 mm cylindrical plant stake",
+            "interface": "Slip-on split cylindrical clamp",
+            "nominal_dimensions_mm": {
+              "diameter": 12.0
+            },
+            "notes": "Clearance is diametral and remains an initial digital benchmark target until measured physically."
+          }
+        ],
+        "name": "OpenGrow gate fixture — package incomplete",
+        "notes": "Deterministic package_incomplete interface fixture. No stage establishes fabrication evidence.",
+        "part_type": "split_stake_electronics_clamp",
+        "preferred_orientation": "Stake axis parallel to build Z with the integrated mounting plate contributing bed contact.",
+        "printer_constraints": {
+          "build_volume_mm": {
+            "height": 250.0,
+            "length": 220.0,
+            "width": 220.0
+          },
+          "layer_height_mm": 0.2,
+          "nozzle_diameter_mm": 0.4,
+          "profile_id": "generic_open_fdm_220"
+        },
+        "purpose": "Attach a small sensor or controller plate to a nominal 12 mm plant stake in a sheltered growing environment.",
+        "safety_class": "general",
+        "schema_version": "1.0.0",
+        "source": "benchmarks/interface (fixture; not manufacturing evidence)",
+        "status": "confirmed",
+        "support_policy": "avoid",
+        "surface_requirements": [
+          "Stake bore and mounting holes must contain no generated support contact.",
+          "The electronics mounting face must be planar in the CAD model."
+        ],
+        "tolerance_mm": 0.2,
+        "units": "mm",
+        "unresolved_questions": []
+      },
+      "stage_run_ids": [
+        "run_fixture_package_incomplete_brief",
+        "run_fixture_package_incomplete_design",
+        "run_fixture_package_incomplete_geometry_validation",
+        "run_fixture_package_incomplete_printability_validation",
+        "run_fixture_package_incomplete_slicing",
+        "run_fixture_package_incomplete_fabrication_package"
+      ]
+    }
+  ],
+  "schema_version": "1.0.0",
+  "stage_runs": [
+    {
+      "approval_ids": [],
+      "artifact_ids": [],
+      "attempt": 1,
+      "completed_at": "2026-07-16T08:00:00+00:00",
+      "decision_ids": [],
+      "error_message": null,
+      "event_ids": [
+        "evt_fixture_package_incomplete_brief"
+      ],
+      "evidence_level": "R0",
+      "evidence_mode": "fixture",
+      "finding_ids": [],
+      "input_artifact_ids": [],
+      "job_id": "job_interface_package_incomplete",
+      "revision_id": "rev_interface_package_incomplete",
+      "stage": "brief",
+      "stage_run_id": "run_fixture_package_incomplete_brief",
+      "started_at": "2026-07-16T08:00:00+00:00",
+      "status": "passed",
+      "summary": "Confirmed fixture specification passed the Brief shape",
+      "tool": {
+        "name": "ariad_interface_fixture",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "approval_ids": [],
+      "artifact_ids": [],
+      "attempt": 1,
+      "completed_at": "2026-07-16T08:00:00+00:00",
+      "decision_ids": [],
+      "error_message": null,
+      "event_ids": [
+        "evt_fixture_package_incomplete_design"
+      ],
+      "evidence_level": "R1",
+      "evidence_mode": "fixture",
+      "finding_ids": [],
+      "input_artifact_ids": [],
+      "job_id": "job_interface_package_incomplete",
+      "revision_id": "rev_interface_package_incomplete",
+      "stage": "design",
+      "stage_run_id": "run_fixture_package_incomplete_design",
+      "started_at": "2026-07-16T08:00:00+00:00",
+      "status": "passed",
+      "summary": "Fixture design stage exposes editable-source metadata",
+      "tool": {
+        "name": "ariad_interface_fixture",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "approval_ids": [],
+      "artifact_ids": [],
+      "attempt": 1,
+      "completed_at": "2026-07-16T08:00:00+00:00",
+      "decision_ids": [],
+      "error_message": null,
+      "event_ids": [
+        "evt_fixture_package_incomplete_geometry_validation"
+      ],
+      "evidence_level": "R2",
+      "evidence_mode": "fixture",
+      "finding_ids": [],
+      "input_artifact_ids": [],
+      "job_id": "job_interface_package_incomplete",
+      "revision_id": "rev_interface_package_incomplete",
+      "stage": "geometry_validation",
+      "stage_run_id": "run_fixture_package_incomplete_geometry_validation",
+      "started_at": "2026-07-16T08:00:00+00:00",
+      "status": "passed",
+      "summary": "Fixture geometry stage exposes deterministic check events",
+      "tool": {
+        "name": "ariad_interface_fixture",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "approval_ids": [],
+      "artifact_ids": [],
+      "attempt": 1,
+      "completed_at": "2026-07-16T08:00:00+00:00",
+      "decision_ids": [],
+      "error_message": null,
+      "event_ids": [
+        "evt_fixture_package_incomplete_printability_validation"
+      ],
+      "evidence_level": "R3",
+      "evidence_mode": "fixture",
+      "finding_ids": [],
+      "input_artifact_ids": [],
+      "job_id": "job_interface_package_incomplete",
+      "revision_id": "rev_interface_package_incomplete",
+      "stage": "printability_validation",
+      "stage_run_id": "run_fixture_package_incomplete_printability_validation",
+      "started_at": "2026-07-16T08:00:00+00:00",
+      "status": "passed_with_warnings",
+      "summary": "Fixture printability stage retains unresolved physical unknowns",
+      "tool": {
+        "name": "ariad_interface_fixture",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "approval_ids": [],
+      "artifact_ids": [],
+      "attempt": 1,
+      "completed_at": "2026-07-16T08:00:00+00:00",
+      "decision_ids": [],
+      "error_message": null,
+      "event_ids": [
+        "evt_fixture_package_incomplete_slicing"
+      ],
+      "evidence_level": "R4",
+      "evidence_mode": "fixture",
+      "finding_ids": [],
+      "input_artifact_ids": [],
+      "job_id": "job_interface_package_incomplete",
+      "revision_id": "rev_interface_package_incomplete",
+      "stage": "slicing",
+      "stage_run_id": "run_fixture_package_incomplete_slicing",
+      "started_at": "2026-07-16T08:00:00+00:00",
+      "status": "passed",
+      "summary": "Fixture slicing stage exposes toolpath metadata",
+      "tool": {
+        "name": "ariad_interface_fixture",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "approval_ids": [],
+      "artifact_ids": [],
+      "attempt": 1,
+      "completed_at": null,
+      "decision_ids": [],
+      "error_message": null,
+      "event_ids": [
+        "evt_fixture_package_incomplete_fabrication_package"
+      ],
+      "evidence_level": null,
+      "evidence_mode": "fixture",
+      "finding_ids": [
+        "finding_fixture_package_incomplete"
+      ],
+      "input_artifact_ids": [],
+      "job_id": "job_interface_package_incomplete",
+      "revision_id": "rev_interface_package_incomplete",
+      "stage": "fabrication_package",
+      "stage_run_id": "run_fixture_package_incomplete_fabrication_package",
+      "started_at": "2026-07-16T08:00:00+00:00",
+      "status": "running",
+      "summary": "Fixture Package assembly stopped before manifest publication",
+      "tool": {
+        "name": "ariad_interface_fixture",
+        "version": "1.0.0"
+      }
+    }
+  ]
+}

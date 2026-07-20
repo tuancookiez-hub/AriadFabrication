@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ariad.local/schemas/v1/fabrication-package.schema.json",
+  "title": "Ariad Printer-Independent Fabrication Package v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "classification",
+    "status",
+    "evidence_level",
+    "job_id",
+    "revision_id",
+    "profile_ids",
+    "slicer",
+    "gcode_summary",
+    "preflight",
+    "slicer_warnings",
+    "required_artifacts",
+    "unresolved_warning_findings",
+    "hardware",
+    "allowed_claim",
+    "claim_boundary",
+    "manifest_note"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "classification": {"const": "printer_independent_fabrication_package"},
+    "status": {"enum": ["slicer_verified", "slicer_verified_with_physical_unknowns"]},
+    "evidence_level": {"const": "R4"},
+    "job_id": {"type": "string", "minLength": 1},
+    "revision_id": {"type": "string", "minLength": 1},
+    "profile_ids": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["printer", "printer_family", "material", "process", "orientation"],
+      "properties": {
+        "printer": {"type": "string", "minLength": 1},
+        "printer_family": {"type": "string", "minLength": 1},
+        "material": {"type": "string", "minLength": 1},
+        "process": {"type": "string", "minLength": 1},
+        "orientation": {"type": "string", "minLength": 1}
+      }
+    },
+    "slicer": {"type": "object", "minProperties": 1},
+    "gcode_summary": {
+      "type": "object",
+      "required": ["path", "checksum_sha256", "size_bytes"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "checksum_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "size_bytes": {"type": "integer", "minimum": 0}
+      }
+    },
+    "preflight": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["passed", "checks", "errors", "warnings", "claim_boundary"],
+      "properties": {
+        "passed": {"const": true},
+        "checks": {"type": "array", "minItems": 1},
+        "errors": {"type": "array", "maxItems": 0},
+        "warnings": {"type": "array"},
+        "claim_boundary": {"type": "string", "minLength": 1}
+      }
+    },
+    "slicer_warnings": {"type": "array", "items": {"type": "string"}},
+    "required_artifacts": {
+      "type": "array",
+      "minItems": 19,
+      "maxItems": 19,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["artifact_id", "role", "path", "size_bytes", "checksum_sha256"],
+        "properties": {
+          "artifact_id": {"type": "string", "minLength": 1},
+          "role": {"type": "string", "minLength": 1},
+          "path": {"type": "string", "minLength": 1},
+          "size_bytes": {"type": "integer", "minimum": 0},
+          "checksum_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    },
+    "unresolved_warning_findings": {"type": "array", "items": {"type": "object"}},
+    "hardware": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["printer_selected", "printer_connected", "gcode_uploaded", "print_started"],
+      "properties": {
+        "printer_selected": {"const": false},
+        "printer_connected": {"const": false},
+        "gcode_uploaded": {"const": false},
+        "print_started": {"const": false}
+      }
+    },
+    "allowed_claim": {"const": "Slicer-verified for this recorded generic profile (R4)."},
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "manifest_note": {"type": "string", "minLength": 1}
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "allowed_claim": "Interface behavior demonstrated with fixture data only.",
+  "classification": "interface_fixture",
+  "comparison_fixture": true,
+  "evidence_mode": "fixture",
+  "generated_at": "2026-07-16T08:05:00+00:00",
+  "label": "INTERFACE COMPARISON FIXTURE — child revision; no fabrication evidence",
+  "physical_validation": false,
+  "source_spec": "part_spec.json"
+}

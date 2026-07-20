@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0.0",
+  "profile_id": "standard_020_no_support_v1",
+  "name": "Standard 0.20 mm support-free comparison process",
+  "status": "experimental_analysis_only",
+  "layer_height_mm": 0.2,
+  "first_layer_height_mm": 0.2,
+  "perimeters": 3,
+  "top_solid_layers": 4,
+  "bottom_solid_layers": 4,
+  "infill_percent": 10,
+  "infill_pattern": "gyroid",
+  "support_policy": "disabled",
+  "skirts": 1,
+  "brim_width_mm": 0.0,
+  "speeds_mm_s": {
+    "perimeter": 45,
+    "external_perimeter": 30,
+    "small_perimeter": 25,
+    "infill": 50,
+    "solid_infill": 40,
+    "top_solid_infill": 30,
+    "bridge": 25,
+    "first_layer": 20,
+    "travel": 150
+  },
+  "claim_boundary": "Support generation is deliberately disabled so unsupported geometry warnings remain visible. Slicer success with this process is not physical proof."
+}

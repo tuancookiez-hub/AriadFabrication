@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ariad.local/schemas/v1/interface-fabrication-package.schema.json",
+  "title": "Ariad Interface-Only Fabrication Package Fixture 1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "classification",
+    "status",
+    "evidence_level",
+    "job_id",
+    "revision_id",
+    "slicer",
+    "unresolved_warning_findings",
+    "hardware",
+    "allowed_claim",
+    "claim_boundary"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0-interface-fixture"},
+    "classification": {"const": "interface_fixture_package"},
+    "status": {"const": "fixture"},
+    "evidence_level": {"type": "null"},
+    "job_id": {"type": "string", "minLength": 1},
+    "revision_id": {"type": "string", "minLength": 1},
+    "slicer": {
+      "type": "object",
+      "maxProperties": 0
+    },
+    "unresolved_warning_findings": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "hardware": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "printer_selected",
+        "printer_connected",
+        "gcode_uploaded",
+        "print_started"
+      ],
+      "properties": {
+        "printer_selected": {"const": false},
+        "printer_connected": {"const": false},
+        "gcode_uploaded": {"const": false},
+        "print_started": {"const": false}
+      }
+    },
+    "allowed_claim": {"type": "string", "minLength": 1},
+    "claim_boundary": {"type": "string", "minLength": 1}
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "claim_boundary": "Interface fixture values demonstrate evidence presentation only. They are not CAD, slicer, manufacturing, or physical evidence.",
+  "ensure_on_bed": true,
+  "name": "Fixture upright centered orientation",
+  "orientation_id": "fixture_upright_centered_v1",
+  "placement": "centered",
+  "schema_version": "1.0.0-interface-fixture",
+  "source_up_axis": "Z",
+  "status": "interface_fixture"
+}

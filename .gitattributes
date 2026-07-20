@@ -1,0 +1,5 @@
+* text=auto eol=lf
+
+# Native Windows command scripts retain their conventional line endings.
+*.bat text eol=crlf
+*.cmd text eol=crlf

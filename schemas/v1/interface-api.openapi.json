@@ -1,0 +1,5273 @@
+{
+  "components": {
+    "schemas": {
+      "ApprovalStatus": {
+        "enum": [
+          "requested",
+          "granted",
+          "rejected",
+          "revoked"
+        ],
+        "title": "ApprovalStatus",
+        "type": "string"
+      },
+      "ApprovalView": {
+        "additionalProperties": false,
+        "properties": {
+          "approval_id": {
+            "title": "Approval Id",
+            "type": "string"
+          },
+          "boundary": {
+            "title": "Boundary",
+            "type": "string"
+          },
+          "decided_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided At"
+          },
+          "decided_by": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DecisionActor"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "job_id": {
+            "title": "Job Id",
+            "type": "string"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "requested_at": {
+            "format": "date-time",
+            "title": "Requested At",
+            "type": "string"
+          },
+          "requested_by": {
+            "$ref": "#/components/schemas/DecisionActor"
+          },
+          "revision_id": {
+            "title": "Revision Id",
+            "type": "string"
+          },
+          "stage_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage Run Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ApprovalStatus"
+          }
+        },
+        "required": [
+          "approval_id",
+          "job_id",
+          "revision_id",
+          "stage_run_id",
+          "boundary",
+          "status",
+          "requested_by",
+          "rationale",
+          "requested_at",
+          "decided_at",
+          "decided_by"
+        ],
+        "title": "ApprovalView",
+        "type": "object"
+      },
+      "ArtifactView": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
+          "checksum_sha256": {
+            "title": "Checksum Sha256",
+            "type": "string"
+          },
+          "download_url": {
+            "title": "Download Url",
+            "type": "string"
+          },
+          "evidence_mode": {
+            "$ref": "#/components/schemas/EvidenceMode"
+          },
+          "media_type": {
+            "title": "Media Type",
+            "type": "string"
+          },
+          "metadata": {
+            "additionalProperties": true,
+            "title": "Metadata",
+            "type": "object"
+          },
+          "producer": {
+            "title": "Producer",
+            "type": "string"
+          },
+          "producer_version": {
+            "title": "Producer Version",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "size_bytes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Size Bytes"
+          },
+          "stage_run_id": {
+            "title": "Stage Run Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "artifact_id",
+          "role",
+          "media_type",
+          "checksum_sha256",
+          "size_bytes",
+          "producer",
+          "producer_version",
+          "evidence_mode",
+          "stage_run_id",
+          "available",
+          "download_url",
+          "metadata"
+        ],
+        "title": "ArtifactView",
+        "type": "object"
+      },
+      "AssemblyDimensionsView": {
+        "additionalProperties": false,
+        "properties": {
+          "height": {
+            "exclusiveMinimum": 0.0,
+            "title": "Height",
+            "type": "number"
+          },
+          "length": {
+            "exclusiveMinimum": 0.0,
+            "title": "Length",
+            "type": "number"
+          },
+          "width": {
+            "exclusiveMinimum": 0.0,
+            "title": "Width",
+            "type": "number"
+          }
+        },
+        "required": [
+          "length",
+          "width",
+          "height"
+        ],
+        "title": "AssemblyDimensionsView",
+        "type": "object"
+      },
+      "AssemblyInterfaceView": {
+        "additionalProperties": false,
+        "properties": {
+          "axis": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Axis"
+          },
+          "clearance_mm": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clearance Mm"
+          },
+          "interface_id": {
+            "title": "Interface Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "fastened",
+              "rotating",
+              "removable_panel",
+              "captured",
+              "clearance"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "participants": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Participants",
+            "type": "array"
+          },
+          "requirements": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Requirements",
+            "type": "array"
+          }
+        },
+        "required": [
+          "interface_id",
+          "name",
+          "kind",
+          "participants",
+          "clearance_mm",
+          "axis",
+          "requirements"
+        ],
+        "title": "AssemblyInterfaceView",
+        "type": "object"
+      },
+      "AssemblyPartView": {
+        "additionalProperties": false,
+        "properties": {
+          "manufacturing_process": {
+            "title": "Manufacturing Process",
+            "type": "string"
+          },
+          "material": {
+            "title": "Material",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "notes": {
+            "title": "Notes",
+            "type": "string"
+          },
+          "part_id": {
+            "title": "Part Id",
+            "type": "string"
+          },
+          "quantity": {
+            "minimum": 1.0,
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "separately_manufactured": {
+            "title": "Separately Manufactured",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "part_id",
+          "name",
+          "role",
+          "quantity",
+          "separately_manufactured",
+          "manufacturing_process",
+          "material",
+          "notes"
+        ],
+        "title": "AssemblyPartView",
+        "type": "object"
+      },
+      "AssemblySpecResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "assembly_constraints": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Assembly Constraints",
+            "type": "array"
+          },
+          "assembly_id": {
+            "title": "Assembly Id",
+            "type": "string"
+          },
+          "cad_generated": {
+            "const": false,
+            "title": "Cad Generated",
+            "type": "boolean"
+          },
+          "claim_boundary": {
+            "title": "Claim Boundary",
+            "type": "string"
+          },
+          "component_envelopes": {
+            "items": {
+              "$ref": "#/components/schemas/ComponentEnvelopeView"
+            },
+            "title": "Component Envelopes",
+            "type": "array"
+          },
+          "contract_version": {
+            "const": "1.0.0",
+            "title": "Contract Version",
+            "type": "string"
+          },
+          "evidence_mode": {
+            "const": "planning_fixture",
+            "title": "Evidence Mode",
+            "type": "string"
+          },
+          "hardware_actions": {
+            "const": false,
+            "title": "Hardware Actions",
+            "type": "boolean"
+          },
+          "interfaces": {
+            "items": {
+              "$ref": "#/components/schemas/AssemblyInterfaceView"
+            },
+            "title": "Interfaces",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "parts": {
+            "items": {
+              "$ref": "#/components/schemas/AssemblyPartView"
+            },
+            "title": "Parts",
+            "type": "array"
+          },
+          "physical_validation": {
+            "const": false,
+            "title": "Physical Validation",
+            "type": "boolean"
+          },
+          "purpose": {
+            "title": "Purpose",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.19.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "simulation_run": {
+            "const": false,
+            "title": "Simulation Run",
+            "type": "boolean"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AssemblyStatus"
+          },
+          "unresolved_questions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Unresolved Questions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "schema_version",
+          "contract_version",
+          "assembly_id",
+          "name",
+          "purpose",
+          "status",
+          "parts",
+          "component_envelopes",
+          "interfaces",
+          "assembly_constraints",
+          "unresolved_questions",
+          "claim_boundary",
+          "evidence_mode",
+          "cad_generated",
+          "simulation_run",
+          "hardware_actions",
+          "physical_validation"
+        ],
+        "title": "AssemblySpecResponse",
+        "type": "object"
+      },
+      "AssemblyStatus": {
+        "enum": [
+          "draft",
+          "confirmed"
+        ],
+        "title": "AssemblyStatus",
+        "type": "string"
+      },
+      "BrowserSessionResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "codex_credentials_exposed": {
+            "const": false,
+            "title": "Codex Credentials Exposed",
+            "type": "boolean"
+          },
+          "expires_on_restart": {
+            "const": true,
+            "title": "Expires On Restart",
+            "type": "boolean"
+          },
+          "schema_version": {
+            "const": "1.19.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "session_token": {
+            "maxLength": 128,
+            "minLength": 32,
+            "title": "Session Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "session_token",
+          "expires_on_restart",
+          "codex_credentials_exposed"
+        ],
+        "title": "BrowserSessionResponse",
+        "type": "object"
+      },
+      "CapabilitiesView": {
+        "additionalProperties": false,
+        "properties": {
+          "fabrication_execution": {
+            "const": false,
+            "title": "Fabrication Execution",
+            "type": "boolean"
+          },
+          "hardware_actions": {
+            "const": false,
+            "title": "Hardware Actions",
+            "type": "boolean"
+          },
+          "project_intent_persistence": {
+            "const": true,
+            "title": "Project Intent Persistence",
+            "type": "boolean"
+          },
+          "read_only": {
+            "const": false,
+            "title": "Read Only",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "read_only",
+          "project_intent_persistence",
+          "fabrication_execution",
+          "hardware_actions"
+        ],
+        "title": "CapabilitiesView",
+        "type": "object"
+      },
+      "CapabilityLane": {
+        "enum": [
+          "registered_benchmark",
+          "functional_parametric_cad",
+          "organic_mesh",
+          "planning_only",
+          "unsupported"
+        ],
+        "title": "CapabilityLane",
+        "type": "string"
+      },
+      "CapabilityRouteView": {
+        "additionalProperties": false,
+        "properties": {
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "available_targets": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Available Targets",
+            "type": "array"
+          },
+          "evidence_mode": {
+            "enum": [
+              "model_proposal",
+              "unavailable"
+            ],
+            "title": "Evidence Mode",
+            "type": "string"
+          },
+          "hardware_actions": {
+            "const": false,
+            "title": "Hardware Actions",
+            "type": "boolean"
+          },
+          "intake_id": {
+            "title": "Intake Id",
+            "type": "string"
+          },
+          "lane": {
+            "$ref": "#/components/schemas/CapabilityLane"
+          },
+          "metadata": {
+            "additionalProperties": true,
+            "title": "Metadata",
+            "type": "object"
+          },
+          "part_spec": {
+            "title": "Part Spec",
+            "type": "null"
+          },
+          "physical_validation": {
+            "const": false,
+            "title": "Physical Validation",
+            "type": "boolean"
+          },
+          "prompt_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Prompt Sha256",
+            "type": "string"
+          },
+          "questions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Questions",
+            "type": "array"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RouteStatus"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "intake_id",
+          "prompt_sha256",
+          "lane",
+          "status",
+          "summary",
+          "reason",
+          "questions",
+          "assumptions",
+          "part_spec",
+          "available_targets",
+          "evidence_mode",
+          "hardware_actions",
+          "physical_validation",
+          "metadata"
+        ],
+        "title": "CapabilityRouteView",
+        "type": "object"
+      },
+      "ComparisonAreaSummaryView": {
+        "additionalProperties": false,
+        "properties": {
+          "added": {
+            "title": "Added",
+            "type": "integer"
+          },
+          "area": {
+            "enum": [
+              "stage",
+              "requirement",
+              "feature",
+              "report",
+              "check",
+              "finding",
+              "profile",
+              "artifact",
+              "package"
+            ],
+            "title": "Area",
+            "type": "string"
+          },
+          "changed": {
+            "title": "Changed",
+            "type": "integer"
+          },
+          "removed": {
+            "title": "Removed",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "area",
+          "added",
+          "removed",
+          "changed"
+        ],
+        "title": "ComparisonAreaSummaryView",
+        "type": "object"
+      },
+      "ComparisonChangeView": {
+        "additionalProperties": false,
+        "properties": {
+          "area": {
+            "enum": [
+              "stage",
+              "requirement",
+              "feature",
+              "report",
+              "check",
+              "finding",
+              "profile",
+              "artifact",
+              "package"
+            ],
+            "title": "Area",
+            "type": "string"
+          },
+          "base_value": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Value"
+          },
+          "boundary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Boundary"
+          },
+          "candidate_value": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Candidate Value"
+          },
+          "change": {
+            "enum": [
+              "added",
+              "removed",
+              "changed"
+            ],
+            "title": "Change",
+            "type": "string"
+          },
+          "detail_complete": {
+            "title": "Detail Complete",
+            "type": "boolean"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "record_key": {
+            "title": "Record Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "area",
+          "record_key",
+          "label",
+          "change",
+          "base_value",
+          "candidate_value",
+          "detail_complete",
+          "boundary"
+        ],
+        "title": "ComparisonChangeView",
+        "type": "object"
+      },
+      "ComparisonRevisionView": {
+        "additionalProperties": false,
+        "properties": {
+          "achieved_evidence_level": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvidenceLevel"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "allowed_claim": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allowed Claim"
+          },
+          "compared_record_count": {
+            "title": "Compared Record Count",
+            "type": "integer"
+          },
+          "fixture": {
+            "title": "Fixture",
+            "type": "boolean"
+          },
+          "job_id": {
+            "title": "Job Id",
+            "type": "string"
+          },
+          "job_status": {
+            "$ref": "#/components/schemas/JobStatus"
+          },
+          "normalized_record_count": {
+            "title": "Normalized Record Count",
+            "type": "integer"
+          },
+          "omitted_record_count": {
+            "title": "Omitted Record Count",
+            "type": "integer"
+          },
+          "package_evidence_level": {
+            "anyOf": [
+              {
+                "const": "R4",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Package Evidence Level"
+          },
+          "package_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PackageStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "parent_revision_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Revision Id"
+          },
+          "physical_evidence_present": {
+            "title": "Physical Evidence Present",
+            "type": "boolean"
+          },
+          "revision_id": {
+            "title": "Revision Id",
+            "type": "string"
+          },
+          "revision_number": {
+            "title": "Revision Number",
+            "type": "integer"
+          },
+          "source_kind": {
+            "enum": [
+              "interface_fixture",
+              "runtime_revision"
+            ],
+            "title": "Source Kind",
+            "type": "string"
+          },
+          "source_label": {
+            "title": "Source Label",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "job_id",
+          "revision_id",
+          "revision_number",
+          "parent_revision_id",
+          "title",
+          "job_status",
+          "source_kind",
+          "source_label",
+          "fixture",
+          "physical_evidence_present",
+          "achieved_evidence_level",
+          "package_status",
+          "package_evidence_level",
+          "allowed_claim",
+          "normalized_record_count",
+          "compared_record_count",
+          "omitted_record_count"
+        ],
+        "title": "ComparisonRevisionView",
+        "type": "object"
+      },
+      "ComponentEnvelopeView": {
+        "additionalProperties": false,
+        "properties": {
+          "component_id": {
+            "title": "Component Id",
+            "type": "string"
+          },
+          "dimensions_mm": {
+            "$ref": "#/components/schemas/AssemblyDimensionsView"
+          },
+          "evidence": {
+            "enum": [
+              "placeholder",
+              "manufacturer",
+              "measured"
+            ],
+            "title": "Evidence",
+            "type": "string"
+          },
+          "mass_g": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mass G"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "quantity": {
+            "minimum": 1.0,
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "component_id",
+          "name",
+          "quantity",
+          "evidence",
+          "dimensions_mm",
+          "mass_g",
+          "source"
+        ],
+        "title": "ComponentEnvelopeView",
+        "type": "object"
+      },
+      "ConversationCancelResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "accepted": {
+            "title": "Accepted",
+            "type": "boolean"
+          },
+          "hardware_actions": {
+            "const": false,
+            "title": "Hardware Actions",
+            "type": "boolean"
+          },
+          "schema_version": {
+            "const": "1.19.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "accepted",
+          "hardware_actions"
+        ],
+        "title": "ConversationCancelResponse",
+        "type": "object"
+      },
+      "ConversationEventType": {
+        "enum": [
+          "turn_started",
+          "assistant_text_delta",
+          "turn_completed",
+          "turn_failed",
+          "turn_cancelled",
+          "tool_started",
+          "tool_completed",
+          "tool_failed"
+        ],
+        "title": "ConversationEventType",
+        "type": "string"
+      },
+      "ConversationEventView": {
+        "additionalProperties": false,
+        "properties": {
+          "contract_version": {
+            "const": "1.1.0",
+            "title": "Contract Version",
+            "type": "string"
+          },
+          "event_type": {
+            "$ref": "#/components/schemas/ConversationEventType"
+          },
+          "sequence": {
+            "title": "Sequence",
+            "type": "integer"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "tool_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tool Name"
+          },
+          "turn_id": {
+            "title": "Turn Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "contract_version",
+          "sequence",
+          "event_type",
+          "turn_id",
+          "text",
+          "tool_name"
+        ],
+        "title": "ConversationEventView",
+        "type": "object"
+      },
+      "ConversationEventsResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "active_turn_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active Turn Id"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/ConversationEventView"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "hardware_actions": {
+            "const": false,
+            "title": "Hardware Actions",
+            "type": "boolean"
+          },
+          "next_sequence": {
+            "title": "Next Sequence",
+            "type": "integer"
+          },
+          "schema_version": {
+            "const": "1.19.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "tools_registered": {
+            "const": 4,
+            "title": "Tools Registered",
+            "type": "integer"
+          },
+          "workspace_mutation_enabled": {
+            "const": false,
+            "title": "Workspace Mutation Enabled",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "schema_version",
+          "events",
+          "active_turn_id",
+          "next_sequence",
+          "tools_registered",
+          "workspace_mutation_enabled",
+          "hardware_actions"
+        ],
+        "title": "ConversationEventsResponse",
+        "type": "object"
+      },
+      "ConversationTurnRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "prompt": {
+            "maxLength": 16384,
+            "minLength": 1,
+            "title": "Prompt",
+            "type": "string"
+          }
+        },
+        "required": [
+          "prompt"
+        ],
+        "title": "ConversationTurnRequest",
+        "type": "object"
+      },
+      "ConversationTurnResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "accepted": {
+            "const": true,
+            "title": "Accepted",
+            "type": "boolean"
+          },
+          "hardware_actions": {
+            "const": false,
+            "title": "Hardware Actions",
+            "type": "boolean"
+          },
+          "schema_version": {
+            "const": "1.19.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "tools_registered": {
+            "const": 4,
+            "title": "Tools Registered",
+            "type": "integer"
+          },
+          "turn_id": {
+            "title": "Turn Id",
+            "type": "string"
+          },
+          "workspace_mutation_enabled": {
+            "const": false,
+            "title": "Workspace Mutation Enabled",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "schema_version",
+          "turn_id",
+          "accepted",
+          "tools_registered",
+          "workspace_mutation_enabled",
+          "hardware_actions"
+        ],
+        "title": "ConversationTurnResponse",
+        "type": "object"
+      },
+      "DecisionActor": {
+        "enum": [
+          "user",
+          "model",
+          "system"
+        ],
+        "title": "DecisionActor",
+        "type": "string"
+      },
+      "DecisionView": {
+        "additionalProperties": false,
+        "properties": {
+          "actor": {
+            "$ref": "#/components/schemas/DecisionActor"
+          },
+          "alternatives": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Alternatives",
+            "type": "array"
+          },
+          "choice": {
+            "title": "Choice",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "data": {
+            "additionalProperties": true,
+            "title": "Data",
+            "type": "object"
+          },
+          "decision_id": {
+            "title": "Decision Id",
+            "type": "string"
+          },
+          "job_id": {
+            "title": "Job Id",
+            "type": "string"
+          },
+          "question": {
+            "title": "Question",
+            "type": "string"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "revision_id": {
+            "title": "Revision Id",
+            "type": "string"
+          },
+          "stage_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage Run Id"
+          }
+        },
+        "required": [
+          "decision_id",
+          "job_id",
+          "revision_id",
+          "stage_run_id",
+          "question",
+          "choice",
+          "rationale",
+          "actor",
+          "alternatives",
+          "created_at",
+          "data"
+        ],
+        "title": "DecisionView",
+        "type": "object"
+      },
+      "ErrorResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          }
+        },
+        "required": [
+          "detail"
+        ],
+        "title": "ErrorResponse",
+        "type": "object"
+      },
+      "EventView": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "title": "Data",
+            "type": "object"
+          },
+          "event_id": {
+            "title": "Event Id",
+            "type": "string"
+          },
+          "event_type": {
+            "title": "Event Type",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "sequence": {
+            "title": "Sequence",
+            "type": "integer"
+          },
+          "stage": {
+            "$ref": "#/components/schemas/FabricationStage"
+          },
+          "status": {
+            "$ref": "#/components/schemas/StageStatus"
+          },
+          "timestamp": {
+            "format": "date-time",
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "required": [
+          "event_id",
+          "stage",
+          "event_type",
+          "status",
+          "message",
+          "sequence",
+          "timestamp",
+          "data"
+        ],
+        "title": "EventView",
+        "type": "object"
+      },
+      "EvidenceLevel": {
+        "enum": [
+          "R0",
+          "R1",
+          "R2",
+          "R3",
+          "R4",
+          "R5",
+          "R6",
+          "R7"
+        ],
+        "title": "EvidenceLevel",
+        "type": "string"
+      },
+      "EvidenceMode": {
+        "enum": [
+          "real",
+          "simulated",
+          "fixture",
+          "unavailable"
+        ],
+        "title": "EvidenceMode",
+        "type": "string"
+      },
+      "FabricationStage": {
+        "enum": [
+          "brief",
+          "design",
+          "geometry_validation",
+          "printability_validation",
+          "slicing",
+          "fabrication_package",
+          "manufacturing"
+        ],
+        "title": "FabricationStage",
+        "type": "string"
+      },
+      "FindingSeverity": {
+        "enum": [
+          "info",
+          "warning",
+          "error",
+          "critical"
+        ],
+        "title": "FindingSeverity",
+        "type": "string"
+      },
+      "FindingView": {
+        "additionalProperties": false,
+        "properties": {
+          "affected_geometry": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Affected Geometry"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "data": {
+            "additionalProperties": true,
+            "title": "Data",
+            "type": "object"
+          },
+          "evidence": {
+            "title": "Evidence",
+            "type": "string"
+          },
+          "evidence_mode": {
+            "$ref": "#/components/schemas/EvidenceMode"
+          },
+          "finding_id": {
+            "title": "Finding Id",
+            "type": "string"
+          },
+          "remediation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remediation"
+          },
+          "resolution": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolution"
+          },
+          "resolved": {
+            "title": "Resolved",
+            "type": "boolean"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/FindingSeverity"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "finding_id",
+          "code",
+          "title",
+          "severity",
+          "evidence",
+          "evidence_mode",
+          "remediation",
+          "affected_geometry",
+          "resolved",
+          "resolution",
+          "data"
+        ],
+        "title": "FindingView",
+        "type": "object"
+      },
+      "GcodeSummaryView": {
+        "additionalProperties": false,
+        "properties": {
+          "checksum_sha256": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Checksum Sha256"
+          },
+          "estimated_seconds": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimated Seconds"
+          },
+          "feature_counts": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "integer"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feature Counts"
+          },
+          "filament_length_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filament Length Mm"
+          },
+          "filament_mass_g": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filament Mass G"
+          },
+          "layer_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Layer Count"
+          },
+          "motion_bounds_mm": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "number"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Motion Bounds Mm"
+          },
+          "slicer_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slicer Version"
+          },
+          "temperatures_c": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "items": {
+                    "type": "number"
+                  },
+                  "type": "array"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Temperatures C"
+          }
+        },
+        "required": [
+          "checksum_sha256",
+          "slicer_version",
+          "layer_count",
+          "estimated_seconds",
+          "filament_length_mm",
+          "filament_mass_g",
+          "motion_bounds_mm",
+          "temperatures_c",
+          "feature_counts"
+        ],
+        "title": "GcodeSummaryView",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "HardwareView": {
+        "additionalProperties": false,
+        "properties": {
+          "gcode_uploaded": {
+            "const": false,
+            "title": "Gcode Uploaded",
+            "type": "boolean"
+          },
+          "print_started": {
+            "const": false,
+            "title": "Print Started",
+            "type": "boolean"
+          },
+          "printer_connected": {
+            "const": false,
+            "title": "Printer Connected",
+            "type": "boolean"
+          },
+          "printer_selected": {
+            "const": false,
+            "title": "Printer Selected",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "printer_selected",
+          "printer_connected",
+          "gcode_uploaded",
+          "print_started"
+        ],
+        "title": "HardwareView",
+        "type": "object"
+      },
+      "HealthResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "capabilities": {
+            "$ref": "#/components/schemas/CapabilitiesView"
+          },
+          "schema_version": {
+            "const": "1.19.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "service": {
+            "const": "ariad-interface-api",
+            "title": "Service",
+            "type": "string"
+          },
+          "status": {
+            "const": "ok",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "service",
+          "status",
+          "capabilities"
+        ],
+        "title": "HealthResponse",
+        "type": "object"
+      },
+      "InspectionArtifactView": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "checksum_sha256": {
+            "title": "Checksum Sha256",
+            "type": "string"
+          },
+          "checksum_verified": {
+            "const": true,
+            "title": "Checksum Verified",
+            "type": "boolean"
+          },
+          "evidence_mode": {
+            "$ref": "#/components/schemas/EvidenceMode"
+          },
+          "producer": {
+            "title": "Producer",
+            "type": "string"
+          },
+          "producer_version": {
+            "title": "Producer Version",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "size_bytes": {
+            "title": "Size Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "artifact_id",
+          "role",
+          "checksum_sha256",
+          "size_bytes",
+          "producer",
+          "producer_version",
+          "evidence_mode",
+          "checksum_verified"
+        ],
+        "title": "InspectionArtifactView",
+        "type": "object"
+      },
+      "InspectionCheckView": {
+        "additionalProperties": false,
+        "properties": {
+          "actual": {
+            "title": "Actual"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "check_id": {
+            "title": "Check Id",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "passed": {
+            "title": "Passed",
+            "type": "boolean"
+          },
+          "remediation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remediation"
+          },
+          "requirement": {
+            "title": "Requirement"
+          },
+          "tolerance_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tolerance Mm"
+          }
+        },
+        "required": [
+          "check_id",
+          "category",
+          "description",
+          "passed",
+          "actual",
+          "requirement",
+          "tolerance_mm",
+          "remediation"
+        ],
+        "title": "InspectionCheckView",
+        "type": "object"
+      },
+      "InspectionFeatureView": {
+        "additionalProperties": false,
+        "properties": {
+          "dimensions_mm": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Dimensions Mm",
+            "type": "object"
+          },
+          "feature_id": {
+            "title": "Feature Id",
+            "type": "string"
+          },
+          "fixture": {
+            "title": "Fixture",
+            "type": "boolean"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "required": {
+            "title": "Required",
+            "type": "boolean"
+          },
+          "source": {
+            "const": "persisted_revision_spec",
+            "title": "Source",
+            "type": "string"
+          },
+          "tolerance_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tolerance Mm"
+          }
+        },
+        "required": [
+          "feature_id",
+          "kind",
+          "dimensions_mm",
+          "quantity",
+          "tolerance_mm",
+          "required",
+          "notes",
+          "source",
+          "fixture"
+        ],
+        "title": "InspectionFeatureView",
+        "type": "object"
+      },
+      "InspectionMessageView": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "remediation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remediation"
+          },
+          "severity": {
+            "enum": [
+              "warning",
+              "error"
+            ],
+            "title": "Severity",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "severity",
+          "code",
+          "title",
+          "message",
+          "remediation"
+        ],
+        "title": "InspectionMessageView",
+        "type": "object"
+      },
+      "InspectionProfileStatus": {
+        "enum": [
+          "experimental_analysis_only",
+          "experimental_uncalibrated",
+          "interface_fixture",
+          "interface_fixture_uncalibrated"
+        ],
+        "title": "InspectionProfileStatus",
+        "type": "string"
+      },
+      "InspectionProfileView": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact": {
+            "$ref": "#/components/schemas/InspectionArtifactView"
+          },
+          "claim_boundary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Claim Boundary"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "profile_id": {
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "profile_kind": {
+            "enum": [
+              "printer",
+              "material",
+              "process",
+              "orientation"
+            ],
+            "title": "Profile Kind",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/InspectionProfileStatus"
+          },
+          "values": {
+            "additionalProperties": true,
+            "title": "Values",
+            "type": "object"
+          }
+        },
+        "required": [
+          "profile_kind",
+          "artifact",
+          "profile_id",
+          "name",
+          "status",
+          "claim_boundary",
+          "values"
+        ],
+        "title": "InspectionProfileView",
+        "type": "object"
+      },
+      "InspectionReportStatus": {
+        "enum": [
+          "passed",
+          "passed_with_warnings",
+          "failed"
+        ],
+        "title": "InspectionReportStatus",
+        "type": "string"
+      },
+      "InspectionReportView": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact": {
+            "$ref": "#/components/schemas/InspectionArtifactView"
+          },
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/InspectionCheckView"
+            },
+            "title": "Checks",
+            "type": "array"
+          },
+          "claim_boundary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Claim Boundary"
+          },
+          "evidence_level": {
+            "anyOf": [
+              {
+                "enum": [
+                  "R2",
+                  "R3",
+                  "R4"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Level"
+          },
+          "measurements": {
+            "additionalProperties": true,
+            "title": "Measurements",
+            "type": "object"
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/InspectionMessageView"
+            },
+            "title": "Messages",
+            "type": "array"
+          },
+          "passed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Passed"
+          },
+          "report_kind": {
+            "enum": [
+              "geometry",
+              "printability",
+              "gcode_preflight"
+            ],
+            "title": "Report Kind",
+            "type": "string"
+          },
+          "schema_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Schema Version"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/InspectionReportStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "report_kind",
+          "title",
+          "artifact",
+          "schema_version",
+          "status",
+          "passed",
+          "evidence_level",
+          "claim_boundary",
+          "measurements",
+          "checks",
+          "messages"
+        ],
+        "title": "InspectionReportView",
+        "type": "object"
+      },
+      "InspectionUnavailableView": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Artifact Id"
+          },
+          "checksum_sha256": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Checksum Sha256"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "reason": {
+            "enum": [
+              "multiple_records",
+              "file_missing",
+              "size_limit",
+              "size_mismatch",
+              "checksum_mismatch",
+              "invalid_json",
+              "unsupported_shape"
+            ],
+            "title": "Reason",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "role",
+          "artifact_id",
+          "checksum_sha256",
+          "reason",
+          "message"
+        ],
+        "title": "InspectionUnavailableView",
+        "type": "object"
+      },
+      "InspectionView": {
+        "additionalProperties": false,
+        "properties": {
+          "claim_boundary": {
+            "title": "Claim Boundary",
+            "type": "string"
+          },
+          "features": {
+            "items": {
+              "$ref": "#/components/schemas/InspectionFeatureView"
+            },
+            "title": "Features",
+            "type": "array"
+          },
+          "max_json_bytes": {
+            "title": "Max Json Bytes",
+            "type": "integer"
+          },
+          "profiles": {
+            "items": {
+              "$ref": "#/components/schemas/InspectionProfileView"
+            },
+            "title": "Profiles",
+            "type": "array"
+          },
+          "reports": {
+            "items": {
+              "$ref": "#/components/schemas/InspectionReportView"
+            },
+            "title": "Reports",
+            "type": "array"
+          },
+          "unavailable": {
+            "items": {
+              "$ref": "#/components/schemas/InspectionUnavailableView"
+            },
+            "title": "Unavailable",
+            "type": "array"
+          }
+        },
+        "required": [
+          "features",
+          "reports",
+          "profiles",
+          "unavailable",
+          "max_json_bytes",
+          "claim_boundary"
+        ],
+        "title": "InspectionView",
+        "type": "object"
+      },
+      "IntakeRecordView": {
+        "additionalProperties": false,
+        "properties": {
+          "hardware_actions": {
+            "const": false,
+            "title": "Hardware Actions",
+            "type": "boolean"
+          },
+          "intake_id": {
+            "title": "Intake Id",
+            "type": "string"
+          },
+          "prompt": {
+            "title": "Prompt",
+            "type": "string"
+          },
+          "prompt_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Prompt Sha256",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "intake_id",
+          "prompt",
+          "prompt_sha256",
+          "hardware_actions"
+        ],
+        "title": "IntakeRecordView",
+        "type": "object"
+      },
+      "IntakeRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "prompt": {
+            "maxLength": 16384,
+            "minLength": 1,
+            "title": "Prompt",
+            "type": "string"
+          }
+        },
+        "required": [
+          "prompt"
+        ],
+        "title": "IntakeRequest",
+        "type": "object"
+      },
+      "IntakeResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "claim_boundary": {
+            "title": "Claim Boundary",
+            "type": "string"
+          },
+          "executed": {
+            "const": false,
+            "title": "Executed",
+            "type": "boolean"
+          },
+          "intake": {
+            "$ref": "#/components/schemas/IntakeRecordView"
+          },
+          "persisted": {
+            "const": false,
+            "title": "Persisted",
+            "type": "boolean"
+          },
+          "provider": {
+            "$ref": "#/components/schemas/IntentProviderView"
+          },
+          "route": {
+            "$ref": "#/components/schemas/CapabilityRouteView"
+          },
+          "schema_version": {
+            "const": "1.19.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "intake",
+          "provider",
+          "route",
+          "persisted",
+          "executed",
+          "claim_boundary"
+        ],
+        "title": "IntakeResponse",
+        "type": "object"
+      },
+      "IntentProviderView": {
+        "additionalProperties": false,
+        "properties": {
+          "configured": {
+            "const": false,
+            "title": "Configured",
+            "type": "boolean"
+          },
+          "evidence_mode": {
+            "const": "unavailable",
+            "title": "Evidence Mode",
+            "type": "string"
+          },
+          "model": {
+            "const": "gpt-5.6-sol",
+            "title": "Model",
+            "type": "string"
+          },
+          "provider_id": {
+            "const": "openai_gpt_5_6_intent",
+            "title": "Provider Id",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "provider_id",
+          "model",
+          "configured",
+          "evidence_mode",
+          "reason"
+        ],
+        "title": "IntentProviderView",
+        "type": "object"
+      },
+      "JobStatus": {
+        "enum": [
+          "active",
+          "needs_input",
+          "ready_for_design",
+          "design_generated",
+          "geometry_verified",
+          "printability_assessed",
+          "slicer_verified",
+          "failed",
+          "completed",
+          "cancelled"
+        ],
+        "title": "JobStatus",
+        "type": "string"
+      },
+      "JobView": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "job_id": {
+            "title": "Job Id",
+            "type": "string"
+          },
+          "metadata": {
+            "additionalProperties": true,
+            "title": "Metadata",
+            "type": "object"
+          },
+          "request": {
+            "title": "Request",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/JobStatus"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "job_id",
+          "title",
+          "request",
+          "status",
+          "created_at",
+          "updated_at",
+          "metadata"
+        ],
+        "title": "JobView",
+        "type": "object"
+      },
+      "LocalCodexStatus": {
+        "enum": [
+          "ready",
+          "unauthenticated",
+          "unavailable",
+          "error",
+          "incompatible"
+        ],
+        "title": "LocalCodexStatus",
+        "type": "string"
+      },
+      "LocalCodexStatusResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "authentication": {
+            "anyOf": [
+              {
+                "enum": [
+                  "chatgpt",
+                  "api_key",
+                  "other"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Authentication"
+          },
+          "cli_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cli Version"
+          },
+          "contract_version": {
+            "const": "1.0.0",
+            "title": "Contract Version",
+            "type": "string"
+          },
+          "conversation_available": {
+            "title": "Conversation Available",
+            "type": "boolean"
+          },
+          "conversation_started": {
+            "const": false,
+            "title": "Conversation Started",
+            "type": "boolean"
+          },
+          "hardware_actions": {
+            "const": false,
+            "title": "Hardware Actions",
+            "type": "boolean"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.19.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/LocalCodexStatus"
+          },
+          "tools_registered": {
+            "const": 0,
+            "title": "Tools Registered",
+            "type": "integer"
+          },
+          "workspace_mutated": {
+            "const": false,
+            "title": "Workspace Mutated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "schema_version",
+          "contract_version",
+          "status",
+          "cli_version",
+          "authentication",
+          "reason",
+          "conversation_available",
+          "tools_registered",
+          "conversation_started",
+          "workspace_mutated",
+          "hardware_actions"
+        ],
+        "title": "LocalCodexStatusResponse",
+        "type": "object"
+      },
+      "PackageStatus": {
+        "enum": [
+          "slicer_verified",
+          "slicer_verified_with_physical_unknowns",
+          "fixture"
+        ],
+        "title": "PackageStatus",
+        "type": "string"
+      },
+      "PackageView": {
+        "additionalProperties": false,
+        "properties": {
+          "allowed_claim": {
+            "title": "Allowed Claim",
+            "type": "string"
+          },
+          "claim_boundary": {
+            "title": "Claim Boundary",
+            "type": "string"
+          },
+          "evidence_level": {
+            "anyOf": [
+              {
+                "const": "R4",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Level"
+          },
+          "gcode_summary": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GcodeSummaryView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "hardware": {
+            "$ref": "#/components/schemas/HardwareView"
+          },
+          "slicer": {
+            "additionalProperties": true,
+            "title": "Slicer",
+            "type": "object"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PackageStatus"
+          },
+          "unresolved_warning_count": {
+            "title": "Unresolved Warning Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "status",
+          "evidence_level",
+          "allowed_claim",
+          "claim_boundary",
+          "hardware",
+          "gcode_summary",
+          "slicer",
+          "unresolved_warning_count"
+        ],
+        "title": "PackageView",
+        "type": "object"
+      },
+      "ProjectBriefConfirmRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "confirmed": {
+            "const": true,
+            "title": "Confirmed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "confirmed"
+        ],
+        "title": "ProjectBriefConfirmRequest",
+        "type": "object"
+      },
+      "ProjectBriefView": {
+        "additionalProperties": false,
+        "properties": {
+          "confirmed_at": {
+            "format": "date-time",
+            "title": "Confirmed At",
+            "type": "string"
+          },
+          "confirmed_by": {
+            "const": "user",
+            "title": "Confirmed By",
+            "type": "string"
+          },
+          "draft_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Draft Sha256",
+            "type": "string"
+          },
+          "evidence_level": {
+            "const": "R0",
+            "title": "Evidence Level",
+            "type": "string"
+          },
+          "fabrication_started": {
+            "const": false,
+            "title": "Fabrication Started",
+            "type": "boolean"
+          },
+          "hardware_actions": {
+            "const": false,
+            "title": "Hardware Actions",
+            "type": "boolean"
+          },
+          "job_id": {
+            "title": "Job Id",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "revision_id": {
+            "title": "Revision Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "const": "ready_for_design",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "project_id",
+          "job_id",
+          "revision_id",
+          "draft_sha256",
+          "confirmed_at",
+          "confirmed_by",
+          "evidence_level",
+          "status",
+          "fabrication_started",
+          "hardware_actions"
+        ],
+        "title": "ProjectBriefView",
+        "type": "object"
+      },
+      "ProjectDesignPlanRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "assembly_interfaces": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Assembly Interfaces",
+            "type": "array"
+          },
+          "constraints": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Constraints",
+            "type": "array"
+          },
+          "critical_features": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Critical Features",
+            "type": "array"
+          },
+          "geometry_strategy": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Geometry Strategy",
+            "type": "string"
+          },
+          "lane": {
+            "enum": [
+              "functional_parametric",
+              "organic_mesh",
+              "hybrid",
+              "undecided"
+            ],
+            "title": "Lane",
+            "type": "string"
+          },
+          "unresolved_questions": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Unresolved Questions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "lane",
+          "geometry_strategy",
+          "critical_features",
+          "assembly_interfaces",
+          "constraints",
+          "unresolved_questions"
+        ],
+        "title": "ProjectDesignPlanRequest",
+        "type": "object"
+      },
+      "ProjectDesignPlanView": {
+        "additionalProperties": false,
+        "properties": {
+          "assembly_interfaces": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Assembly Interfaces",
+            "type": "array"
+          },
+          "authored_by": {
+            "const": "user",
+            "title": "Authored By",
+            "type": "string"
+          },
+          "brief_draft_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Brief Draft Sha256",
+            "type": "string"
+          },
+          "cad_generated": {
+            "const": false,
+            "title": "Cad Generated",
+            "type": "boolean"
+          },
+          "constraints": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Constraints",
+            "type": "array"
+          },
+          "critical_features": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Critical Features",
+            "type": "array"
+          },
+          "design_evidence_level": {
+            "title": "Design Evidence Level",
+            "type": "null"
+          },
+          "evidence_mode": {
+            "const": "planning_only",
+            "title": "Evidence Mode",
+            "type": "string"
+          },
+          "fabrication_started": {
+            "const": false,
+            "title": "Fabrication Started",
+            "type": "boolean"
+          },
+          "geometry_strategy": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Geometry Strategy",
+            "type": "string"
+          },
+          "hardware_actions": {
+            "const": false,
+            "title": "Hardware Actions",
+            "type": "boolean"
+          },
+          "job_id": {
+            "title": "Job Id",
+            "type": "string"
+          },
+          "lane": {
+            "enum": [
+              "functional_parametric",
+              "organic_mesh",
+              "hybrid",
+              "undecided"
+            ],
+            "title": "Lane",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "revision_id": {
+            "title": "Revision Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "needs_input",
+              "planning_complete"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "unresolved_questions": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Unresolved Questions",
+            "type": "array"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "lane",
+          "geometry_strategy",
+          "critical_features",
+          "assembly_interfaces",
+          "constraints",
+          "unresolved_questions",
+          "schema_version",
+          "project_id",
+          "job_id",
+          "revision_id",
+          "brief_draft_sha256",
+          "updated_at",
+          "authored_by",
+          "status",
+          "evidence_mode",
+          "design_evidence_level",
+          "cad_generated",
+          "fabrication_started",
+          "hardware_actions"
+        ],
+        "title": "ProjectDesignPlanView",
+        "type": "object"
+      },
+      "ProjectDesignProposalView": {
+        "additionalProperties": false,
+        "properties": {
+          "brief_draft_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Brief Draft Sha256",
+            "type": "string"
+          },
+          "cad_generated": {
+            "const": false,
+            "title": "Cad Generated",
+            "type": "boolean"
+          },
+          "claim_boundary": {
+            "title": "Claim Boundary",
+            "type": "string"
+          },
+          "design_evidence_level": {
+            "title": "Design Evidence Level",
+            "type": "null"
+          },
+          "evidence_mode": {
+            "const": "model_proposal",
+            "title": "Evidence Mode",
+            "type": "string"
+          },
+          "fabrication_started": {
+            "const": false,
+            "title": "Fabrication Started",
+            "type": "boolean"
+          },
+          "hardware_actions": {
+            "const": false,
+            "title": "Hardware Actions",
+            "type": "boolean"
+          },
+          "job_id": {
+            "title": "Job Id",
+            "type": "string"
+          },
+          "persisted": {
+            "const": false,
+            "title": "Persisted",
+            "type": "boolean"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "proposal": {
+            "$ref": "#/components/schemas/ProjectDesignPlanRequest"
+          },
+          "revision_id": {
+            "title": "Revision Id",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "needs_input",
+              "planning_complete"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tool_contract": {
+            "const": "1.1.0",
+            "title": "Tool Contract",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tool_contract",
+          "project_id",
+          "job_id",
+          "revision_id",
+          "brief_draft_sha256",
+          "proposal",
+          "status",
+          "persisted",
+          "evidence_mode",
+          "design_evidence_level",
+          "cad_generated",
+          "fabrication_started",
+          "hardware_actions",
+          "claim_boundary"
+        ],
+        "title": "ProjectDesignProposalView",
+        "type": "object"
+      },
+      "ProjectDetailResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "brief": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProjectBriefView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "design_plan": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProjectDesignPlanView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "draft": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProjectDraftView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "fabrication_started": {
+            "const": false,
+            "title": "Fabrication Started",
+            "type": "boolean"
+          },
+          "hardware_actions": {
+            "const": false,
+            "title": "Hardware Actions",
+            "type": "boolean"
+          },
+          "project": {
+            "$ref": "#/components/schemas/ProjectIntentView"
+          },
+          "schema_version": {
+            "const": "1.19.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "project",
+          "draft",
+          "brief",
+          "design_plan",
+          "fabrication_started",
+          "hardware_actions"
+        ],
+        "title": "ProjectDetailResponse",
+        "type": "object"
+      },
+      "ProjectDraftRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "manufacturing_process": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Manufacturing Process"
+          },
+          "material": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Material"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "part_type": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Part Type"
+          },
+          "purpose": {
+            "anyOf": [
+              {
+                "maxLength": 512,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Purpose"
+          },
+          "safety_class": {
+            "anyOf": [
+              {
+                "enum": [
+                  "general",
+                  "caution",
+                  "safety_critical"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Safety Class"
+          },
+          "size_x_mm": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Size X Mm"
+          },
+          "size_y_mm": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Size Y Mm"
+          },
+          "size_z_mm": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Size Z Mm"
+          },
+          "support_policy": {
+            "anyOf": [
+              {
+                "enum": [
+                  "avoid",
+                  "allowed",
+                  "required"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Support Policy"
+          },
+          "tolerance_mm": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tolerance Mm"
+          }
+        },
+        "title": "ProjectDraftRequest",
+        "type": "object"
+      },
+      "ProjectDraftView": {
+        "additionalProperties": false,
+        "properties": {
+          "brief_evidence_level": {
+            "title": "Brief Evidence Level",
+            "type": "null"
+          },
+          "fabrication_started": {
+            "const": false,
+            "title": "Fabrication Started",
+            "type": "boolean"
+          },
+          "hardware_actions": {
+            "const": false,
+            "title": "Hardware Actions",
+            "type": "boolean"
+          },
+          "manufacturing_process": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Manufacturing Process"
+          },
+          "material": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Material"
+          },
+          "missing_fields": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing Fields",
+            "type": "array"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "part_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Part Type"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "purpose": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Purpose"
+          },
+          "safety_class": {
+            "anyOf": [
+              {
+                "enum": [
+                  "general",
+                  "caution",
+                  "safety_critical"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Safety Class"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "size_x_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Size X Mm"
+          },
+          "size_y_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Size Y Mm"
+          },
+          "size_z_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Size Z Mm"
+          },
+          "status": {
+            "enum": [
+              "needs_input",
+              "ready_for_confirmation"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "support_policy": {
+            "anyOf": [
+              {
+                "enum": [
+                  "avoid",
+                  "allowed",
+                  "required"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Support Policy"
+          },
+          "tolerance_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tolerance Mm"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "project_id",
+          "name",
+          "purpose",
+          "part_type",
+          "size_x_mm",
+          "size_y_mm",
+          "size_z_mm",
+          "material",
+          "tolerance_mm",
+          "support_policy",
+          "manufacturing_process",
+          "safety_class",
+          "updated_at",
+          "status",
+          "missing_fields",
+          "brief_evidence_level",
+          "fabrication_started",
+          "hardware_actions"
+        ],
+        "title": "ProjectDraftView",
+        "type": "object"
+      },
+      "ProjectIntentCreateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "confirmed": {
+            "const": true,
+            "title": "Confirmed",
+            "type": "boolean"
+          },
+          "prompt": {
+            "maxLength": 16384,
+            "minLength": 1,
+            "title": "Prompt",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "prompt",
+          "confirmed"
+        ],
+        "title": "ProjectIntentCreateRequest",
+        "type": "object"
+      },
+      "ProjectIntentListResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "fabrication_started": {
+            "const": false,
+            "title": "Fabrication Started",
+            "type": "boolean"
+          },
+          "hardware_actions": {
+            "const": false,
+            "title": "Hardware Actions",
+            "type": "boolean"
+          },
+          "projects": {
+            "items": {
+              "$ref": "#/components/schemas/ProjectIntentView"
+            },
+            "title": "Projects",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "1.19.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "projects",
+          "fabrication_started",
+          "hardware_actions"
+        ],
+        "title": "ProjectIntentListResponse",
+        "type": "object"
+      },
+      "ProjectIntentView": {
+        "additionalProperties": false,
+        "properties": {
+          "brief_evidence_level": {
+            "title": "Brief Evidence Level",
+            "type": "null"
+          },
+          "confirmed_at": {
+            "format": "date-time",
+            "title": "Confirmed At",
+            "type": "string"
+          },
+          "confirmed_by": {
+            "const": "user",
+            "title": "Confirmed By",
+            "type": "string"
+          },
+          "evidence_mode": {
+            "const": "user_confirmed",
+            "title": "Evidence Mode",
+            "type": "string"
+          },
+          "fabrication_started": {
+            "const": false,
+            "title": "Fabrication Started",
+            "type": "boolean"
+          },
+          "hardware_actions": {
+            "const": false,
+            "title": "Hardware Actions",
+            "type": "boolean"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "prompt": {
+            "title": "Prompt",
+            "type": "string"
+          },
+          "prompt_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Prompt Sha256",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "const": "intent_confirmed",
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "project_id",
+          "title",
+          "prompt",
+          "prompt_sha256",
+          "confirmed_at",
+          "confirmed_by",
+          "status",
+          "evidence_mode",
+          "brief_evidence_level",
+          "fabrication_started",
+          "hardware_actions"
+        ],
+        "title": "ProjectIntentView",
+        "type": "object"
+      },
+      "RevisionComparisonResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "base": {
+            "$ref": "#/components/schemas/ComparisonRevisionView"
+          },
+          "candidate": {
+            "$ref": "#/components/schemas/ComparisonRevisionView"
+          },
+          "capabilities": {
+            "$ref": "#/components/schemas/CapabilitiesView"
+          },
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/ComparisonChangeView"
+            },
+            "title": "Changes",
+            "type": "array"
+          },
+          "claim_boundary": {
+            "title": "Claim Boundary",
+            "type": "string"
+          },
+          "complete": {
+            "title": "Complete",
+            "type": "boolean"
+          },
+          "incomplete_value_count": {
+            "title": "Incomplete Value Count",
+            "type": "integer"
+          },
+          "max_changes": {
+            "title": "Max Changes",
+            "type": "integer"
+          },
+          "max_records_per_revision": {
+            "title": "Max Records Per Revision",
+            "type": "integer"
+          },
+          "max_value_bytes": {
+            "title": "Max Value Bytes",
+            "type": "integer"
+          },
+          "omitted_change_count": {
+            "title": "Omitted Change Count",
+            "type": "integer"
+          },
+          "relationship": {
+            "enum": [
+              "same_revision",
+              "parent_to_child",
+              "child_to_parent",
+              "same_job",
+              "unrelated"
+            ],
+            "title": "Relationship",
+            "type": "string"
+          },
+          "returned_change_count": {
+            "title": "Returned Change Count",
+            "type": "integer"
+          },
+          "schema_version": {
+            "const": "1.19.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "summaries": {
+            "items": {
+              "$ref": "#/components/schemas/ComparisonAreaSummaryView"
+            },
+            "title": "Summaries",
+            "type": "array"
+          },
+          "total_change_count": {
+            "title": "Total Change Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "capabilities",
+          "base",
+          "candidate",
+          "relationship",
+          "complete",
+          "total_change_count",
+          "returned_change_count",
+          "omitted_change_count",
+          "incomplete_value_count",
+          "summaries",
+          "changes",
+          "max_changes",
+          "max_value_bytes",
+          "max_records_per_revision",
+          "claim_boundary"
+        ],
+        "title": "RevisionComparisonResponse",
+        "type": "object"
+      },
+      "RevisionDetailResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "capabilities": {
+            "$ref": "#/components/schemas/CapabilitiesView"
+          },
+          "inspection": {
+            "$ref": "#/components/schemas/InspectionView"
+          },
+          "job": {
+            "$ref": "#/components/schemas/JobView"
+          },
+          "manifest_available": {
+            "title": "Manifest Available",
+            "type": "boolean"
+          },
+          "package": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PackageView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "revision": {
+            "$ref": "#/components/schemas/RevisionView"
+          },
+          "schema_version": {
+            "const": "1.19.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/SourceView"
+          },
+          "stages": {
+            "items": {
+              "$ref": "#/components/schemas/StageView"
+            },
+            "title": "Stages",
+            "type": "array"
+          }
+        },
+        "required": [
+          "schema_version",
+          "capabilities",
+          "source",
+          "manifest_available",
+          "job",
+          "revision",
+          "stages",
+          "package",
+          "inspection"
+        ],
+        "title": "RevisionDetailResponse",
+        "type": "object"
+      },
+      "RevisionListResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "capabilities": {
+            "$ref": "#/components/schemas/CapabilitiesView"
+          },
+          "revisions": {
+            "items": {
+              "$ref": "#/components/schemas/RevisionSummary"
+            },
+            "title": "Revisions",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "1.19.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "window": {
+            "$ref": "#/components/schemas/RevisionListWindowView"
+          }
+        },
+        "required": [
+          "schema_version",
+          "capabilities",
+          "revisions",
+          "window"
+        ],
+        "title": "RevisionListResponse",
+        "type": "object"
+      },
+      "RevisionListWindowView": {
+        "additionalProperties": false,
+        "properties": {
+          "claim_boundary": {
+            "title": "Claim Boundary",
+            "type": "string"
+          },
+          "directory_entries_examined": {
+            "title": "Directory Entries Examined",
+            "type": "integer"
+          },
+          "discovery_complete": {
+            "title": "Discovery Complete",
+            "type": "boolean"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "max_candidates": {
+            "title": "Max Candidates",
+            "type": "integer"
+          },
+          "max_directory_entries": {
+            "title": "Max Directory Entries",
+            "type": "integer"
+          },
+          "next_offset": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Offset"
+          },
+          "observed_candidate_count": {
+            "title": "Observed Candidate Count",
+            "type": "integer"
+          },
+          "observed_omitted_count": {
+            "title": "Observed Omitted Count",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "ordering": {
+            "const": "job_id_revision_id_ascending",
+            "title": "Ordering",
+            "type": "string"
+          },
+          "returned_count": {
+            "title": "Returned Count",
+            "type": "integer"
+          },
+          "snapshot_consistent": {
+            "const": false,
+            "title": "Snapshot Consistent",
+            "type": "boolean"
+          },
+          "truncation_reasons": {
+            "items": {
+              "enum": [
+                "directory_entry_limit",
+                "candidate_limit",
+                "window_limit",
+                "filesystem_error"
+              ],
+              "type": "string"
+            },
+            "title": "Truncation Reasons",
+            "type": "array"
+          }
+        },
+        "required": [
+          "discovery_complete",
+          "snapshot_consistent",
+          "ordering",
+          "directory_entries_examined",
+          "observed_candidate_count",
+          "offset",
+          "limit",
+          "returned_count",
+          "observed_omitted_count",
+          "next_offset",
+          "truncation_reasons",
+          "max_directory_entries",
+          "max_candidates",
+          "error",
+          "claim_boundary"
+        ],
+        "title": "RevisionListWindowView",
+        "type": "object"
+      },
+      "RevisionSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "achieved_evidence_level": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvidenceLevel"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "availability": {
+            "enum": [
+              "available",
+              "invalid"
+            ],
+            "title": "Availability",
+            "type": "string"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "job_id": {
+            "title": "Job Id",
+            "type": "string"
+          },
+          "job_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/JobStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "latest_stage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FabricationStage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "latest_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StageStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "parent_revision_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Revision Id"
+          },
+          "revision_id": {
+            "title": "Revision Id",
+            "type": "string"
+          },
+          "revision_number": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revision Number"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SourceView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "stage_count": {
+            "title": "Stage Count",
+            "type": "integer"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
+          "warning_count": {
+            "title": "Warning Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "job_id",
+          "revision_id",
+          "availability",
+          "title",
+          "job_status",
+          "revision_number",
+          "parent_revision_id",
+          "stage_count",
+          "latest_stage",
+          "latest_status",
+          "achieved_evidence_level",
+          "warning_count",
+          "updated_at",
+          "source",
+          "error"
+        ],
+        "title": "RevisionSummary",
+        "type": "object"
+      },
+      "RevisionView": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          },
+          "parent_revision_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Revision Id"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "revision_id": {
+            "title": "Revision Id",
+            "type": "string"
+          },
+          "spec": {
+            "additionalProperties": true,
+            "title": "Spec",
+            "type": "object"
+          }
+        },
+        "required": [
+          "revision_id",
+          "number",
+          "parent_revision_id",
+          "reason",
+          "created_at",
+          "spec"
+        ],
+        "title": "RevisionView",
+        "type": "object"
+      },
+      "RouteStatus": {
+        "enum": [
+          "demo_available",
+          "needs_input",
+          "provider_unavailable",
+          "unsupported"
+        ],
+        "title": "RouteStatus",
+        "type": "string"
+      },
+      "SourceView": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence_mode": {
+            "enum": [
+              "real",
+              "simulated",
+              "fixture",
+              "unavailable",
+              "mixed"
+            ],
+            "title": "Evidence Mode",
+            "type": "string"
+          },
+          "fixture": {
+            "title": "Fixture",
+            "type": "boolean"
+          },
+          "kind": {
+            "enum": [
+              "interface_fixture",
+              "runtime_revision"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "physical_evidence_present": {
+            "title": "Physical Evidence Present",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "kind",
+          "label",
+          "evidence_mode",
+          "fixture",
+          "physical_evidence_present"
+        ],
+        "title": "SourceView",
+        "type": "object"
+      },
+      "StageStatus": {
+        "enum": [
+          "waiting",
+          "running",
+          "needs_input",
+          "passed",
+          "passed_with_warnings",
+          "failed",
+          "cancelled",
+          "superseded"
+        ],
+        "title": "StageStatus",
+        "type": "string"
+      },
+      "StageView": {
+        "additionalProperties": false,
+        "properties": {
+          "approvals": {
+            "items": {
+              "$ref": "#/components/schemas/ApprovalView"
+            },
+            "title": "Approvals",
+            "type": "array"
+          },
+          "artifacts": {
+            "items": {
+              "$ref": "#/components/schemas/ArtifactView"
+            },
+            "title": "Artifacts",
+            "type": "array"
+          },
+          "attempt": {
+            "title": "Attempt",
+            "type": "integer"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "decisions": {
+            "items": {
+              "$ref": "#/components/schemas/DecisionView"
+            },
+            "title": "Decisions",
+            "type": "array"
+          },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/EventView"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "evidence_level": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvidenceLevel"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "evidence_mode": {
+            "$ref": "#/components/schemas/EvidenceMode"
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/components/schemas/FindingView"
+            },
+            "title": "Findings",
+            "type": "array"
+          },
+          "stage": {
+            "$ref": "#/components/schemas/FabricationStage"
+          },
+          "stage_run_id": {
+            "title": "Stage Run Id",
+            "type": "string"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "status": {
+            "$ref": "#/components/schemas/StageStatus"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "tool": {
+            "$ref": "#/components/schemas/ToolView"
+          }
+        },
+        "required": [
+          "stage_run_id",
+          "stage",
+          "status",
+          "attempt",
+          "evidence_mode",
+          "evidence_level",
+          "tool",
+          "started_at",
+          "completed_at",
+          "summary",
+          "error_message",
+          "events",
+          "findings",
+          "artifacts",
+          "decisions",
+          "approvals"
+        ],
+        "title": "StageView",
+        "type": "object"
+      },
+      "ToolView": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "version"
+        ],
+        "title": "ToolView",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "This API replays persisted records, captures bounded ideas, and may save a user-confirmed project intent, explicitly confirm a complete PartSpec through the existing R0 Brief gate, and persist a planning-only Design plan. It cannot generate CAD, upload G-code, select a printer, heat hardware, move hardware, or start manufacturing.",
+    "summary": "Evidence replay, conversation, project clarification, R0 confirmation, and Design planning.",
+    "title": "Ariad Fabrication Journey API",
+    "version": "1.19.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/assemblies/robot-concept": {
+      "get": {
+        "operationId": "robot_concept_assembly_api_v1_assemblies_robot_concept_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssemblySpecResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Robot Concept Assembly"
+      }
+    },
+    "/api/v1/codex/cancel": {
+      "post": {
+        "operationId": "cancel_codex_turn_api_v1_codex_cancel_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-ariad-session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Ariad-Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationCancelResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Cancel Codex Turn"
+      }
+    },
+    "/api/v1/codex/events": {
+      "get": {
+        "operationId": "codex_events_api_v1_codex_events_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "after",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "After",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-ariad-session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Ariad-Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationEventsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Codex Events"
+      }
+    },
+    "/api/v1/codex/status": {
+      "get": {
+        "operationId": "codex_status_api_v1_codex_status_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocalCodexStatusResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Codex Status"
+      }
+    },
+    "/api/v1/codex/turns": {
+      "post": {
+        "operationId": "start_codex_turn_api_v1_codex_turns_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-ariad-session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Ariad-Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConversationTurnRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationTurnResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start Codex Turn"
+      }
+    },
+    "/api/v1/health": {
+      "get": {
+        "operationId": "health_api_v1_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health"
+      }
+    },
+    "/api/v1/intake": {
+      "post": {
+        "description": "Capture one idea without persistence, model inference, or execution.",
+        "operationId": "capture_intake_api_v1_intake_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IntakeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntakeResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The prompt is empty or exceeds the bounded intake contract."
+          }
+        },
+        "summary": "Capture Intake"
+      }
+    },
+    "/api/v1/projects": {
+      "get": {
+        "operationId": "projects_api_v1_projects_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-ariad-session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Ariad-Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectIntentListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Projects"
+      },
+      "post": {
+        "operationId": "create_project_api_v1_projects_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-ariad-session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Ariad-Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectIntentCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectIntentView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Project"
+      }
+    },
+    "/api/v1/projects/{project_id}": {
+      "get": {
+        "operationId": "project_detail_api_v1_projects__project_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-ariad-session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Ariad-Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectDetailResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Project Detail"
+      }
+    },
+    "/api/v1/projects/{project_id}/brief-confirmation": {
+      "post": {
+        "operationId": "confirm_project_brief_api_v1_projects__project_id__brief_confirmation_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-ariad-session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Ariad-Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectBriefConfirmRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectBriefView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Confirm Project Brief"
+      }
+    },
+    "/api/v1/projects/{project_id}/design-plan": {
+      "put": {
+        "operationId": "save_project_design_plan_api_v1_projects__project_id__design_plan_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-ariad-session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Ariad-Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectDesignPlanRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectDesignPlanView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Save Project Design Plan"
+      }
+    },
+    "/api/v1/projects/{project_id}/design-proposal": {
+      "get": {
+        "operationId": "project_design_proposal_api_v1_projects__project_id__design_proposal_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-ariad-session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Ariad-Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectDesignProposalView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Project Design Proposal"
+      }
+    },
+    "/api/v1/projects/{project_id}/draft": {
+      "put": {
+        "operationId": "save_project_draft_api_v1_projects__project_id__draft_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-ariad-session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Ariad-Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectDraftRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectDraftView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Save Project Draft"
+      }
+    },
+    "/api/v1/revision-comparison": {
+      "get": {
+        "operationId": "revision_comparison_api_v1_revision_comparison_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "base_job_id",
+            "required": true,
+            "schema": {
+              "title": "Base Job Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "base_revision_id",
+            "required": true,
+            "schema": {
+              "title": "Base Revision Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "candidate_job_id",
+            "required": true,
+            "schema": {
+              "title": "Candidate Job Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "candidate_revision_id",
+            "required": true,
+            "schema": {
+              "title": "Candidate Revision Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevisionComparisonResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Persisted revision was not found."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Persisted revision failed integrity checks."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revision Comparison"
+      }
+    },
+    "/api/v1/revisions": {
+      "get": {
+        "operationId": "revisions_api_v1_revisions_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "maximum": 500,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevisionListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revisions"
+      }
+    },
+    "/api/v1/revisions/{job_id}/{revision_id}": {
+      "get": {
+        "operationId": "revision_api_v1_revisions__job_id___revision_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "revision_id",
+            "required": true,
+            "schema": {
+              "title": "Revision Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevisionDetailResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Persisted revision was not found."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Persisted revision failed integrity checks."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revision"
+      }
+    },
+    "/api/v1/revisions/{job_id}/{revision_id}/artifacts/{artifact_id}": {
+      "get": {
+        "operationId": "artifact_api_v1_revisions__job_id___revision_id__artifacts__artifact_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "revision_id",
+            "required": true,
+            "schema": {
+              "title": "Revision Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "artifact_id",
+            "required": true,
+            "schema": {
+              "title": "Artifact Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Bounded binary snapshot whose bytes passed recorded size and SHA-256 checks.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
+              "Content-Disposition": {
+                "description": "Attachment filename encoded according to RFC 5987.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "ETag": {
+                "description": "Quoted recorded SHA-256 of the returned snapshot.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Ariad-Evidence-Mode": {
+                "schema": {
+                  "enum": [
+                    "real",
+                    "simulated",
+                    "fixture",
+                    "unavailable"
+                  ],
+                  "type": "string"
+                }
+              },
+              "X-Ariad-Hardware-Action": {
+                "schema": {
+                  "const": "false",
+                  "type": "string"
+                }
+              },
+              "X-Ariad-Integrity": {
+                "schema": {
+                  "const": "sha256-verified-snapshot",
+                  "type": "string"
+                }
+              },
+              "X-Ariad-Max-Artifact-Bytes": {
+                "schema": {
+                  "const": 67108864,
+                  "type": "integer"
+                }
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "const": "nosniff",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Persisted revision was not found."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Persisted revision failed integrity checks."
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Artifact exceeds the verified-download resource ceiling."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Artifact"
+      }
+    },
+    "/api/v1/session": {
+      "get": {
+        "operationId": "browser_session_api_v1_session_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrowserSessionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Browser Session"
+      }
+    }
+  }
+}

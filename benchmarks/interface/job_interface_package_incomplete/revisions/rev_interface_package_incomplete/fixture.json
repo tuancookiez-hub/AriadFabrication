@@ -1,0 +1,10 @@
+{
+  "allowed_claim": "Interface gate behavior demonstrated with fixture data only.",
+  "classification": "interface_fixture",
+  "evidence_mode": "fixture",
+  "generated_at": "2026-07-16T08:00:00+00:00",
+  "label": "INTERFACE FIXTURE — package incomplete; no fabrication evidence",
+  "physical_validation": false,
+  "scenario": "package_incomplete",
+  "source_spec": "part_spec.json"
+}

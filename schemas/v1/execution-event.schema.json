@@ -1,0 +1,206 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ariad.local/schemas/v1/execution-event.schema.json",
+  "title": "Ariad no-hardware execution event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event_id",
+    "execution_id",
+    "sequence",
+    "event_type",
+    "status",
+    "occurred_at",
+    "message",
+    "job_id",
+    "revision_id",
+    "data",
+    "hardware_action"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.1.0"},
+    "event_id": {
+      "type": "string",
+      "pattern": "^exevt_[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$"
+    },
+    "execution_id": {
+      "type": "string",
+      "pattern": "^exec_[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$"
+    },
+    "sequence": {"type": "integer", "minimum": 1, "maximum": 10000},
+    "event_type": {
+      "enum": [
+        "request_accepted",
+        "execution_started",
+        "execution_identity_bound",
+        "stage_snapshot_persisted",
+        "cancellation_requested",
+        "execution_succeeded",
+        "execution_failed",
+        "execution_cancelled",
+        "execution_interrupted"
+      ]
+    },
+    "status": {
+      "enum": [
+        "queued",
+        "running",
+        "cancellation_requested",
+        "succeeded",
+        "failed",
+        "cancelled",
+        "interrupted"
+      ]
+    },
+    "occurred_at": {"type": "string", "format": "date-time"},
+    "message": {"type": "string", "minLength": 1, "maxLength": 512},
+    "job_id": {
+      "type": ["string", "null"],
+      "pattern": "^job_[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$"
+    },
+    "revision_id": {
+      "type": ["string", "null"],
+      "pattern": "^rev_[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$"
+    },
+    "data": {"type": "object", "maxProperties": 32},
+    "hardware_action": {"const": false}
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"event_type": {"const": "request_accepted"}},
+        "required": ["event_type"]
+      },
+      "then": {"properties": {"status": {"const": "queued"}}}
+    },
+    {
+      "if": {
+        "properties": {"event_type": {"const": "execution_started"}},
+        "required": ["event_type"]
+      },
+      "then": {"properties": {"status": {"const": "running"}}}
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "enum": ["execution_identity_bound", "stage_snapshot_persisted"]
+          }
+        },
+        "required": ["event_type"]
+      },
+      "then": {
+        "properties": {
+          "status": {"enum": ["running", "cancellation_requested"]}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"event_type": {"const": "cancellation_requested"}},
+        "required": ["event_type"]
+      },
+      "then": {
+        "properties": {
+          "status": {"enum": ["cancellation_requested", "cancelled"]}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"event_type": {"const": "execution_succeeded"}},
+        "required": ["event_type"]
+      },
+      "then": {"properties": {"status": {"const": "succeeded"}}}
+    },
+    {
+      "if": {
+        "properties": {"event_type": {"const": "execution_failed"}},
+        "required": ["event_type"]
+      },
+      "then": {"properties": {"status": {"const": "failed"}}}
+    },
+    {
+      "if": {
+        "properties": {"event_type": {"const": "execution_cancelled"}},
+        "required": ["event_type"]
+      },
+      "then": {"properties": {"status": {"const": "cancelled"}}}
+    },
+    {
+      "if": {
+        "properties": {"event_type": {"const": "execution_interrupted"}},
+        "required": ["event_type"]
+      },
+      "then": {"properties": {"status": {"const": "interrupted"}}}
+    },
+    {
+      "if": {"properties": {"job_id": {"type": "string"}}, "required": ["job_id"]},
+      "then": {
+        "properties": {
+          "revision_id": {
+            "type": "string",
+            "pattern": "^rev_[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"revision_id": {"type": "string"}},
+        "required": ["revision_id"]
+      },
+      "then": {
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "pattern": "^job_[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "enum": [
+              "execution_identity_bound",
+              "stage_snapshot_persisted",
+              "execution_succeeded"
+            ]
+          }
+        },
+        "required": ["event_type"]
+      },
+      "then": {
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "pattern": "^job_[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$"
+          },
+          "revision_id": {
+            "type": "string",
+            "pattern": "^rev_[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "enum": ["request_accepted", "execution_started"]
+          }
+        },
+        "required": ["event_type"]
+      },
+      "then": {
+        "properties": {
+          "job_id": {"const": null},
+          "revision_id": {"const": null}
+        }
+      }
+    }
+  ]
+}

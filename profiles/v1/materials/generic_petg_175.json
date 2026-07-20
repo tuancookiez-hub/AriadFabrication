@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0.0",
+  "profile_id": "generic_petg_175_v1",
+  "name": "Generic PETG 1.75 mm analysis profile",
+  "status": "experimental_uncalibrated",
+  "material_type": "PETG",
+  "filament_diameter_mm": 1.75,
+  "density_g_cm3": 1.27,
+  "selected_nozzle_temperature_c": 240,
+  "first_layer_nozzle_temperature_c": 240,
+  "allowed_nozzle_temperature_c": {
+    "minimum": 215,
+    "maximum": 270
+  },
+  "selected_bed_temperature_c": 90,
+  "first_layer_bed_temperature_c": 85,
+  "allowed_bed_temperature_c": {
+    "minimum": 70,
+    "maximum": 90
+  },
+  "maximum_volumetric_speed_mm3_s": 8.0,
+  "fan_percent": {
+    "minimum": 30,
+    "maximum": 50
+  },
+  "source": "Prusa PETG Knowledge Base guidance and the Generic PETG base preset bundled with PrusaSlicer 2.9.6; Ariad transcription reviewed 2026-07-16",
+  "claim_boundary": "These are generic disconnected slicing inputs, not a calibrated recommendation for an unknown PETG brand, batch, build surface, hotend, or printer. The printer profile caps the usable nozzle range at 260 C."
+}

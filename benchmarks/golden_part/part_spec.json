@@ -1,0 +1,137 @@
+{
+  "schema_version": "1.0.0",
+  "status": "confirmed",
+  "name": "OpenGrow Stake Electronics Clamp v1",
+  "purpose": "Attach a small sensor or controller plate to a nominal 12 mm plant stake in a sheltered growing environment.",
+  "part_type": "split_stake_electronics_clamp",
+  "bounding_box_mm": {
+    "length": 30.0,
+    "width": 24.6,
+    "height": 50.0
+  },
+  "material": "PETG",
+  "units": "mm",
+  "manufacturing_process": "FDM",
+  "tolerance_mm": 0.2,
+  "infill_pct": 30,
+  "support_policy": "avoid",
+  "safety_class": "general",
+  "features": [
+    {
+      "feature_id": "stake_bore",
+      "kind": "cylindrical_mating_bore",
+      "quantity": 1,
+      "dimensions_mm": {"diameter": 12.6, "depth": 50.0},
+      "tolerance_mm": 0.2,
+      "required": true,
+      "notes": "Axis is parallel to Z; nominal diametral clearance is 0.6 mm over a 12 mm stake."
+    },
+    {
+      "feature_id": "clamp_wall",
+      "kind": "minimum_radial_wall",
+      "quantity": 1,
+      "dimensions_mm": {"thickness": 4.0},
+      "tolerance_mm": 0.2,
+      "required": true,
+      "notes": "Minimum wall surrounding the stake bore before transition geometry."
+    },
+    {
+      "feature_id": "split_gap",
+      "kind": "clamp_relief_gap",
+      "quantity": 1,
+      "dimensions_mm": {"width": 3.0, "radial_depth": 4.0, "height": 50.0},
+      "tolerance_mm": 0.2,
+      "required": true,
+      "notes": "Open radial split allows compliant installation onto the stake."
+    },
+    {
+      "feature_id": "mounting_plate",
+      "kind": "flat_electronics_mounting_interface",
+      "quantity": 1,
+      "dimensions_mm": {"width": 30.0, "thickness": 4.0, "height": 50.0},
+      "tolerance_mm": 0.2,
+      "required": true,
+      "notes": "Flat plate is integrated tangentially with the clamp body."
+    },
+    {
+      "feature_id": "m3_mounting_holes",
+      "kind": "through_hole",
+      "quantity": 2,
+      "dimensions_mm": {"diameter": 3.4, "center_spacing": 26.0},
+      "tolerance_mm": 0.2,
+      "required": true,
+      "notes": "Hole axes are parallel to Y and centers are separated along Z."
+    },
+    {
+      "feature_id": "cable_channel",
+      "kind": "cable_routing_hole",
+      "quantity": 1,
+      "dimensions_mm": {"diameter": 4.0, "depth": 4.0},
+      "tolerance_mm": 0.2,
+      "required": true,
+      "notes": "Separate routing feature through the mounting plate."
+    },
+    {
+      "feature_id": "transition_fillets",
+      "kind": "stress_relief_fillet",
+      "quantity": 2,
+      "dimensions_mm": {"radius": 2.0},
+      "tolerance_mm": 0.2,
+      "required": true,
+      "notes": "Blend the mounting plate into the clamp body."
+    }
+  ],
+  "mating_requirements": [
+    {
+      "component": "Nominal 12 mm cylindrical plant stake",
+      "interface": "Slip-on split cylindrical clamp",
+      "nominal_dimensions_mm": {"diameter": 12.0},
+      "clearance_mm": 0.6,
+      "notes": "Clearance is diametral and remains an initial digital benchmark target until measured physically."
+    }
+  ],
+  "load_cases": [
+    {
+      "name": "Preliminary radial service load",
+      "description": "Static lateral load applied at the mounting plate as an initial design input, not a verified capacity claim.",
+      "force_n": 10.0,
+      "direction": "radial from the stake axis toward the mounting plate"
+    }
+  ],
+  "environment": {
+    "location": "sheltered growing area",
+    "moisture_exposure": true,
+    "uv_exposure": false,
+    "min_temp_c": 5.0,
+    "max_temp_c": 45.0,
+    "food_contact": false
+  },
+  "printer_constraints": {
+    "profile_id": "generic_open_fdm_220",
+    "build_volume_mm": {"length": 220.0, "width": 220.0, "height": 250.0},
+    "nozzle_diameter_mm": 0.4,
+    "layer_height_mm": 0.2
+  },
+  "datums": {
+    "A": "lower Z face",
+    "B": "stake bore axis",
+    "C": "electronics mounting face"
+  },
+  "assembly_method": "Flex the split clamp over the stake, then attach the electronics plate or board with two M3 fasteners.",
+  "expected_lifetime_months": 12,
+  "preferred_orientation": "Stake axis parallel to build Z with the integrated mounting plate contributing bed contact.",
+  "surface_requirements": [
+    "Stake bore and mounting holes must contain no generated support contact.",
+    "The electronics mounting face must be planar in the CAD model."
+  ],
+  "assumptions": [
+    "The 12 mm stake is sufficiently round and its actual diameter will be measured before physical qualification.",
+    "The 10 N load is a preliminary benchmark input and is not a statement of proven strength.",
+    "The 12 month lifetime is a design target and has not been physically qualified.",
+    "The first CAD revision will orient the stake axis parallel to Z and avoid generated supports.",
+    "Food contact, electrical enclosure certification, and outdoor UV lifetime are outside this benchmark."
+  ],
+  "unresolved_questions": [],
+  "notes": "Frozen M1 input for deterministic CAD and validation work. Passing this specification establishes R0 only.",
+  "source": "benchmarks/golden_part/part_spec.json"
+}

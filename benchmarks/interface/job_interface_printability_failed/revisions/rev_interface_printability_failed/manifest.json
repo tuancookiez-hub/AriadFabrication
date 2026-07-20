@@ -1,0 +1,37 @@
+{
+  "approvals": [],
+  "artifacts": [],
+  "decisions": [],
+  "findings": [
+    {
+      "affected_geometry": null,
+      "code": "fixture.printability.outside_build_volume",
+      "created_at": "2026-07-16T08:00:00+00:00",
+      "data": {
+        "classification": "interface_fixture",
+        "scenario": "printability_failed"
+      },
+      "evidence": "Fixture X extent: 228 mm; fixture profile limit: 220 mm.",
+      "evidence_mode": "fixture",
+      "finding_id": "finding_fixture_printability_failed",
+      "job_id": "job_interface_printability_failed",
+      "remediation": "Choose a compatible profile or revise and reorient the design.",
+      "resolution": null,
+      "resolved": false,
+      "revision_id": "rev_interface_printability_failed",
+      "severity": "error",
+      "stage_run_id": "run_fixture_printability_failed_printability_validation",
+      "title": "Oriented model exceeds the profile volume"
+    }
+  ],
+  "generated_at": "2026-07-16T08:00:00+00:00",
+  "job_id": "job_interface_printability_failed",
+  "revision_id": "rev_interface_printability_failed",
+  "schema_version": "1.0.0",
+  "stage_run_ids": [
+    "run_fixture_printability_failed_brief",
+    "run_fixture_printability_failed_design",
+    "run_fixture_printability_failed_geometry_validation",
+    "run_fixture_printability_failed_printability_validation"
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ariad.local/schemas/v1/journey-event.schema.json",
+  "title": "Ariad Fabrication Journey StageEvent 1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "event_id",
+    "stage_run_id",
+    "job_id",
+    "revision_id",
+    "stage",
+    "event_type",
+    "status",
+    "message",
+    "sequence",
+    "timestamp",
+    "data"
+  ],
+  "properties": {
+    "event_id": {"type": "string", "minLength": 1},
+    "stage_run_id": {"type": "string", "minLength": 1},
+    "job_id": {"type": "string", "minLength": 1},
+    "revision_id": {"type": ["string", "null"], "minLength": 1},
+    "stage": {
+      "enum": [
+        "brief",
+        "design",
+        "geometry_validation",
+        "printability_validation",
+        "slicing",
+        "fabrication_package",
+        "manufacturing"
+      ]
+    },
+    "event_type": {"type": "string", "minLength": 1},
+    "status": {
+      "enum": [
+        "waiting",
+        "running",
+        "needs_input",
+        "passed",
+        "passed_with_warnings",
+        "failed",
+        "cancelled",
+        "superseded"
+      ]
+    },
+    "message": {"type": "string", "minLength": 1},
+    "sequence": {"type": "integer", "minimum": 1},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "data": {"type": "object"}
+  }
+}

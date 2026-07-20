@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ariad.local/schemas/v1/interface-process-profile.schema.json",
+  "title": "Ariad Interface Fixture Process Profile v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile_id",
+    "name",
+    "status",
+    "layer_height_mm",
+    "perimeters",
+    "infill_percent",
+    "infill_pattern",
+    "support_policy",
+    "claim_boundary"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0-interface-fixture"},
+    "profile_id": {"type": "string", "minLength": 1, "maxLength": 256},
+    "name": {"type": "string", "minLength": 1, "maxLength": 512},
+    "status": {"const": "interface_fixture"},
+    "layer_height_mm": {"type": "number", "exclusiveMinimum": 0},
+    "perimeters": {"type": "integer", "minimum": 1},
+    "infill_percent": {"type": "number", "minimum": 0, "maximum": 100},
+    "infill_pattern": {"type": "string", "minLength": 1, "maxLength": 128},
+    "support_policy": {"enum": ["disabled", "enabled", "build_plate_only"]},
+    "claim_boundary": {"type": "string", "minLength": 1, "maxLength": 4096}
+  }
+}

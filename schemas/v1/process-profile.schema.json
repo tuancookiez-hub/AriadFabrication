@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ariad.local/schemas/v1/process-profile.schema.json",
+  "title": "Ariad FFF Process Analysis Profile v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile_id",
+    "name",
+    "status",
+    "layer_height_mm",
+    "first_layer_height_mm",
+    "perimeters",
+    "top_solid_layers",
+    "bottom_solid_layers",
+    "infill_percent",
+    "infill_pattern",
+    "support_policy",
+    "skirts",
+    "brim_width_mm",
+    "speeds_mm_s",
+    "claim_boundary"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "profile_id": {"type": "string", "minLength": 1, "maxLength": 256},
+    "name": {"type": "string", "minLength": 1, "maxLength": 512},
+    "status": {"const": "experimental_analysis_only"},
+    "layer_height_mm": {"type": "number", "exclusiveMinimum": 0},
+    "first_layer_height_mm": {"type": "number", "exclusiveMinimum": 0},
+    "perimeters": {"type": "integer", "minimum": 1},
+    "top_solid_layers": {"type": "integer", "minimum": 1},
+    "bottom_solid_layers": {"type": "integer", "minimum": 1},
+    "infill_percent": {"type": "number", "minimum": 0, "maximum": 100},
+    "infill_pattern": {"type": "string", "minLength": 1, "maxLength": 128},
+    "support_policy": {"enum": ["disabled", "enabled", "build_plate_only"]},
+    "skirts": {"type": "integer", "minimum": 0},
+    "brim_width_mm": {"type": "number", "minimum": 0},
+    "speeds_mm_s": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "perimeter",
+        "external_perimeter",
+        "small_perimeter",
+        "infill",
+        "solid_infill",
+        "top_solid_infill",
+        "bridge",
+        "first_layer",
+        "travel"
+      ],
+      "properties": {
+        "perimeter": {"$ref": "#/$defs/speed"},
+        "external_perimeter": {"$ref": "#/$defs/speed"},
+        "small_perimeter": {"$ref": "#/$defs/speed"},
+        "infill": {"$ref": "#/$defs/speed"},
+        "solid_infill": {"$ref": "#/$defs/speed"},
+        "top_solid_infill": {"$ref": "#/$defs/speed"},
+        "bridge": {"$ref": "#/$defs/speed"},
+        "first_layer": {"$ref": "#/$defs/speed"},
+        "travel": {"$ref": "#/$defs/speed"}
+      }
+    },
+    "claim_boundary": {"type": "string", "minLength": 1, "maxLength": 4096}
+  },
+  "$defs": {
+    "speed": {"type": "number", "exclusiveMinimum": 0}
+  }
+}

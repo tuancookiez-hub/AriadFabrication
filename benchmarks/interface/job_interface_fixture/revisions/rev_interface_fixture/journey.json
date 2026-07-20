@@ -1,0 +1,667 @@
+{
+  "approvals": [],
+  "artifacts": [
+    {
+      "artifact_id": "art_fixture_note",
+      "checksum_sha256": "7e554f332b4d825518fb978ef721b6f2ed64bd1f0a8143c035c4c957b8ebeab5",
+      "created_at": "2026-07-16T08:00:00+00:00",
+      "evidence_mode": "fixture",
+      "job_id": "job_interface_fixture",
+      "media_type": "text/plain",
+      "metadata": {
+        "classification": "interface_fixture"
+      },
+      "parent_artifact_ids": [],
+      "path": "notes/interface-fixture.txt",
+      "producer": "ariad_interface_fixture_generator",
+      "producer_version": "1.0.0",
+      "revision_id": "rev_interface_fixture",
+      "role": "interface_fixture_note",
+      "size_bytes": 178,
+      "stage_run_id": "run_fixture_fabrication_package"
+    },
+    {
+      "artifact_id": "art_fixture_geometry_report",
+      "checksum_sha256": "fd09214643a6d4832388a15a7865633e529713e9823d217803d3fdf0f3e5168e",
+      "created_at": "2026-07-16T08:00:00+00:00",
+      "evidence_mode": "fixture",
+      "job_id": "job_interface_fixture",
+      "media_type": "application/json",
+      "metadata": {
+        "classification": "interface_fixture",
+        "format": "json"
+      },
+      "parent_artifact_ids": [],
+      "path": "design/geometry_validation.json",
+      "producer": "ariad_interface_fixture_generator",
+      "producer_version": "1.0.0",
+      "revision_id": "rev_interface_fixture",
+      "role": "geometry_validation_report",
+      "size_bytes": 1093,
+      "stage_run_id": "run_fixture_geometry_validation"
+    },
+    {
+      "artifact_id": "art_fixture_printer_profile",
+      "checksum_sha256": "0c3d3e4932a7ca836c2487184b86d2d1fe995f8b8909432f323c29e314c03ac0",
+      "created_at": "2026-07-16T08:00:00+00:00",
+      "evidence_mode": "fixture",
+      "job_id": "job_interface_fixture",
+      "media_type": "application/json",
+      "metadata": {
+        "classification": "interface_fixture",
+        "format": "json"
+      },
+      "parent_artifact_ids": [],
+      "path": "profiles/printer.json",
+      "producer": "ariad_interface_fixture_generator",
+      "producer_version": "1.0.0",
+      "revision_id": "rev_interface_fixture",
+      "role": "printer_profile",
+      "size_bytes": 468,
+      "stage_run_id": "run_fixture_printability_validation"
+    },
+    {
+      "artifact_id": "art_fixture_material_profile",
+      "checksum_sha256": "82720d46581b3370d3311722f08dada360856c68c08c6e9a08cf4d885e9afcdf",
+      "created_at": "2026-07-16T08:00:00+00:00",
+      "evidence_mode": "fixture",
+      "job_id": "job_interface_fixture",
+      "media_type": "application/json",
+      "metadata": {
+        "classification": "interface_fixture",
+        "format": "json"
+      },
+      "parent_artifact_ids": [],
+      "path": "profiles/material.json",
+      "producer": "ariad_interface_fixture_generator",
+      "producer_version": "1.0.0",
+      "revision_id": "rev_interface_fixture",
+      "role": "material_profile",
+      "size_bytes": 483,
+      "stage_run_id": "run_fixture_printability_validation"
+    },
+    {
+      "artifact_id": "art_fixture_process_profile",
+      "checksum_sha256": "4477730d6b2bb490daef0487f757d61a322828f11965705b9aa0d24403dc200d",
+      "created_at": "2026-07-16T08:00:00+00:00",
+      "evidence_mode": "fixture",
+      "job_id": "job_interface_fixture",
+      "media_type": "application/json",
+      "metadata": {
+        "classification": "interface_fixture",
+        "format": "json"
+      },
+      "parent_artifact_ids": [],
+      "path": "profiles/process.json",
+      "producer": "ariad_interface_fixture_generator",
+      "producer_version": "1.0.0",
+      "revision_id": "rev_interface_fixture",
+      "role": "process_profile",
+      "size_bytes": 447,
+      "stage_run_id": "run_fixture_printability_validation"
+    },
+    {
+      "artifact_id": "art_fixture_orientation_profile",
+      "checksum_sha256": "8bf47da18e1945a4801430616cd16b745d9f485cd1bfbb4cd8105cd58177e11e",
+      "created_at": "2026-07-16T08:00:00+00:00",
+      "evidence_mode": "fixture",
+      "job_id": "job_interface_fixture",
+      "media_type": "application/json",
+      "metadata": {
+        "classification": "interface_fixture",
+        "format": "json"
+      },
+      "parent_artifact_ids": [],
+      "path": "profiles/orientation.json",
+      "producer": "ariad_interface_fixture_generator",
+      "producer_version": "1.0.0",
+      "revision_id": "rev_interface_fixture",
+      "role": "orientation_profile",
+      "size_bytes": 412,
+      "stage_run_id": "run_fixture_printability_validation"
+    },
+    {
+      "artifact_id": "art_fixture_printability_report",
+      "checksum_sha256": "d08f2be2583be866e7a70bd865bc64c669fdeb07dd13858b0ce59ddfd0b02993",
+      "created_at": "2026-07-16T08:00:00+00:00",
+      "evidence_mode": "fixture",
+      "job_id": "job_interface_fixture",
+      "media_type": "application/json",
+      "metadata": {
+        "classification": "interface_fixture",
+        "format": "json"
+      },
+      "parent_artifact_ids": [],
+      "path": "printability/report.json",
+      "producer": "ariad_interface_fixture_generator",
+      "producer_version": "1.0.0",
+      "revision_id": "rev_interface_fixture",
+      "role": "printability_report",
+      "size_bytes": 1794,
+      "stage_run_id": "run_fixture_printability_validation"
+    },
+    {
+      "artifact_id": "art_fixture_gcode_preflight",
+      "checksum_sha256": "def373a03b879d9ce205e51b84fa0821775b2d7c08962f5ddfab3ad3a67da85b",
+      "created_at": "2026-07-16T08:00:00+00:00",
+      "evidence_mode": "fixture",
+      "job_id": "job_interface_fixture",
+      "media_type": "application/json",
+      "metadata": {
+        "classification": "interface_fixture",
+        "format": "json"
+      },
+      "parent_artifact_ids": [],
+      "path": "slicing/gcode_preflight.json",
+      "producer": "ariad_interface_fixture_generator",
+      "producer_version": "1.0.0",
+      "revision_id": "rev_interface_fixture",
+      "role": "gcode_preflight",
+      "size_bytes": 815,
+      "stage_run_id": "run_fixture_slicing"
+    }
+  ],
+  "decisions": [],
+  "events": [
+    {
+      "data": {
+        "classification": "interface_fixture"
+      },
+      "event_id": "evt_fixture_brief",
+      "event_type": "fixture_stage_replayed",
+      "job_id": "job_interface_fixture",
+      "message": "Confirmed fixture specification passed the Brief shape",
+      "revision_id": "rev_interface_fixture",
+      "sequence": 1,
+      "stage": "brief",
+      "stage_run_id": "run_fixture_brief",
+      "status": "passed",
+      "timestamp": "2026-07-16T08:00:00+00:00"
+    },
+    {
+      "data": {
+        "classification": "interface_fixture"
+      },
+      "event_id": "evt_fixture_design",
+      "event_type": "fixture_stage_replayed",
+      "job_id": "job_interface_fixture",
+      "message": "Fixture design stage exposes editable-source metadata",
+      "revision_id": "rev_interface_fixture",
+      "sequence": 2,
+      "stage": "design",
+      "stage_run_id": "run_fixture_design",
+      "status": "passed",
+      "timestamp": "2026-07-16T08:00:00+00:00"
+    },
+    {
+      "data": {
+        "classification": "interface_fixture"
+      },
+      "event_id": "evt_fixture_geometry_validation",
+      "event_type": "fixture_stage_replayed",
+      "job_id": "job_interface_fixture",
+      "message": "Fixture geometry stage exposes deterministic check events",
+      "revision_id": "rev_interface_fixture",
+      "sequence": 3,
+      "stage": "geometry_validation",
+      "stage_run_id": "run_fixture_geometry_validation",
+      "status": "passed",
+      "timestamp": "2026-07-16T08:00:00+00:00"
+    },
+    {
+      "data": {
+        "classification": "interface_fixture"
+      },
+      "event_id": "evt_fixture_printability_validation",
+      "event_type": "fixture_stage_replayed",
+      "job_id": "job_interface_fixture",
+      "message": "Fixture printability stage retains unresolved physical unknowns",
+      "revision_id": "rev_interface_fixture",
+      "sequence": 4,
+      "stage": "printability_validation",
+      "stage_run_id": "run_fixture_printability_validation",
+      "status": "passed_with_warnings",
+      "timestamp": "2026-07-16T08:00:00+00:00"
+    },
+    {
+      "data": {
+        "classification": "interface_fixture"
+      },
+      "event_id": "evt_fixture_slicing",
+      "event_type": "fixture_stage_replayed",
+      "job_id": "job_interface_fixture",
+      "message": "Fixture slicing stage exposes toolpath metadata",
+      "revision_id": "rev_interface_fixture",
+      "sequence": 5,
+      "stage": "slicing",
+      "stage_run_id": "run_fixture_slicing",
+      "status": "passed",
+      "timestamp": "2026-07-16T08:00:00+00:00"
+    },
+    {
+      "data": {
+        "classification": "interface_fixture"
+      },
+      "event_id": "evt_fixture_fabrication_package",
+      "event_type": "fixture_stage_replayed",
+      "job_id": "job_interface_fixture",
+      "message": "Fixture package stage demonstrates the final digital handoff shape",
+      "revision_id": "rev_interface_fixture",
+      "sequence": 6,
+      "stage": "fabrication_package",
+      "stage_run_id": "run_fixture_fabrication_package",
+      "status": "passed_with_warnings",
+      "timestamp": "2026-07-16T08:00:00+00:00"
+    }
+  ],
+  "findings": [
+    {
+      "affected_geometry": null,
+      "code": "fixture.generic_profile_uncalibrated",
+      "created_at": "2026-07-16T08:00:00+00:00",
+      "data": {
+        "classification": "interface_fixture"
+      },
+      "evidence": "The displayed profile is fixture data and is not calibrated to hardware.",
+      "evidence_mode": "fixture",
+      "finding_id": "finding_fixture_generic_profile",
+      "job_id": "job_interface_fixture",
+      "remediation": "Use a real recorded profile and physical measurements before R6.",
+      "resolution": null,
+      "resolved": false,
+      "revision_id": "rev_interface_fixture",
+      "severity": "warning",
+      "stage_run_id": "run_fixture_printability_validation",
+      "title": "Fixture profile is not calibrated"
+    },
+    {
+      "affected_geometry": null,
+      "code": "fixture.physical_result_unavailable",
+      "created_at": "2026-07-16T08:00:00+00:00",
+      "data": {
+        "classification": "interface_fixture"
+      },
+      "evidence": "No printer, material batch, photograph, or measurement belongs to this fixture.",
+      "evidence_mode": "fixture",
+      "finding_id": "finding_fixture_physical_unknowns",
+      "job_id": "job_interface_fixture",
+      "remediation": "Record an actual print and measurements in a separate R6 revision.",
+      "resolution": null,
+      "resolved": false,
+      "revision_id": "rev_interface_fixture",
+      "severity": "warning",
+      "stage_run_id": "run_fixture_printability_validation",
+      "title": "Physical behavior remains unknown"
+    }
+  ],
+  "job": {
+    "created_at": "2026-07-16T08:00:00+00:00",
+    "current_revision_id": "rev_interface_fixture",
+    "job_id": "job_interface_fixture",
+    "metadata": {
+      "classification": "interface_fixture",
+      "input_parser": "fixture",
+      "physical_validation": false
+    },
+    "request": "Replay the Golden Part stage shape for interface development only.",
+    "status": "completed",
+    "title": "OpenGrow Stake Electronics Clamp — interface fixture",
+    "updated_at": "2026-07-16T08:00:00+00:00"
+  },
+  "revisions": [
+    {
+      "created_at": "2026-07-16T08:00:00+00:00",
+      "job_id": "job_interface_fixture",
+      "number": 1,
+      "parent_revision_id": null,
+      "reason": "Deterministic M4 interface fixture",
+      "revision_id": "rev_interface_fixture",
+      "spec": {
+        "assembly_method": "Flex the split clamp over the stake, then attach the electronics plate or board with two M3 fasteners.",
+        "assumptions": [
+          "The 12 mm stake is sufficiently round and its actual diameter will be measured before physical qualification.",
+          "The 10 N load is a preliminary benchmark input and is not a statement of proven strength.",
+          "The 12 month lifetime is a design target and has not been physically qualified.",
+          "The first CAD revision will orient the stake axis parallel to Z and avoid generated supports.",
+          "Food contact, electrical enclosure certification, and outdoor UV lifetime are outside this benchmark."
+        ],
+        "bounding_box_mm": {
+          "height": 50.0,
+          "length": 30.0,
+          "width": 24.6
+        },
+        "datums": {
+          "A": "lower Z face",
+          "B": "stake bore axis",
+          "C": "electronics mounting face"
+        },
+        "environment": {
+          "food_contact": false,
+          "location": "sheltered growing area",
+          "max_temp_c": 45.0,
+          "min_temp_c": 5.0,
+          "moisture_exposure": true,
+          "uv_exposure": false
+        },
+        "expected_lifetime_months": 12,
+        "features": [
+          {
+            "dimensions_mm": {
+              "depth": 50.0,
+              "diameter": 12.6
+            },
+            "feature_id": "stake_bore",
+            "kind": "cylindrical_mating_bore",
+            "notes": "Axis is parallel to Z; nominal diametral clearance is 0.6 mm over a 12 mm stake.",
+            "quantity": 1,
+            "required": true,
+            "tolerance_mm": 0.2
+          },
+          {
+            "dimensions_mm": {
+              "thickness": 4.0
+            },
+            "feature_id": "clamp_wall",
+            "kind": "minimum_radial_wall",
+            "notes": "Minimum wall surrounding the stake bore before transition geometry.",
+            "quantity": 1,
+            "required": true,
+            "tolerance_mm": 0.2
+          },
+          {
+            "dimensions_mm": {
+              "height": 50.0,
+              "radial_depth": 4.0,
+              "width": 3.0
+            },
+            "feature_id": "split_gap",
+            "kind": "clamp_relief_gap",
+            "notes": "Open radial split allows compliant installation onto the stake.",
+            "quantity": 1,
+            "required": true,
+            "tolerance_mm": 0.2
+          },
+          {
+            "dimensions_mm": {
+              "height": 50.0,
+              "thickness": 4.0,
+              "width": 30.0
+            },
+            "feature_id": "mounting_plate",
+            "kind": "flat_electronics_mounting_interface",
+            "notes": "Flat plate is integrated tangentially with the clamp body.",
+            "quantity": 1,
+            "required": true,
+            "tolerance_mm": 0.2
+          },
+          {
+            "dimensions_mm": {
+              "center_spacing": 26.0,
+              "diameter": 3.4
+            },
+            "feature_id": "m3_mounting_holes",
+            "kind": "through_hole",
+            "notes": "Hole axes are parallel to Y and centers are separated along Z.",
+            "quantity": 2,
+            "required": true,
+            "tolerance_mm": 0.2
+          },
+          {
+            "dimensions_mm": {
+              "depth": 4.0,
+              "diameter": 4.0
+            },
+            "feature_id": "cable_channel",
+            "kind": "cable_routing_hole",
+            "notes": "Separate routing feature through the mounting plate.",
+            "quantity": 1,
+            "required": true,
+            "tolerance_mm": 0.2
+          },
+          {
+            "dimensions_mm": {
+              "radius": 2.0
+            },
+            "feature_id": "transition_fillets",
+            "kind": "stress_relief_fillet",
+            "notes": "Blend the mounting plate into the clamp body.",
+            "quantity": 2,
+            "required": true,
+            "tolerance_mm": 0.2
+          }
+        ],
+        "infill_pct": 30,
+        "load_cases": [
+          {
+            "description": "Static lateral load applied at the mounting plate as an initial design input, not a verified capacity claim.",
+            "direction": "radial from the stake axis toward the mounting plate",
+            "force_n": 10.0,
+            "name": "Preliminary radial service load"
+          }
+        ],
+        "manufacturing_process": "FDM",
+        "material": "PETG",
+        "mating_requirements": [
+          {
+            "clearance_mm": 0.6,
+            "component": "Nominal 12 mm cylindrical plant stake",
+            "interface": "Slip-on split cylindrical clamp",
+            "nominal_dimensions_mm": {
+              "diameter": 12.0
+            },
+            "notes": "Clearance is diametral and remains an initial digital benchmark target until measured physically."
+          }
+        ],
+        "name": "OpenGrow Stake Electronics Clamp — interface fixture",
+        "notes": "Deterministic UI shape fixture. No stage in this record establishes fabrication evidence.",
+        "part_type": "split_stake_electronics_clamp",
+        "preferred_orientation": "Stake axis parallel to build Z with the integrated mounting plate contributing bed contact.",
+        "printer_constraints": {
+          "build_volume_mm": {
+            "height": 250.0,
+            "length": 220.0,
+            "width": 220.0
+          },
+          "layer_height_mm": 0.2,
+          "nozzle_diameter_mm": 0.4,
+          "profile_id": "generic_open_fdm_220"
+        },
+        "purpose": "Attach a small sensor or controller plate to a nominal 12 mm plant stake in a sheltered growing environment.",
+        "safety_class": "general",
+        "schema_version": "1.0.0",
+        "source": "benchmarks/interface (fixture; not manufacturing evidence)",
+        "status": "confirmed",
+        "support_policy": "avoid",
+        "surface_requirements": [
+          "Stake bore and mounting holes must contain no generated support contact.",
+          "The electronics mounting face must be planar in the CAD model."
+        ],
+        "tolerance_mm": 0.2,
+        "units": "mm",
+        "unresolved_questions": []
+      },
+      "stage_run_ids": [
+        "run_fixture_brief",
+        "run_fixture_design",
+        "run_fixture_geometry_validation",
+        "run_fixture_printability_validation",
+        "run_fixture_slicing",
+        "run_fixture_fabrication_package"
+      ]
+    }
+  ],
+  "schema_version": "1.0.0",
+  "stage_runs": [
+    {
+      "approval_ids": [],
+      "artifact_ids": [],
+      "attempt": 1,
+      "completed_at": "2026-07-16T08:00:00+00:00",
+      "decision_ids": [],
+      "error_message": null,
+      "event_ids": [
+        "evt_fixture_brief"
+      ],
+      "evidence_level": "R0",
+      "evidence_mode": "fixture",
+      "finding_ids": [],
+      "input_artifact_ids": [],
+      "job_id": "job_interface_fixture",
+      "revision_id": "rev_interface_fixture",
+      "stage": "brief",
+      "stage_run_id": "run_fixture_brief",
+      "started_at": "2026-07-16T08:00:00+00:00",
+      "status": "passed",
+      "summary": "Confirmed fixture specification passed the Brief shape",
+      "tool": {
+        "name": "ariad_interface_fixture",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "approval_ids": [],
+      "artifact_ids": [],
+      "attempt": 1,
+      "completed_at": "2026-07-16T08:00:00+00:00",
+      "decision_ids": [],
+      "error_message": null,
+      "event_ids": [
+        "evt_fixture_design"
+      ],
+      "evidence_level": "R1",
+      "evidence_mode": "fixture",
+      "finding_ids": [],
+      "input_artifact_ids": [],
+      "job_id": "job_interface_fixture",
+      "revision_id": "rev_interface_fixture",
+      "stage": "design",
+      "stage_run_id": "run_fixture_design",
+      "started_at": "2026-07-16T08:00:00+00:00",
+      "status": "passed",
+      "summary": "Fixture design stage exposes editable-source metadata",
+      "tool": {
+        "name": "ariad_interface_fixture",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "approval_ids": [],
+      "artifact_ids": [
+        "art_fixture_geometry_report"
+      ],
+      "attempt": 1,
+      "completed_at": "2026-07-16T08:00:00+00:00",
+      "decision_ids": [],
+      "error_message": null,
+      "event_ids": [
+        "evt_fixture_geometry_validation"
+      ],
+      "evidence_level": "R2",
+      "evidence_mode": "fixture",
+      "finding_ids": [],
+      "input_artifact_ids": [],
+      "job_id": "job_interface_fixture",
+      "revision_id": "rev_interface_fixture",
+      "stage": "geometry_validation",
+      "stage_run_id": "run_fixture_geometry_validation",
+      "started_at": "2026-07-16T08:00:00+00:00",
+      "status": "passed",
+      "summary": "Fixture geometry stage exposes deterministic check events",
+      "tool": {
+        "name": "ariad_interface_fixture",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "approval_ids": [],
+      "artifact_ids": [
+        "art_fixture_printer_profile",
+        "art_fixture_material_profile",
+        "art_fixture_process_profile",
+        "art_fixture_orientation_profile",
+        "art_fixture_printability_report"
+      ],
+      "attempt": 1,
+      "completed_at": "2026-07-16T08:00:00+00:00",
+      "decision_ids": [],
+      "error_message": null,
+      "event_ids": [
+        "evt_fixture_printability_validation"
+      ],
+      "evidence_level": "R3",
+      "evidence_mode": "fixture",
+      "finding_ids": [
+        "finding_fixture_generic_profile",
+        "finding_fixture_physical_unknowns"
+      ],
+      "input_artifact_ids": [],
+      "job_id": "job_interface_fixture",
+      "revision_id": "rev_interface_fixture",
+      "stage": "printability_validation",
+      "stage_run_id": "run_fixture_printability_validation",
+      "started_at": "2026-07-16T08:00:00+00:00",
+      "status": "passed_with_warnings",
+      "summary": "Fixture printability stage retains unresolved physical unknowns",
+      "tool": {
+        "name": "ariad_interface_fixture",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "approval_ids": [],
+      "artifact_ids": [
+        "art_fixture_gcode_preflight"
+      ],
+      "attempt": 1,
+      "completed_at": "2026-07-16T08:00:00+00:00",
+      "decision_ids": [],
+      "error_message": null,
+      "event_ids": [
+        "evt_fixture_slicing"
+      ],
+      "evidence_level": "R4",
+      "evidence_mode": "fixture",
+      "finding_ids": [],
+      "input_artifact_ids": [],
+      "job_id": "job_interface_fixture",
+      "revision_id": "rev_interface_fixture",
+      "stage": "slicing",
+      "stage_run_id": "run_fixture_slicing",
+      "started_at": "2026-07-16T08:00:00+00:00",
+      "status": "passed",
+      "summary": "Fixture slicing stage exposes toolpath metadata",
+      "tool": {
+        "name": "ariad_interface_fixture",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "approval_ids": [],
+      "artifact_ids": [
+        "art_fixture_note"
+      ],
+      "attempt": 1,
+      "completed_at": "2026-07-16T08:00:00+00:00",
+      "decision_ids": [],
+      "error_message": null,
+      "event_ids": [
+        "evt_fixture_fabrication_package"
+      ],
+      "evidence_level": "R4",
+      "evidence_mode": "fixture",
+      "finding_ids": [],
+      "input_artifact_ids": [],
+      "job_id": "job_interface_fixture",
+      "revision_id": "rev_interface_fixture",
+      "stage": "fabrication_package",
+      "stage_run_id": "run_fixture_fabrication_package",
+      "started_at": "2026-07-16T08:00:00+00:00",
+      "status": "passed_with_warnings",
+      "summary": "Fixture package stage demonstrates the final digital handoff shape",
+      "tool": {
+        "name": "ariad_interface_fixture",
+        "version": "1.0.0"
+      }
+    }
+  ]
+}

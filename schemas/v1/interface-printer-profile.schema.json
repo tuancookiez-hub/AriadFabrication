@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ariad.local/schemas/v1/interface-printer-profile.schema.json",
+  "title": "Ariad Interface Fixture Printer Profile v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile_id",
+    "name",
+    "status",
+    "technology",
+    "build_volume_mm",
+    "nozzle_diameter_mm",
+    "extruder_count",
+    "claim_boundary"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0-interface-fixture"},
+    "profile_id": {"type": "string", "minLength": 1, "maxLength": 256},
+    "name": {"type": "string", "minLength": 1, "maxLength": 512},
+    "status": {"const": "interface_fixture"},
+    "technology": {"const": "FDM"},
+    "build_volume_mm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "z"],
+      "properties": {
+        "x": {"type": "number", "exclusiveMinimum": 0},
+        "y": {"type": "number", "exclusiveMinimum": 0},
+        "z": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "nozzle_diameter_mm": {"type": "number", "exclusiveMinimum": 0},
+    "extruder_count": {"type": "integer", "minimum": 1},
+    "claim_boundary": {"type": "string", "minLength": 1, "maxLength": 4096}
+  }
+}

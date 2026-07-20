@@ -1,0 +1,21 @@
+{
+  "allowed_claim": "Interface fixture only — no fabrication evidence.",
+  "claim_boundary": "This compact record exercises package and evidence-inspector presentation. It contains fixture-shaped reports and profiles but no real CAD, slicer output, G-code, physical observation, or manufacturing authority.",
+  "classification": "interface_fixture_package",
+  "evidence_level": null,
+  "hardware": {
+    "gcode_uploaded": false,
+    "print_started": false,
+    "printer_connected": false,
+    "printer_selected": false
+  },
+  "job_id": "job_interface_fixture",
+  "revision_id": "rev_interface_fixture",
+  "schema_version": "1.0.0-interface-fixture",
+  "slicer": {},
+  "status": "fixture",
+  "unresolved_warning_findings": [
+    "finding_fixture_generic_profile",
+    "finding_fixture_physical_unknowns"
+  ]
+}
