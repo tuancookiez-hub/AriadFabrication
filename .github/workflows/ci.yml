@@ -13,7 +13,8 @@ concurrency:
 
 jobs:
   backend-lightweight:
-    runs-on: ubuntu-latest
+    # Registered execution is intentionally bound to Windows x86-64.
+    runs-on: windows-latest
     timeout-minutes: 20
     steps:
       - name: Check out repository
