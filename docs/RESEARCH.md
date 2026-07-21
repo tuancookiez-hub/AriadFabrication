@@ -250,6 +250,18 @@ Research conclusion: day-one parts should avoid direct food contact. For edible-
 
 ## Research discipline
 
+### Beginner printable-object workflow — reviewed 2026-07-21
+
+- [Prusa: Modeling with 3D printing in mind](https://help.prusa3d.com/article/modeling-with-3d-printing-in-mind_164135) grounds CAD decisions in layer orientation, bridges, overhangs, tolerances, wall/nozzle relationships, and separately printable parts.
+- [Autodesk Fusion: 3D print a design](https://help.autodesk.com/view/fusion360/ENU/?guid=SLD-3D-PRINT) separates the editable Design workspace from additive Manufacture preparation: select machine and settings, arrange parts, generate supports, and produce manufacturing output.
+- [Prusa: First print with PrusaSlicer](https://help.prusa3d.com/article/first-print-with-prusaslicer_1753) teaches the slicer sequence: import, orient, select printer/material/profile, decide supports/infill/brim, slice, inspect individual layers, then export G-code.
+- [PrusaSlicer UI overview](https://help.prusa3d.com/article/ui-overview_1766) keeps most screen area for the model, puts common profile choices beside it, hides advanced/expert controls by default, and makes 3D-view/layer-preview switching explicit.
+- [Onshape document management](https://cad.onshape.com/help/Content/Document/document_management.htm) automatically records persisted changes and supports viewing or restoring earlier states, establishing reversibility as a normal CAD expectation rather than an advanced Ariad evidence task.
+
+Product conclusion: the beginner experience is not a wizard for filling every engineering record. It is one persistent model-first workspace. Codex turns intent into defaults, decomposes assemblies, and prepares editable CAD; Ariad runs deterministic checks and advances automatically. The user approves the interpreted need, visually inspects or revises the model, chooses a printer/material profile when it affects slicing, inspects layer/toolpath warnings, and downloads the package. Technical evidence is progressively disclosed. The flow stops only at a real decision or failed gate, preserves the current model and revision, and always permits returning to the prior stage.
+
+Without a printer, Ariad can complete and demonstrate digital preparation through a real profile-specific package. It must continue to label fit, strength, calibration, adhesion, food contact, and physical success as unproven until measured.
+
 For every later provider or purchase decision, record:
 
 1. The exact problem it solves.

@@ -649,6 +649,18 @@ This file records accepted project-level decisions. Change an accepted decision 
 
 **Boundary:** This decision supersedes any demo treatment that ends after Design planning or presents the robot concept sheet as the result. It does not authorize unrestricted prompt-generated code, bypass the sealed execution boundary, establish physical fit, or connect printer hardware.
 
+### D-058 - Make the beginner journey model-first and agent-guided
+
+**Status:** Accepted by the project owner on 2026-07-21.
+
+**Decision:** Ariad's beginner path follows the real additive-manufacturing sequence without exposing every internal record as a user task: describe the need, approve one concise interpretation, inspect editable multi-part CAD, verify geometry and print preparation, slice against an explicit printer/material profile, inspect the layer toolpath, and package the artifacts. Codex prepares and persists routine planning after the user's single Brief approval. Technical plans, assumptions, and evidence remain available through progressive disclosure.
+
+**Interaction contract:** The model remains the primary workspace after CAD exists. Ariad advances automatically when a deterministic gate passes, stops at the first honest blocker, and asks only for a decision that changes the physical result. Completed work is preserved, CAD and Verify are distinct reversible states, and Back never creates a new project or routes the beginner into the evidence explorer.
+
+**Evidence:** The Guided Build Session now moves directly from one Brief approval to the robot CAD viewport, retains the generated plan in a collapsed work log, separates CAD inspection from basic geometry verification, and supports Verify-to-CAD and CAD-to-requirements navigation. Focused frontend tests, type generation, lint, production build, and a live browser prompt-to-CAD-to-Verify-to-CAD rehearsal pass without console errors.
+
+**Boundary:** The current robot path proves only prototype part geometry and one-solid-per-part checks. It truthfully stops before Slice because robot clearance, support-risk, component-fit, and profile-specific slicing evidence are not connected. Smoothness does not authorize fabricated progress or printer-ready claims.
+
 ## Deferred decisions
 
 These require later evidence and should not be decided through preference alone:

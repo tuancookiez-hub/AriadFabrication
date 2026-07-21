@@ -30,7 +30,7 @@ function label(value: string): string {
   return value.replaceAll('_', ' ').replace(/\b\w/g, (character) => character.toUpperCase())
 }
 
-export function RobotCadWorkspace({ projectId }: { projectId: string }) {
+export function RobotCadWorkspace({ projectId, mode, onContinue }: { projectId: string; mode: 'cad' | 'verify'; onContinue: () => void }) {
   const [manifest, setManifest] = useState<PrototypeManifest | null>(null)
   const [selectedId, setSelectedId] = useState('front_shell')
   const [error, setError] = useState<string | null>(null)
@@ -67,10 +67,9 @@ export function RobotCadWorkspace({ projectId }: { projectId: string }) {
   return (
     <section className="cad-workspace" aria-labelledby="cad-workspace-title">
       <header className="cad-workspace-heading">
-        <div><p className="eyebrow">Stage 3 complete · Stage 4 active</p><h2 id="cad-workspace-title">CAD generated. Verification is next.</h2><p>Stay in this workspace: inspect each manufacturing-oriented part while Ariad carries the same build into geometry and printability checks.</p></div>
+        <div><p className="eyebrow">{mode === 'cad' ? 'CAD ready to inspect' : 'Geometry checked · print readiness next'}</p><h2 id="cad-workspace-title">{mode === 'cad' ? 'Inspect the model before print checks.' : 'The model passed basic geometry checks.'}</h2><p>{mode === 'cad' ? 'Rotate the preview and choose each separately manufactured part. Ask Codex for a change or continue when the shape looks right.' : 'Ariad confirmed one closed solid per part. Clearance, support risk, and real component fit still need evidence before slicing.'}</p></div>
         <span className="cad-status"><i /> {validParts}/{manifest.part_count} valid solids</span>
       </header>
-      <div className="cad-flow-strip" aria-label="CAD continuation status"><span className="done"><b>3</b><strong>CAD</strong><small>Parts available</small></span><span className="active"><b>4</b><strong>Verify</strong><small>9 solids checked</small></span><span><b>5</b><strong>Slice</strong><small>Automatic after pass</small></span><span><b>6</b><strong>Package</strong><small>Automatic after slice</small></span></div>
       <div className="cad-workspace-layout">
         <nav className="cad-part-list" aria-label="Robot CAD parts">
           {manifest.parts.map((part) => <button className={part.part_id === selectedId ? 'selected' : ''} key={part.part_id} type="button" onClick={() => setSelectedId(part.part_id)}><span>{label(part.part_id)}</span><small>{part.kernel_valid && part.solid_count === 1 ? 'Valid solid' : 'Needs review'}</small></button>)}
@@ -80,7 +79,7 @@ export function RobotCadWorkspace({ projectId }: { projectId: string }) {
           {selected ? <div className="cad-part-actions"><div><strong>{label(selected.part_id)}</strong><span>{Math.round(selected.volume_mm3).toLocaleString()} mm³ · {selected.manufacturing_orientation ?? 'manufacturing orientation pending'}{selected.bounds_mm ? ` · ${selected.bounds_mm.x} × ${selected.bounds_mm.y} × ${selected.bounds_mm.z} mm` : ''}</span></div><a href={`${artifactRoot}/${selected.step}`} download>Download STEP</a><a href={`${artifactRoot}/${selected.stl}`} download>Download STL</a></div> : null}
         </div>
       </div>
-      <div className="cad-next-step"><div><strong>No page change is required</strong><p>When every verification gate passes, Ariad advances to Slice automatically and then builds the Package. If a gate is blocked, Codex asks one focused question here. This prototype currently has {validParts}/{manifest.part_count} valid solids; robot-specific clearance and support-risk checks are not connected yet.</p></div><Link className="secondary-action" to={`/chat?project=${encodeURIComponent(projectId)}`}>Adjust this design with Codex</Link></div>
+      <div className="cad-next-step"><div><strong>{mode === 'cad' ? 'Does the model look right?' : 'One blocker before slicing'}</strong><p>{mode === 'cad' ? 'Continue to let Ariad check geometry and print preparation. Your model and choices stay here if you go back.' : 'Robot-specific clearance and support-risk checks are not connected yet. Ariad stops here instead of pretending the model is printer-ready.'}</p></div><div className="cad-next-actions"><Link className="secondary-action" to={`/chat?project=${encodeURIComponent(projectId)}`}>Ask Codex for a change</Link>{mode === 'cad' ? <button className="primary-action" type="button" onClick={onContinue}>Check print readiness</button> : null}</div></div>
     </section>
   )
 }

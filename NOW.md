@@ -10,7 +10,7 @@ Close the broken middle of the Guided Build Session with one honest robot vertic
 
 The first executable slice is deliberately bounded to the original two-servo robot family. Plain-language revisions must change explicit parameters or assembly decisions, create a new project revision, and rerun every affected downstream gate. Unsupported prompts may still reach planning, but they must not imply that CAD exists. Unrestricted generated-code execution remains unavailable until its sandbox boundary is qualified. Printer control and physical-success claims remain outside this milestone.
 
-The Guided Build Session now composes universal intake, editable local defaults, project creation, clarification-draft persistence, explicit R0 approval, Codex Design-proposal retrieval, editable fallback Design planning, and explicit plan persistence into one React route. The beginner sees Describe → Confirm → Design → Verify → Simulate → Package while the existing backend boundaries remain unchanged. Draft preparation, R0 approval, and Design-plan saving remain separate user actions. Unavailable model classification or proposal retrieval falls back to visibly local defaults and useful product questions rather than technical setup instructions. CAD execution, automatic repair, verification, simulation, and packaging remain future stages, not simulated progress.
+The Guided Build Session now composes universal intake, editable local defaults, project creation, clarification-draft persistence, one explicit R0 approval, Codex Design-proposal retrieval, automatic Design-plan persistence, prototype robot CAD inspection, and a reversible basic-geometry check in one React route. The beginner sees Idea → Confirm → CAD → Verify → Slice → Package while internal planning stays in a collapsed work log. Back preserves the same build and returns from Verify to CAD or CAD to requirements. The robot path stops honestly before Slice because clearance, support-risk, component-fit, and profile-specific slicing evidence are not connected.
 
 The L-bracket foundation now has a closed seven-parameter contract, editable CadQuery source, a committed parameter fixture, invalid-margin rejection, and one-real-solid/envelope checks. It is deliberately not registered for R1/R2 execution yet. Five focused family and sealed-target checks pass after regenerating the application-bound CAD runtime manifest. The complete suite exceeded its three-minute command window, so the previously verified 241-test whole-suite baseline remains the latest whole-suite claim.
 
@@ -86,9 +86,10 @@ The assembly-first correction is implemented at the domain and read-only interfa
 ## Next actions
 
 1. Replace robot component placeholders with measured or manufacturer-controlled envelopes and freeze a confirmed robot-casing PartSpec.
-2. Add geometry checks for cavity, wall, camera, servo, connector, panel, fastener, and assembly clearances before granting R1/R2 evidence.
-3. Rehearse clean-checkout setup, record the demo, obtain `/feedback`, and complete the external Devpost/repository tasks.
-4. Continue sandbox qualification before exposing browser-triggered CAD execution.
+2. Connect geometry, clearance, wall, orientation, and support-risk checks to the Guided Build Session, then advance automatically to an explicit generic or selected printer profile.
+3. Connect real profile-specific slicing and layer preview to the same model-first workspace, followed by a downloadable fabrication package.
+4. Rehearse clean-checkout setup, record the demo, obtain `/feedback`, and complete the external Devpost/repository tasks.
+5. Continue sandbox qualification before exposing browser-triggered CAD execution.
 
 ## Exit gate for M4
 

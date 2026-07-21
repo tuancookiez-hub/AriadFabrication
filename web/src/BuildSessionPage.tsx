@@ -14,9 +14,9 @@ import {
 } from './api'
 import type { IntakeResponse, ProjectBrief, ProjectDesignPlanRequest, ProjectDraftRequest, ProjectIntent } from './types'
 
-type SessionStep = 'describe' | 'review' | 'design' | 'planned'
+type SessionStep = 'describe' | 'review' | 'cad' | 'verify'
 
-const BUILD_SESSION_KEY = 'ariad.active-build.v1'
+const BUILD_SESSION_KEY = 'ariad.active-build.v2'
 
 type StoredBuildSession = {
   step: SessionStep
@@ -32,7 +32,7 @@ type StoredBuildSession = {
 function restoreBuildSession(): StoredBuildSession | null {
   try {
     const value = JSON.parse(sessionStorage.getItem(BUILD_SESSION_KEY) ?? 'null') as Partial<StoredBuildSession> | null
-    if (!value || !['describe', 'review', 'design', 'planned'].includes(value.step ?? '') || typeof value.prompt !== 'string' || !value.draft || !value.designPlan) return null
+    if (!value || !['describe', 'review', 'cad', 'verify'].includes(value.step ?? '') || typeof value.prompt !== 'string' || !value.draft || !value.designPlan) return null
     return value as StoredBuildSession
   } catch {
     return null
@@ -123,7 +123,7 @@ export function BuildSessionPage() {
     sessionStorage.setItem(BUILD_SESSION_KEY, JSON.stringify(value))
   }, [brief, designPlan, draft, intake, planSource, project, prompt, step])
 
-  const activeIndex = useMemo(() => step === 'describe' ? 0 : step === 'review' ? 1 : step === 'planned' ? 3 : 2, [step])
+  const activeIndex = useMemo(() => step === 'describe' ? 0 : step === 'review' ? 1 : step === 'cad' ? 2 : 3, [step])
   const localFallback = intake?.provider.configured === false
   const reviewSummary = localFallback ? suggestedPartType(prompt) : intake?.route.summary
   const reviewReason = localFallback
@@ -166,49 +166,38 @@ export function BuildSessionPage() {
       }
       const confirmed = await confirmProjectBrief(created.project_id, token)
       setBrief(confirmed)
+      let proposedPlan: ProjectDesignPlanRequest
       try {
         const proposal = await getProjectDesignProposal(created.project_id, token)
-        setDesignPlan(proposal.proposal); setPlanSource('codex')
+        proposedPlan = proposal.proposal
+        setPlanSource('codex')
       } catch (reason) {
         if (!(reason instanceof ApiError && reason.status === 404)) setError(reason instanceof Error ? reason.message : 'The Design proposal could not be loaded.')
-        setDesignPlan(fallbackDesignPlan(prompt)); setPlanSource('local')
+        proposedPlan = fallbackDesignPlan(prompt)
+        setPlanSource('local')
       }
-      setStep('design')
+      const savedPlan = await saveProjectDesignPlan(created.project_id, proposedPlan, token)
+      setDesignPlan(savedPlan)
+      setStep('cad')
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'The project brief could not be prepared.')
     } finally { setBusy(false) }
   }
 
-  function planLines(name: 'critical_features' | 'assembly_interfaces' | 'constraints' | 'unresolved_questions', value: string) {
-    setDesignPlan((current) => ({ ...current, [name]: value.split('\n').map((item) => item.trim()).filter(Boolean) }))
-  }
-
   function goBack() {
     setError(null)
-    if (step === 'planned') setStep('design')
-    else if (step === 'design') setStep('review')
+    if (step === 'verify') setStep('cad')
+    else if (step === 'cad') setStep('review')
     else if (step === 'review') setStep('describe')
   }
 
-  const backLabel = step === 'planned' ? 'Back to CAD plan' : step === 'design' ? 'Back to requirements' : step === 'review' ? 'Back to idea' : null
-
-  async function persistDesign(event: FormEvent) {
-    event.preventDefault()
-    if (!token || !project) return
-    setBusy(true); setError(null)
-    try {
-      setDesignPlan(await saveProjectDesignPlan(project.project_id, designPlan, token))
-      setStep('planned')
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'The Design plan could not be saved.')
-    } finally { setBusy(false) }
-  }
+  const backLabel = step === 'verify' ? 'Back to CAD' : step === 'cad' ? 'Back to requirements' : step === 'review' ? 'Back to idea' : null
 
   return (
     <div className="build-session">
       <header className={`build-session-header${step === 'describe' ? ' build-session-header-intake' : ''}`}>
-        <div><p className="eyebrow">Make something</p><h1 data-route-heading tabIndex={-1}>{step === 'planned' ? 'Build and verify your model.' : 'Tell Codex what you need.'}</h1><p>{step === 'planned' ? 'The same build continues from editable CAD into manufacturing evidence.' : 'Ariad will guide the design and keep the technical work available when you want to inspect it.'}</p></div>
-        <div className="build-session-status"><span>Current step</span><strong>{step === 'planned' ? 'Verifying CAD' : brief ? 'Brief approved' : 'Describe your idea'}</strong><small><i /> Codex is ready</small></div>
+        <div><p className="eyebrow">Make something</p><h1 data-route-heading tabIndex={-1}>{step === 'cad' || step === 'verify' ? 'Your model stays at the center.' : 'Tell Codex what you need.'}</h1><p>{step === 'cad' || step === 'verify' ? 'Inspect it, ask for a change, or continue. Ariad keeps the technical records in the background.' : 'Ariad guides the design and shows technical detail only when you ask for it.'}</p></div>
+        <div className="build-session-status"><span>Current step</span><strong>{step === 'verify' ? 'Checking print readiness' : step === 'cad' ? 'Inspecting CAD' : step === 'review' ? 'Confirm the brief' : 'Describe your idea'}</strong><small><i /> Codex is guiding</small></div>
       </header>
 
       <ol className="build-stage-rail" aria-label="Build stages">
@@ -251,23 +240,14 @@ export function BuildSessionPage() {
         </aside>
       </section> : null}
 
-      {step === 'design' ? <section className="design-session-card">
-        <div className="design-session-heading"><div><p className="eyebrow">Design plan · not saved</p><h2>How should Ariad build it?</h2><p>{planSource === 'codex' ? 'Codex proposed this plan from the confirmed Brief.' : 'Ariad prepared a transparent local fallback because no Codex proposal was available.'}</p></div><span className={`plan-source plan-source-${planSource}`}>{planSource === 'codex' ? 'Codex proposal' : 'Local fallback'}</span></div>
-        <form onSubmit={persistDesign}>
-          <label>Design lane<select value={designPlan.lane} onChange={(event) => setDesignPlan((current) => ({ ...current, lane: event.target.value as ProjectDesignPlanRequest['lane'] }))}><option value="functional_parametric">Functional parametric CAD</option><option value="organic_mesh">Organic mesh</option><option value="hybrid">Hybrid CAD and mesh</option><option value="undecided">Undecided</option></select></label>
-          <label>Geometry strategy<textarea required rows={4} value={designPlan.geometry_strategy} onChange={(event) => setDesignPlan((current) => ({ ...current, geometry_strategy: event.target.value }))} /></label>
-          <div className="design-plan-summary"><p className="eyebrow">Codex prepared</p><h3>{designPlan.geometry_strategy}</h3><div className="plan-chip-row">{designPlan.critical_features.slice(0, 3).map((item) => <span key={item}>{item}</span>)}</div></div>
-          <details className="advanced-details design-advanced"><summary>Inspect the full Design plan</summary><div className="design-session-grid"><label>Critical features<textarea rows={6} value={designPlan.critical_features.join('\n')} onChange={(event) => planLines('critical_features', event.target.value)} /></label><label>Assembly interfaces<textarea rows={6} value={designPlan.assembly_interfaces.join('\n')} onChange={(event) => planLines('assembly_interfaces', event.target.value)} /></label><label>Constraints<textarea rows={6} value={designPlan.constraints.join('\n')} onChange={(event) => planLines('constraints', event.target.value)} /></label><label>Open decisions<textarea rows={6} value={designPlan.unresolved_questions.join('\n')} onChange={(event) => planLines('unresolved_questions', event.target.value)} /></label></div></details>
-          <div className="design-save-row"><p>Review this recommendation, then continue into the CAD workspace.</p><button className="primary-action" disabled={busy}>{busy ? 'Preparing CAD…' : 'Continue to CAD'}</button></div>
-        </form>
-      </section> : null}
+      {(step === 'cad' || step === 'verify') && project ? <details className="build-work-log"><summary>What Codex prepared</summary><div><strong>{planSource === 'codex' ? 'Codex-authored plan' : 'Local deterministic plan'}</strong><p>{designPlan.geometry_strategy}</p><span>{designPlan.critical_features.length} features · {designPlan.assembly_interfaces.length} interfaces · {designPlan.unresolved_questions.length} open decisions</span></div></details> : null}
 
-      {step === 'planned' && project && !prompt.toLowerCase().includes('robot') ? <section className="build-complete-card">
+      {(step === 'cad' || step === 'verify') && project && !prompt.toLowerCase().includes('robot') ? <section className="build-complete-card">
         <div className="completion-mark">✓</div><p className="eyebrow">Design plan saved</p><h2>This idea needs a qualified CAD family.</h2><p>Ariad will not invent printable geometry for an unsupported family. The approved robot example is currently the first connected CAD path.</p>
         <div className="next-actions"><Link className="primary-action" to={`/projects/${encodeURIComponent(project.project_id)}`}>Review project thread</Link><Link className="secondary-action" to={`/chat?project=${encodeURIComponent(project.project_id)}`}>Discuss open decisions with Codex</Link></div>
       </section> : null}
 
-      {step === 'planned' && project && prompt.toLowerCase().includes('robot') ? <RobotCadWorkspace projectId={project.project_id} /> : null}
+      {(step === 'cad' || step === 'verify') && project && prompt.toLowerCase().includes('robot') ? <RobotCadWorkspace mode={step} projectId={project.project_id} onContinue={() => setStep('verify')} /> : null}
 
       {error ? <div className="build-error" role="alert">{error}</div> : null}
     </div>
