@@ -2645,5 +2645,10 @@ main {
 .robot-package-summary div { display: flex; flex-direction: column; gap: .2rem; }
 .robot-package-summary span { color: #53645a; font-size: .78rem; }
 .robot-package-summary .primary-action { width: auto; margin: 0; white-space: nowrap; }
+.calibration-first-print { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: .75rem; padding: .9rem 1rem; border: 1px solid #d7c5a6; border-radius: .7rem; background: #fff8e9; }
+.calibration-first-print div { display: flex; flex-direction: column; gap: .18rem; }
+.calibration-first-print .eyebrow { margin: 0; font-size: .64rem; }
+.calibration-first-print span, .calibration-first-print small { color: #675c4c; font-size: .76rem; }
+.calibration-first-print .secondary-action { flex: none; white-space: nowrap; }
 .cad-workspace-loading { max-width: 1180px; margin: 2rem auto; padding: 2rem; text-align: center; }
-@media (max-width: 800px) { .cad-workspace-layout { grid-template-columns: 1fr; } .cad-part-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); max-height: none; } .cad-workspace-heading, .cad-next-step, .robot-package-summary { align-items: stretch; flex-direction: column; } .cad-next-actions { align-items: stretch; flex-direction: column; } .cad-flow-strip { grid-template-columns: repeat(2, 1fr); } .cad-flow-strip > span:nth-child(3) { border-left: 0; border-top: 1px solid #ded5ca; } .cad-flow-strip > span:nth-child(4) { border-top: 1px solid #ded5ca; } .cad-part-preview .model-viewport { min-height: 330px; } .robot-check-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 800px) { .cad-workspace-layout { grid-template-columns: 1fr; } .cad-part-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); max-height: none; } .cad-workspace-heading, .cad-next-step, .robot-package-summary, .calibration-first-print { align-items: stretch; flex-direction: column; } .cad-next-actions { align-items: stretch; flex-direction: column; } .cad-flow-strip { grid-template-columns: repeat(2, 1fr); } .cad-flow-strip > span:nth-child(3) { border-left: 0; border-top: 1px solid #ded5ca; } .cad-flow-strip > span:nth-child(4) { border-top: 1px solid #ded5ca; } .cad-part-preview .model-viewport { min-height: 330px; } .robot-check-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

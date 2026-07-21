@@ -22,6 +22,8 @@ Open the printed loopback URL, then use **Build session** for the guided prompt 
 
 Supported submission platform: Windows 11 x64. Hardware, physical validation, arbitrary-prompt CAD execution, and browser-triggered generated-code execution are deliberately unavailable. See the [two-minute-fifty-second runbook](docs/DEMO_RUNBOOK.md) and [submission readiness matrix](docs/HACKATHON.md).
 
+The robot demo also includes a separately downloadable six-part clearance-and-snap coupon as the recommended first future print. It is digitally sliced with the same generic PETG profile; no fit or durability result is claimed until a real printer/material/process combination is measured.
+
 The image above is the official project logo. The illustration below explains the current product story and is not a substitute logo.
 
 ![Ariad Fabrication interlocking robot journey](assets/ariad-header-infographic-interlocking-v2.png)

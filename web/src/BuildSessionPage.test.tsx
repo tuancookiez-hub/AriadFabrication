@@ -32,6 +32,7 @@ function robotPackage() {
     totals: { estimated_seconds: 3600, filament_mass_g: 10 },
     parts: [{ part_id: 'front_shell', slice_status: 'passed_with_warnings', support_risk: 'review_slicer_warnings', slicer_warnings: ['Bridge review'], layers: 100, estimated_seconds: 3600, filament_mass_g: 10, gcode_preflight_passed: true, geometry: { manifold_mesh: true, fits_generic_build_volume: true, placed_on_bed: true } }],
     checks: { all_kernel_valid: true, all_single_solids: true, all_fit_generic_build_volume: true, all_gcode_preflight_passed: true, component_fit_verified: false, assembly_clearance_verified: false, physical_print_verified: false },
+    first_print_calibration: { status: 'digitally_sliced_awaiting_physical_calibration', part_count: 6, candidate_clearances_mm: [0.2, 0.3, 0.4, 0.5, 0.6], candidate_hook_engagements_mm: [0.4, 0.8, 1.2], estimated_seconds: 4200, filament_mass_g: 13.3, physical_coupon_printed: false, path: '/demo/interlock-coupon/coupon.zip', size_bytes: 600_000, checksum_sha256: 'd'.repeat(64) },
     unresolved_warnings: ['Physical print unverified.'], claim_boundary: 'Digital package only.',
     download: { path: 'robot.zip', size_bytes: 1_000_000, checksum_sha256: 'c'.repeat(64) },
   }
@@ -127,6 +128,8 @@ describe('BuildSessionPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Build package' }))
     expect(screen.getByRole('heading', { name: 'Download the complete handoff.' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Download package/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Download calibration coupon/i })).toBeInTheDocument()
+    expect(screen.getByText(/physical measurements still required/i)).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: /Back to slice/i }))
     fireEvent.click(screen.getByRole('button', { name: /Back to verification/i }))
     fireEvent.click(screen.getByRole('button', { name: '← Back to CAD' }))

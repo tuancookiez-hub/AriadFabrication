@@ -1,0 +1,207 @@
+{
+  "artifact_kind": "interlock_calibration_coupon_package",
+  "candidate_clearances_mm": [
+    0.2,
+    0.3,
+    0.4,
+    0.5,
+    0.6
+  ],
+  "candidate_hook_engagements_mm": [
+    0.4,
+    0.8,
+    1.2
+  ],
+  "channel_mapping": [
+    {
+      "channel": 1,
+      "clearance_mm_per_side": 0.2
+    },
+    {
+      "channel": 2,
+      "clearance_mm_per_side": 0.3
+    },
+    {
+      "channel": 3,
+      "clearance_mm_per_side": 0.4
+    },
+    {
+      "channel": 4,
+      "clearance_mm_per_side": 0.5
+    },
+    {
+      "channel": 5,
+      "clearance_mm_per_side": 0.6
+    }
+  ],
+  "checks": {
+    "all_gcode_preflight_passed": true,
+    "all_kernel_valid": true,
+    "all_single_solids": true,
+    "fit_measured": false,
+    "physical_coupon_printed": false,
+    "snap_cycle_life_measured": false
+  },
+  "claim_boundary": "Digital calibration-coupon geometry only. The values are test candidates, not measured printer compensation. Fit, release force, retention force, cycle life, and suitability for the robot remain unverified until printed and recorded with an exact printer, material, and process profile.",
+  "design_source_version": "0.1.0",
+  "download": {
+    "checksum_sha256": "393819de70c23bae8fdd644740fdf88ed700621e6f0446625db0db6e088a51f9",
+    "path": "ariad-interlock-calibration-coupon.zip",
+    "size_bytes": 595276
+  },
+  "instructions": "instructions.json",
+  "part_count": 6,
+  "parts": [
+    {
+      "bounds_mm": {
+        "x": 75.0,
+        "y": 28.0,
+        "z": 5.0
+      },
+      "estimated_seconds": 2428,
+      "filament_mass_g": 8.08,
+      "gcode_preflight_passed": true,
+      "glb": "dovetail_gauge.glb",
+      "glb_sha256": "0cfb7b5e4a2e3a358bc9e1a5629135a0f8101cd1495d76dceed4949beff744ea",
+      "kernel_valid": true,
+      "layers": 25,
+      "part_id": "dovetail_gauge",
+      "preview_triangle_count": 332,
+      "slice_status": "passed",
+      "slicer_warnings": [],
+      "solid_count": 1,
+      "step": "dovetail_gauge.step",
+      "step_sha256": "38f4b628f1bf14bc72a87353893945d29d2b1b32c6d24cfea9b44300e55605fa",
+      "stl": "dovetail_gauge.stl",
+      "stl_sha256": "8a3021f9f76866f14d1f53c09c31129a2815b77e4700986b16964576d8ea010d"
+    },
+    {
+      "bounds_mm": {
+        "x": 12.0,
+        "y": 34.0,
+        "z": 5.0
+      },
+      "estimated_seconds": 293,
+      "filament_mass_g": 0.85,
+      "gcode_preflight_passed": true,
+      "glb": "dovetail_key.glb",
+      "glb_sha256": "82d693bab5ee363e97c9b02ac00f94c2a7a4e75333f13cebc027bbe53eb52168",
+      "kernel_valid": true,
+      "layers": 25,
+      "part_id": "dovetail_key",
+      "preview_triangle_count": 28,
+      "slice_status": "passed",
+      "slicer_warnings": [],
+      "solid_count": 1,
+      "step": "dovetail_key.step",
+      "step_sha256": "27adf47c47941ae87cb3481236ce00194bbeca5de3b977da74024fcc65ce23f7",
+      "stl": "dovetail_key.stl",
+      "stl_sha256": "6e8c27f9445843f708c58c525ab25ffe9c6a8a70436fffa012566c1447334c4b"
+    },
+    {
+      "bounds_mm": {
+        "x": 18.0,
+        "y": 24.0,
+        "z": 7.8
+      },
+      "estimated_seconds": 651,
+      "filament_mass_g": 2.09,
+      "gcode_preflight_passed": true,
+      "glb": "snap_receiver.glb",
+      "glb_sha256": "92440ad47180fb26bc5dfe3515cf82382f424674292602520144d559757327de",
+      "kernel_valid": true,
+      "layers": 39,
+      "part_id": "snap_receiver",
+      "preview_triangle_count": 48,
+      "slice_status": "passed",
+      "slicer_warnings": [],
+      "solid_count": 1,
+      "step": "snap_receiver.step",
+      "step_sha256": "1960bbc060e9390556560fad9eefe1bf7ec3bfad2047c670c9562a3d86172237",
+      "stl": "snap_receiver.stl",
+      "stl_sha256": "712cabe6c83520a0d5b4136ae1025d0a1f0c866c52a87becd75ff24bb1fdffda"
+    },
+    {
+      "bounds_mm": {
+        "x": 13.2,
+        "y": 22.0,
+        "z": 2.4
+      },
+      "estimated_seconds": 267,
+      "filament_mass_g": 0.75,
+      "gcode_preflight_passed": true,
+      "glb": "snap_key_0_4.glb",
+      "glb_sha256": "661e437a3b357ab4a85e1a9c7032af8a24e93a91b2fc1b0914e5ae899db6d5cb",
+      "kernel_valid": true,
+      "layers": 12,
+      "part_id": "snap_key_0_4",
+      "preview_triangle_count": 64,
+      "slice_status": "passed",
+      "slicer_warnings": [],
+      "solid_count": 1,
+      "step": "snap_key_0_4.step",
+      "step_sha256": "54a8d1d9ccbe73aa9762c7956647ac1d32118c08d41c8861d1c3336a57dbbc02",
+      "stl": "snap_key_0_4.stl",
+      "stl_sha256": "2b7c589604720b2c9d146f0bf148c631b9ba499005592551fffc7636a018fddd"
+    },
+    {
+      "bounds_mm": {
+        "x": 13.6,
+        "y": 22.0,
+        "z": 2.4
+      },
+      "estimated_seconds": 269,
+      "filament_mass_g": 0.75,
+      "gcode_preflight_passed": true,
+      "glb": "snap_key_0_8.glb",
+      "glb_sha256": "5d0c09eb508bb138abe5e32fe02e9e56222a99576d27d71ff448a3ed1132f7d5",
+      "kernel_valid": true,
+      "layers": 12,
+      "part_id": "snap_key_0_8",
+      "preview_triangle_count": 64,
+      "slice_status": "passed",
+      "slicer_warnings": [],
+      "solid_count": 1,
+      "step": "snap_key_0_8.step",
+      "step_sha256": "23c70b546f70374ef07a114257160551e070a824e408fc2aea0f9c253594d8eb",
+      "stl": "snap_key_0_8.stl",
+      "stl_sha256": "9f6a77fc2e5d5818dd13c022da3ba1fff348e30335a4b09b4b5737e0e0f9fb5c"
+    },
+    {
+      "bounds_mm": {
+        "x": 14.0,
+        "y": 22.0,
+        "z": 2.4
+      },
+      "estimated_seconds": 271,
+      "filament_mass_g": 0.76,
+      "gcode_preflight_passed": true,
+      "glb": "snap_key_1_2.glb",
+      "glb_sha256": "0cc497dcf92a667c387527233204e642983d28104436207a2af035e964702399",
+      "kernel_valid": true,
+      "layers": 12,
+      "part_id": "snap_key_1_2",
+      "preview_triangle_count": 64,
+      "slice_status": "passed",
+      "slicer_warnings": [],
+      "solid_count": 1,
+      "step": "snap_key_1_2.step",
+      "step_sha256": "85eb87db8d7874d4debe0dc39074965a47ac499bd49ad6399b3045f1d97975ac",
+      "stl": "snap_key_1_2.stl",
+      "stl_sha256": "75ea35edc8d372f1fcc359cba9db43c673c74809ba2fa9f904963206420259a9"
+    }
+  ],
+  "profile": {
+    "calibrated_to_hardware": false,
+    "material": "generic_petg_175_v1",
+    "printer": "generic_open_fdm_220_v1",
+    "process": "golden_part_020_no_support_v1",
+    "slicer": "PrusaSlicer 2.9.6"
+  },
+  "schema_version": "1.0.0",
+  "status": "digitally_sliced_awaiting_physical_calibration",
+  "totals": {
+    "estimated_seconds": 4179,
+    "filament_mass_g": 13.28
+  }
+}

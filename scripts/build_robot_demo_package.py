@@ -69,6 +69,8 @@ def main() -> None:
 
     cad_root = ROOT / "web" / "public" / "demo" / "robot-cad"
     geometry = json.loads((cad_root / "manifest.json").read_text(encoding="utf-8"))
+    coupon_root = ROOT / "web" / "public" / "demo" / "interlock-coupon"
+    coupon = json.loads((coupon_root / "manifest.json").read_text(encoding="utf-8"))
     profiles = _profiles()
     slicer = PrusaSlicerAdapter(args.slicer, timeout_seconds=180)
     output = args.output.resolve()
@@ -170,6 +172,20 @@ def main() -> None:
                 "Slicer support and bridge warnings require human review before a physical attempt.",
                 "No physical print, dimensional inspection, strength test, or safety test occurred.",
             ],
+            "first_print_calibration": {
+                "status": coupon["status"],
+                "part_count": coupon["part_count"],
+                "candidate_clearances_mm": coupon["candidate_clearances_mm"],
+                "candidate_hook_engagements_mm": coupon[
+                    "candidate_hook_engagements_mm"
+                ],
+                "estimated_seconds": coupon["totals"]["estimated_seconds"],
+                "filament_mass_g": coupon["totals"]["filament_mass_g"],
+                "physical_coupon_printed": coupon["checks"]["physical_coupon_printed"],
+                "path": "/demo/interlock-coupon/{0}".format(coupon["download"]["path"]),
+                "size_bytes": coupon["download"]["size_bytes"],
+                "checksum_sha256": coupon["download"]["checksum_sha256"],
+            },
             "claim_boundary": (
                 "Nine real prototype meshes were sliced locally with the recorded disconnected "
                 "generic profile and their G-code passed digital preflight. This package is a "
@@ -202,6 +218,14 @@ def main() -> None:
                     archive.write(slice_root / filename, f"parts/{source['part_id']}/{filename}")
             for profile_path in profiles.source_paths:
                 archive.write(profile_path, f"profiles/{profile_path.name}")
+            archive.write(
+                coupon_root / coupon["download"]["path"],
+                "calibration/{0}".format(coupon["download"]["path"]),
+            )
+            archive.write(
+                coupon_root / coupon["instructions"],
+                "calibration/{0}".format(coupon["instructions"]),
+            )
 
         manifest["download"] = {
             "path": package_path.name,

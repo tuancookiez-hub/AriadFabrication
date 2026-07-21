@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0.0",
+  "design_id": "ariad_interlock_calibration_coupon_v1",
+  "clearance_values_mm": [0.2, 0.3, 0.4, 0.5, 0.6],
+  "hook_engagement_values_mm": [0.4, 0.8, 1.2],
+  "dovetail_base_width_mm": 4.0,
+  "dovetail_top_width_mm": 6.0,
+  "dovetail_height_mm": 2.4,
+  "gauge_width_mm": 75.0,
+  "gauge_depth_mm": 28.0,
+  "gauge_thickness_mm": 5.0,
+  "rail_length_mm": 28.0,
+  "snap_receiver_width_mm": 18.0,
+  "snap_receiver_depth_mm": 24.0,
+  "snap_floor_mm": 2.4,
+  "snap_wall_mm": 2.4,
+  "snap_key_width_mm": 12.8,
+  "snap_key_length_mm": 22.0,
+  "snap_arm_thickness_mm": 1.8,
+  "snap_arm_length_mm": 14.0,
+  "claim_boundary": "Digital calibration-coupon geometry only. The values are test candidates, not measured printer compensation. Fit, release force, retention force, cycle life, and suitability for the robot remain unverified until printed and recorded with an exact printer, material, and process profile."
+}

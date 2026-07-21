@@ -1,0 +1,24 @@
+{
+  "artifact_kind": "physical_calibration_protocol",
+  "claim_boundary": "Digital calibration-coupon geometry only. The values are test candidates, not measured printer compensation. Fit, release force, retention force, cycle life, and suitability for the robot remain unverified until printed and recorded with an exact printer, material, and process profile.",
+  "hardware_action_performed": false,
+  "record": {
+    "accepted_by_user": false,
+    "cycles_completed": 0,
+    "material_profile_id": null,
+    "measured_dovetail_clearance_mm": null,
+    "observations": [],
+    "preferred_hook_engagement_mm": null,
+    "printer_profile_id": null,
+    "process_profile_id": null
+  },
+  "steps": [
+    "Print all six coupon parts together using the exact intended printer, material, and process profile.",
+    "Let the parts cool completely before removing them from the build surface.",
+    "Slide the dovetail key through channels one to five; the manifest maps them to 0.2 through 0.6 mm per-side clearances.",
+    "Choose the smallest channel that moves fully by hand without binding, visible damage, or excessive looseness.",
+    "Insert each snap key into the receiver, record whether it latches and releases by hand, and never force a specimen that binds.",
+    "Repeat the preferred snap candidate for at least 25 gentle cycles and record cracks, whitening, permanent set, and retention loss.",
+    "Create a calibrated child revision; do not silently replace the generic robot parameters."
+  ]
+}

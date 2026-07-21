@@ -25,8 +25,9 @@ Use this as a factual worksheet. Rewrite the final Devpost description in your o
 4. Creates R0 Brief evidence only after a separate explicit approval.
 5. Retrieves an R0-bound Codex Design-plan proposal when available, with a labelled editable local fallback.
 6. Continues into a nine-part tool-less robot CAD set using snap, slide, dovetail, press-fit, and keyed interfaces, then performs real disconnected slicing and builds a downloadable warned prototype package.
-7. Replays a persisted real Golden Part journey through editable CadQuery source, exact STEP lineage, OCCT geometry checks, profile-specific printability checks, real PrusaSlicer G-code, and a checksummed R4 package.
-8. Displays failed and incomplete fixtures at their actual stopping gates and compares persisted revisions without pretending the comparison reran validation.
+7. Provides a much smaller first-print calibration coupon for five dovetail clearances and three snap engagements before the user risks the complete robot.
+8. Replays a persisted real Golden Part journey through editable CadQuery source, exact STEP lineage, OCCT geometry checks, profile-specific printability checks, real PrusaSlicer G-code, and a checksummed R4 package.
+9. Displays failed and incomplete fixtures at their actual stopping gates and compares persisted revisions without pretending the comparison reran validation.
 
 ## How Codex and GPT-5.6 were used
 
@@ -43,12 +44,13 @@ Use this as a factual worksheet. Rewrite the final Devpost description in your o
 - Evidence-replay API and React Journey explorer.
 - Real GLB model inspection and worker-isolated 250-layer toolpath playback.
 - Assembly-first robot decomposition, nine-part interlocking prototype CAD, and real per-part PrusaSlicer handoff.
+- Six-part clearance/snap calibration coupon with a measurement protocol and no fabricated physical results.
 - Revision comparison, failure fixtures, artifact integrity checks, and explicit claim boundaries.
 - No-hardware execution controls, sealed target identity, runtime manifests, and adversarial tests.
 
 ## Verified state
 
-- Backend verification: **264 tests passed** — 262 ordinary/contract tests plus two separately run sealed R4 integrations.
+- Backend verification: the current lightweight suite runs **270 tests successfully** with 23 optional CAD/slicer skips; the coupon's six focused tests also pass fully in the pinned CAD environment. The previously recorded sealed R4 integrations remain separate evidence.
 - Frontend: **24 deterministic tests passed**, with two optional real-artifact tests skipped when their local artifacts are absent.
 - Generated OpenAPI types, TypeScript, ESLint, production build, and live browser rehearsals pass.
 - A valid local real R4 Golden Part revision contains a browser model, 250-layer slicer toolpath, profile evidence, and fabrication package.

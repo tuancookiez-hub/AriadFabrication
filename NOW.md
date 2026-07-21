@@ -6,15 +6,17 @@
 
 ## Immediate objective
 
-Close the broken middle of the Guided Build Session with one honest robot vertical slice. After the user approves a Design plan, the same project must continue into a trusted nine-part CadQuery build, an interactive part/assembly preview, deterministic geometry and printability findings, real profile-specific slicing, and a downloadable fabrication package. The concept sheet is optional visual intent, never the terminal output or a substitute for CAD.
+Finish the honest no-printer handoff for the interlocking robot. The Guided Build Session already reaches a trusted nine-part CadQuery build, interactive per-part preview, deterministic digital checks, real profile-specific slicing, and a downloadable fabrication package. It must now make the first future physical action practical: print a small calibration coupon, measure fit and snap behavior, and create a calibrated child revision before risking the full robot.
 
 The first executable slice is deliberately bounded to the original two-servo robot family. Plain-language revisions must change explicit parameters or assembly decisions, create a new project revision, and rerun every affected downstream gate. Unsupported prompts may still reach planning, but they must not imply that CAD exists. Unrestricted generated-code execution remains unavailable until its sandbox boundary is qualified. Printer control and physical-success claims remain outside this milestone.
 
 The Guided Build Session now composes universal intake, editable local defaults, project creation, clarification-draft persistence, one explicit R0 approval, Codex Design-proposal retrieval, automatic Design-plan persistence, prototype robot CAD inspection, deterministic digital checks, real disconnected slicing, and package download in one React route. The beginner sees Idea → Confirm → CAD → Verify → Slice → Package while internal planning stays in a collapsed work log. Back preserves the same build. Generic profile evidence permits a warned prototype package while calibrated fit and physical evidence remain unavailable.
 
-The L-bracket foundation now has a closed seven-parameter contract, editable CadQuery source, a committed parameter fixture, invalid-margin rejection, and one-real-solid/envelope checks. It is deliberately not registered for R1/R2 execution yet. Five focused family and sealed-target checks pass after regenerating the application-bound CAD runtime manifest. The complete suite exceeded its three-minute command window, so the previously verified 241-test whole-suite baseline remains the latest whole-suite claim.
+The L-bracket foundation has a closed seven-parameter contract, editable CadQuery source, a committed parameter fixture, invalid-margin rejection, and one-real-solid/envelope checks. It remains deliberately unregistered for R1/R2 execution. The current lightweight backend suite passes 270 tests with 23 optional CAD/slicer skips; the coupon's six focused tests pass both in the lightweight environment (three CAD skips) and fully in the pinned CAD environment.
 
 The owner-approved robot-casing concept now builds nine separate kernel-valid CadQuery prototype solids matching the assembly decomposition: front shell, snap-latched electronics tray, slide-lock service panel, two flat-print rotating limbs, two keyed split-stem adapters, press-fit camera bezel, and dovetail electronics carrier. No glue or loose fastener joins printed parts. Each exports independently to STEP, STL, GLB, and SVG with checksums under `runs/concepts/robot-interlocking-v1`; all nine real meshes fit the generic build volume and pass disconnected G-code preflight. The shell and two provisional servo adapters retain slicer warnings. The 0.4 mm interlock allowance, purchased-component fit, latch life, collision, balance, motion, and physical behavior remain unverified.
+
+The new first-print calibration set contains a five-channel dovetail gauge, one matching rail key, one releasable snap receiver, and three snap keys with 0.4/0.8/1.2 mm hook engagement. All six are kernel-valid single solids, slice without warnings under the same generic PETG profile, and pass disconnected G-code preflight. The complete coupon is estimated at 13.28 g and 69 minutes 39 seconds. Its manifest and instructions preserve literal-false physical results until a user prints, cools, tests, measures, cycles, and approves the specimens on an exact machine/material/process combination.
 
 The assembly-first correction is implemented at the domain and read-only interface boundaries. `AssemblySpec` 1.0.0 and `assembly-spec.schema.json` describe nine separately manufactured robot parts, one manufacturer-sourced and three placeholder component envelopes, seven interfaces, and six unresolved decisions. API 1.19.0 exposes the validated planning fixture and React presents it beside the approved visual concept with explicit no-Journey-CAD/no-simulation/no-hardware claims. The Journey repository does not yet accept assembly evidence.
 
@@ -85,8 +87,8 @@ The assembly-first correction is implemented at the domain and read-only interfa
 
 ## Next actions
 
-1. Rehearse the interlocking robot CAD → Verify → Slice → Package story from a clean Build Session and record the demo.
-2. Add a small clearance-and-snap calibration coupon to the first-printer workflow before permitting interlock-fit claims.
+1. Rehearse the interlocking robot CAD → Verify → Slice → Package → calibration-coupon story from a clean Build Session and record the demo.
+2. Define the future measured-coupon import and calibrated child-revision contract without claiming that physical testing occurred.
 3. Replace robot component placeholders with measured or manufacturer-controlled envelopes, then add assembly-clearance, access, and motion evidence as a child revision.
 4. Obtain `/feedback` and complete the external Devpost/repository tasks.
 5. Continue sandbox qualification before exposing browser-triggered CAD execution.

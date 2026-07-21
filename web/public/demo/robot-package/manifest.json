@@ -13,16 +13,38 @@
   },
   "claim_boundary": "Nine real prototype meshes were sliced locally with the recorded disconnected generic profile and their G-code passed digital preflight. This package is a reviewable prototype handoff, not proof of fit, print success, strength, motion, safety, or hardware readiness.",
   "download": {
-    "checksum_sha256": "626b5fc6657c6a6e52be29ab68366e3e868d2bb5933bf932c168be09b069bdb7",
+    "checksum_sha256": "613f7d1a1913ee926e029ed4654f091cd4b25466e13fd869ee8f4ae648c1e06e",
     "path": "ariad-robot-prototype-package.zip",
-    "size_bytes": 5234179
+    "size_bytes": 5823604
+  },
+  "first_print_calibration": {
+    "candidate_clearances_mm": [
+      0.2,
+      0.3,
+      0.4,
+      0.5,
+      0.6
+    ],
+    "candidate_hook_engagements_mm": [
+      0.4,
+      0.8,
+      1.2
+    ],
+    "checksum_sha256": "393819de70c23bae8fdd644740fdf88ed700621e6f0446625db0db6e088a51f9",
+    "estimated_seconds": 4179,
+    "filament_mass_g": 13.28,
+    "part_count": 6,
+    "path": "/demo/interlock-coupon/ariad-interlock-calibration-coupon.zip",
+    "physical_coupon_printed": false,
+    "size_bytes": 595276,
+    "status": "digitally_sliced_awaiting_physical_calibration"
   },
   "part_count": 9,
   "parts": [
     {
       "artifacts": {
         "gcode": "parts/front_shell/toolpath.gcode",
-        "gcode_sha256": "c74f4d2ca2756b349dd97f78c907dfefbc978c988a1f8f979a6beed70c593bf4",
+        "gcode_sha256": "d94f764c2e8c0340606ceecf66216c811cb52d9740bef61428fdd4c2645ccd3b",
         "slice_report": "parts/front_shell/slice_report.json",
         "slicer_project": "parts/front_shell/slicer_project.3mf"
       },
@@ -48,7 +70,7 @@
     {
       "artifacts": {
         "gcode": "parts/electronics_tray/toolpath.gcode",
-        "gcode_sha256": "e1cad136224c05797628d51cfb33a6f9993c50edbc60390729802d261f4d2847",
+        "gcode_sha256": "243ef0cfedda4a3e26890c6ca3c645fefb5a79d5320f60f75c5fd13dd96fb8c7",
         "slice_report": "parts/electronics_tray/slice_report.json",
         "slicer_project": "parts/electronics_tray/slicer_project.3mf"
       },
@@ -72,7 +94,7 @@
     {
       "artifacts": {
         "gcode": "parts/service_panel/toolpath.gcode",
-        "gcode_sha256": "e011966336d6740c34c8d1d86ad29e20647884687bdef11f05de6f5149963330",
+        "gcode_sha256": "34e45d25f0be80df73b0cfde97fa86c1f2ec1af50f5f7bdaaa7cb0c534e410aa",
         "slice_report": "parts/service_panel/slice_report.json",
         "slicer_project": "parts/service_panel/slicer_project.3mf"
       },
@@ -96,7 +118,7 @@
     {
       "artifacts": {
         "gcode": "parts/left_limb/toolpath.gcode",
-        "gcode_sha256": "37ded960b83bb2001003b6a1567b5e3f4b9ae6ec1b34c61dbeba99f2a3430a4e",
+        "gcode_sha256": "42222802b096101d7b03c8172f468bef27a5f3ee02f3bee0ced6ba27c24acaa4",
         "slice_report": "parts/left_limb/slice_report.json",
         "slicer_project": "parts/left_limb/slicer_project.3mf"
       },
@@ -120,7 +142,7 @@
     {
       "artifacts": {
         "gcode": "parts/right_limb/toolpath.gcode",
-        "gcode_sha256": "5e673b48334196fe07c287ae5e93922b94ddcb8136ce3e3b04aa7b4ae79dd3e7",
+        "gcode_sha256": "44e14e756d99185d46159eb93fc95852cb1ff79b82f061bb72c2daee11327caf",
         "slice_report": "parts/right_limb/slice_report.json",
         "slicer_project": "parts/right_limb/slicer_project.3mf"
       },
@@ -144,7 +166,7 @@
     {
       "artifacts": {
         "gcode": "parts/left_servo_adapter/toolpath.gcode",
-        "gcode_sha256": "6db2b2b31db416f90318c17fd3f2582acf184fd54bae69977c8af1d1d388b083",
+        "gcode_sha256": "3a14f81dc0f737fc57355286530ea0d6819c4b41b5bd4f6aeed600112aac6800",
         "slice_report": "parts/left_servo_adapter/slice_report.json",
         "slicer_project": "parts/left_servo_adapter/slicer_project.3mf"
       },
@@ -170,7 +192,7 @@
     {
       "artifacts": {
         "gcode": "parts/right_servo_adapter/toolpath.gcode",
-        "gcode_sha256": "a0861c8120a49922f36bf5077223fd1495cba9662aff7e5fa997d39701837078",
+        "gcode_sha256": "82f6dcae8c4884ff5e7f77f6ae983594df56871d342bb533166284bb2df1a4dd",
         "slice_report": "parts/right_servo_adapter/slice_report.json",
         "slicer_project": "parts/right_servo_adapter/slicer_project.3mf"
       },
@@ -196,7 +218,7 @@
     {
       "artifacts": {
         "gcode": "parts/camera_bezel/toolpath.gcode",
-        "gcode_sha256": "c8d02bb6a9f58ba0542a2801669037671adb7497e70eebad3bddc0743afbf375",
+        "gcode_sha256": "200be748ee513f901e623a478b0cdc11702f03e52d5de2e03e01e87602e5b7ea",
         "slice_report": "parts/camera_bezel/slice_report.json",
         "slicer_project": "parts/camera_bezel/slicer_project.3mf"
       },
@@ -220,7 +242,7 @@
     {
       "artifacts": {
         "gcode": "parts/electronics_carrier/toolpath.gcode",
-        "gcode_sha256": "7aa4d974fe03b982017fa54f42adc249c55841cc89c3fd6ea05b0be2d9674238",
+        "gcode_sha256": "a70e6f9dcac5970866617aa93e654d8a835919c3ebdafa03856d2eafaf887d77",
         "slice_report": "parts/electronics_carrier/slice_report.json",
         "slicer_project": "parts/electronics_carrier/slicer_project.3mf"
       },

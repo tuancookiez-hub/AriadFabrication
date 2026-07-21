@@ -667,7 +667,7 @@ This file records accepted project-level decisions. Change an accepted decision 
 
 **Decision:** The Guided Build Session may advance from robot Verify through Slice and Package when each separately manufactured mesh is manifold, placed on the bed, inside the recorded generic build volume, sliced by the approved disconnected PrusaSlicer adapter, and its G-code passes preflight. Missing assembly-clearance, purchased-component-fit, calibration, and physical evidence remain visible package warnings; they do not prevent creation of a clearly labelled prototype handoff.
 
-**Evidence:** Nine robot STLs were sliced locally with PrusaSlicer 2.9.6 under the generic 220 mm PETG profile. All nine were manifold, on-bed, inside the profile volume, and passed disconnected G-code preflight. The generated package contains the nine CAD/mesh/preview sets, nine 3MF projects and G-code files, exact profiles, reports, logs, checksums, parameters, and AssemblySpec. PrusaSlicer reported warnings for the front shell, service panel, and camera bezel; the UI exposes them per part. The reversible CAD → Verify → Slice → Package frontend path is regression-tested and passed a live browser rehearsal without console warnings or errors.
+**Evidence:** Nine robot STLs were sliced locally with PrusaSlicer 2.9.6 under the generic 220 mm PETG profile. All nine were manifold, on-bed, inside the profile volume, and passed disconnected G-code preflight. The generated package contains the nine CAD/mesh/preview sets, nine 3MF projects and G-code files, exact profiles, reports, logs, checksums, parameters, and AssemblySpec. After the interlocking redesign and print-orientation pass, PrusaSlicer reports warnings for the front shell and two provisional servo adapters; the UI exposes them per part. The reversible CAD → Verify → Slice → Package frontend path is regression-tested and passed a live browser rehearsal without console warnings or errors.
 
 **Boundary:** This prototype package is not a Journey R4 promotion and does not prove component fit, assembly clearance, balance, motion, adhesion, accuracy, strength, safety, or physical print success. The printer and PETG profiles remain generic and uncalibrated, and hardware remains disconnected.
 
@@ -678,6 +678,14 @@ This file records accepted project-level decisions. Change an accepted decision 
 **Decision:** Printed robot parts use serviceable slide, dovetail, keyed split-stem, press-fit, and releasable snap interfaces instead of glue or loose fasteners. Generic FDM geometry starts at 0.4 mm sliding clearance, and long snap arms are oriented in the print plane. Purchased servo horns or electronics may still require manufacturer-specified hardware.
 
 **Consequence:** Ariad exports every part separately and records its assembly method. Fit and durability remain unverified until clearance coupons and repeated assembly cycles are measured on the eventual printer/material/profile.
+
+### D-061 - Make a calibration coupon the first future physical print
+
+**Status:** Accepted as implementation of D-060 on 2026-07-21.
+
+**Decision:** The robot package includes a separate six-part coupon that tests five 0.2–0.6 mm per-side dovetail clearances and three 0.4/0.8/1.2 mm snap-hook engagements using the same interface geometry and print directions as the prototype. The protocol requires cooling, hand-fit observations, at least 25 gentle cycles of the preferred snap candidate, and an explicitly approved calibrated child revision.
+
+**Boundary:** Clean slicing does not select a clearance or hook engagement. Until physical results are recorded against exact printer, material, and process identities, every measured field remains null or false and the robot retains its generic 0.4 mm starting assumption.
 
 ## Deferred decisions
 
