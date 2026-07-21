@@ -4,6 +4,13 @@ import unittest
 
 from fastapi.testclient import TestClient
 
+try:
+    import cadquery  # noqa: F401
+
+    CAD_AVAILABLE = True
+except ImportError:
+    CAD_AVAILABLE = False
+
 from ariad_fabrication.api import create_app
 
 
@@ -11,6 +18,10 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class LiveLBracketApiTests(unittest.TestCase):
+    @unittest.skipUnless(
+        CAD_AVAILABLE,
+        "install the cad optional dependency to run live CAD generation tests",
+    )
     def test_confirmed_prompt_generates_parameter_bound_cad_and_downloads(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -93,7 +104,7 @@ class LiveLBracketApiTests(unittest.TestCase):
             self.assertTrue(repeated.json()["cache_reused"])
             self.assertEqual(repeated.json()["generation_id"], body["generation_id"])
 
-    def test_invalid_parameter_relationship_fails_before_generation(self):
+    def test_generation_requires_an_existing_confirmed_project(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             client = TestClient(
