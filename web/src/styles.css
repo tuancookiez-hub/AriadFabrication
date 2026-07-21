@@ -2488,6 +2488,10 @@ main {
 .build-session-status small i, .live-indicator i, .blueprint-toolbar i { display: inline-block; width: .45rem; height: .45rem; margin-right: .35rem; border-radius: 50%; background: #36a46c; box-shadow: 0 0 0 4px rgba(54, 164, 108, .12); }
 .build-stage-rail { margin: 1rem 0; background: rgba(238, 231, 221, .72); }
 .build-stage-rail li { min-height: 3.45rem; padding: .65rem .8rem; }
+.build-navigation { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin: -.35rem 0 1rem; }
+.build-navigation button { padding: .45rem .7rem; border: 1px solid #cfc5b9; border-radius: .5rem; background: #fffdfa; color: #3f3933; font: inherit; font-size: .8rem; font-weight: 750; cursor: pointer; }
+.build-navigation button:hover { border-color: #aa2922; color: #a32620; }
+.build-navigation span { color: #7b7269; font-size: .74rem; }
 
 .build-start-workspace { display: grid; grid-template-columns: minmax(420px, .86fr) minmax(500px, 1.14fr); gap: 1rem; align-items: stretch; }
 .build-prompt-card { display: flex; max-width: none; min-height: 430px; margin: 0; flex-direction: column; justify-content: center; padding: clamp(1.25rem, 2vw, 1.8rem); }

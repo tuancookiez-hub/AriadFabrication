@@ -183,6 +183,15 @@ export function BuildSessionPage() {
     setDesignPlan((current) => ({ ...current, [name]: value.split('\n').map((item) => item.trim()).filter(Boolean) }))
   }
 
+  function goBack() {
+    setError(null)
+    if (step === 'planned') setStep('design')
+    else if (step === 'design') setStep('review')
+    else if (step === 'review') setStep('describe')
+  }
+
+  const backLabel = step === 'planned' ? 'Back to CAD plan' : step === 'design' ? 'Back to requirements' : step === 'review' ? 'Back to idea' : null
+
   async function persistDesign(event: FormEvent) {
     event.preventDefault()
     if (!token || !project) return
@@ -205,6 +214,7 @@ export function BuildSessionPage() {
       <ol className="build-stage-rail" aria-label="Build stages">
         {stageLabels.map((label, index) => <li className={index < activeIndex ? 'stage-done' : index === activeIndex ? 'stage-active' : ''} key={label}><span>{index < activeIndex ? '✓' : index + 1}</span>{label}</li>)}
       </ol>
+      {backLabel ? <div className="build-navigation"><button type="button" onClick={goBack}>← {backLabel}</button><span>Your work is preserved when you move between steps.</span></div> : null}
 
       {step === 'describe' ? <section className="build-start-workspace">
         <div className="build-focus-card build-prompt-card">

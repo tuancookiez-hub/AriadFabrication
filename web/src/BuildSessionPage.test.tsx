@@ -56,6 +56,8 @@ describe('BuildSessionPage', () => {
     expect(screen.getByText('Which exact servo, camera, compute board, and battery should define the enclosure?')).toBeInTheDocument()
     expect(screen.queryByText(/configure GPT/i)).not.toBeInTheDocument()
     expect(screen.getByText(/Approve it once/i)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: '← Back to idea' }))
+    expect(screen.getByLabelText('What should Ariad help you make?')).toHaveValue('Make a cute two-servo robot.')
   })
 
   it('records one explicit approval without forcing a second confirmation screen', async () => {
@@ -110,5 +112,7 @@ describe('BuildSessionPage', () => {
     view.unmount()
     render(<MemoryRouter><BuildSessionPage /></MemoryRouter>)
     expect(await screen.findByRole('heading', { name: 'CAD generated. Verification is next.' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: '← Back to CAD plan' }))
+    expect(screen.getByRole('heading', { name: 'How should Ariad build it?' })).toBeInTheDocument()
   })
 })
