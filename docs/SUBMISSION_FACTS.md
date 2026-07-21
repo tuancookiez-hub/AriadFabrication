@@ -24,7 +24,7 @@ Use this as a factual worksheet. Rewrite the final Devpost description in your o
 3. Persists a project draft only after the user chooses to save it.
 4. Creates R0 Brief evidence only after a separate explicit approval.
 5. Retrieves an R0-bound Codex Design-plan proposal when available, with a labelled editable local fallback.
-6. Shows an assembly-first robot foundation with nine separately manufactured parts, component-envelope confidence, interfaces, and unresolved questions.
+6. Continues into a nine-part tool-less robot CAD set using snap, slide, dovetail, press-fit, and keyed interfaces, then performs real disconnected slicing and builds a downloadable warned prototype package.
 7. Replays a persisted real Golden Part journey through editable CadQuery source, exact STEP lineage, OCCT geometry checks, profile-specific printability checks, real PrusaSlicer G-code, and a checksummed R4 package.
 8. Displays failed and incomplete fixtures at their actual stopping gates and compares persisted revisions without pretending the comparison reran validation.
 
@@ -42,7 +42,7 @@ Use this as a factual worksheet. Rewrite the final Devpost description in your o
 - Local Codex conversation and bounded tool integration.
 - Evidence-replay API and React Journey explorer.
 - Real GLB model inspection and worker-isolated 250-layer toolpath playback.
-- Assembly-first robot decomposition and nine-part prototype CAD experiment.
+- Assembly-first robot decomposition, nine-part interlocking prototype CAD, and real per-part PrusaSlicer handoff.
 - Revision comparison, failure fixtures, artifact integrity checks, and explicit claim boundaries.
 - No-hardware execution controls, sealed target identity, runtime manifests, and adversarial tests.
 
@@ -56,7 +56,7 @@ Use this as a factual worksheet. Rewrite the final Devpost description in your o
 ## Limitations to state directly
 
 - Arbitrary prompts do not yet trigger browser-side CAD execution.
-- Robot CAD is prototype geometry; component fit, collision, balance, motion, slicing, and physical printing are not proven.
+- Robot CAD and slicing are prototype evidence; interlock fit, latch life, component fit, collision, balance, motion, and physical printing are not proven.
 - No printer has been selected, connected, heated, moved, or started.
 - R4 is digital, profile-specific slicer evidence—not guaranteed print success.
 - Toolpath playback is not engineering simulation.

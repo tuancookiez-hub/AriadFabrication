@@ -250,6 +250,14 @@ Research conclusion: day-one parts should avoid direct food contact. For edible-
 
 ## Research discipline
 
+### Tool-less FDM assembly guidance — reviewed 2026-07-21
+
+- [Prusa: Modeling with 3D printing in mind](https://help.prusa3d.com/article/modeling-with-3d-printing-in-mind_164135) states that tolerance is process-, material-, and orientation-dependent, gives 0.3 mm as a starting separation for movable parts, and emphasizes print orientation.
+- [Formlabs: Designing 3D printed snap-fit enclosures](https://formlabs.com/eu/blog/designing-3d-printed-snap-fit-enclosures/) recommends orienting FDM snap arms in XY for strength, lengthening arms to reduce root strain, reducing hook engagement force, and adding locating features so latches do not carry every load.
+- [UltiMaker: Design for FFF 3D printing](https://ultimaker.com/learn/design-for-fff-3d-printing-maximize-your-success/) recommends deciding orientation early and adding bottom-edge relief against elephant-foot interference.
+
+Robot-prototype conclusion: use a conservative 0.4 mm nominal starting clearance for sliding printed interfaces, twin dovetail rails for the electronics carrier, long planar releasable latches for the tray and service panel, a press-fit annular bezel collar, and keyed split-stem limb adapters. These are design inputs, not fit evidence. The first physical workflow must print a clearance/snap coupon before the full robot, measure the preferred allowance, and create a calibrated child revision.
+
 ### Beginner printable-object workflow — reviewed 2026-07-21
 
 - [Prusa: Modeling with 3D printing in mind](https://help.prusa3d.com/article/modeling-with-3d-printing-in-mind_164135) grounds CAD decisions in layer orientation, bridges, overhangs, tolerances, wall/nozzle relationships, and separately printable parts.

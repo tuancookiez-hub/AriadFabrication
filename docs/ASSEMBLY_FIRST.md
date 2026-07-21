@@ -34,7 +34,7 @@ Visual approval does not establish dimensions. Assembly planning does not establ
 - rotating axes, running clearances, service requirements, and unresolved questions;
 - literal-false hardware-action and physical-validation fields.
 
-The first fixture decomposes the Ariad robot into nine parts, four placeholder component envelopes, and seven interfaces. It remains draft because exact servos, battery, camera, fasteners, mass distribution, and body split are unresolved.
+The first fixture decomposes the Ariad robot into nine parts, four placeholder component envelopes, and seven interfaces. Printed parts now use tool-less slide, dovetail, press-fit, and releasable snap interfaces. It remains draft because exact servos, battery, camera, calibrated interlock fits, snap-cycle life, mass distribution, and motion are unresolved. Purchased components may still require manufacturer-specified hardware.
 
 ## Required final-app experience
 

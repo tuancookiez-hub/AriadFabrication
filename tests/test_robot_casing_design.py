@@ -43,6 +43,24 @@ class RobotCasingParameterTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "camera opening does not fit"):
             RobotCasingParameters.from_mapping(values)
 
+    def test_rejects_clearance_below_generic_fdm_starting_boundary(self):
+        values = fixture()
+        values["interlock_clearance_mm"] = 0.2
+        with self.assertRaisesRegex(ValueError, "interlock clearance"):
+            RobotCasingParameters.from_mapping(values)
+
+    def test_rejects_short_brittle_snap_arm_proportion(self):
+        values = fixture()
+        values["snap_arm_length_mm"] = 8.0
+        with self.assertRaisesRegex(ValueError, "snap arm"):
+            RobotCasingParameters.from_mapping(values)
+
+    def test_rejects_inverted_dovetail_profile(self):
+        values = fixture()
+        values["dovetail_top_width_mm"] = values["dovetail_base_width_mm"]
+        with self.assertRaisesRegex(ValueError, "dovetail"):
+            RobotCasingParameters.from_mapping(values)
+
     def test_neutral_assembly_places_limbs_outside_side_joint_bosses(self):
         parameters = RobotCasingParameters.from_mapping(fixture())
         offsets = assembly_offsets(parameters)
@@ -58,6 +76,8 @@ class RobotCasingParameterTests(unittest.TestCase):
             offsets["body_shell"][2] + parameters.servo_axis_body_z_mm,
             parameters.limb_length_mm - parameters.servo_axle_offset_from_end_mm,
         )
+        self.assertEqual(offsets["electronics_tray"][1], parameters.body_depth_mm / 2.0)
+        self.assertEqual(offsets["service_panel"], offsets["rear_panel"])
 
 
 @unittest.skipUnless(cq is not None, "install the cad optional dependency to run CAD tests")
@@ -89,3 +109,47 @@ class RobotCasingCadTests(unittest.TestCase):
         self.assertAlmostEqual(bounds.zmin, 0.0, places=6)
         self.assertAlmostEqual(bounds.zlen, fixture()["limb_thickness_mm"], places=6)
         self.assertGreater(max(bounds.xlen, bounds.ylen), bounds.zlen * 4)
+
+    def test_service_parts_are_exported_on_broad_faces(self):
+        parts = build_parts(fixture())
+        expected = {
+            "service_panel": "laid flat with latch relief opening upward",
+            "camera_bezel": "laid flat on broad service face",
+        }
+        for name in ("service_panel", "camera_bezel"):
+            oriented, label = manufacturing_orientation(name, parts[name])
+            bounds = oriented.val().BoundingBox()
+            self.assertEqual(label, expected[name])
+            self.assertAlmostEqual(bounds.zmin, 0.0, places=6)
+            self.assertGreater(max(bounds.xlen, bounds.ylen), bounds.zlen * 4)
+
+    def test_interlocking_features_are_present_in_part_envelopes(self):
+        parameters = RobotCasingParameters.from_mapping(fixture())
+        parts = build_parts(parameters.to_dict())
+        tray = parts["electronics_tray"].val().BoundingBox()
+        panel = parts["service_panel"].val().BoundingBox()
+        adapter = parts["left_servo_adapter"].val().BoundingBox()
+        self.assertGreater(tray.xlen, parameters.body_width_mm - 2.0 * parameters.wall_mm)
+        self.assertGreater(tray.zlen, parameters.panel_thickness_mm)
+        self.assertGreater(panel.xlen, parameters.body_width_mm - 2.0 * parameters.wall_mm)
+        self.assertGreater(adapter.zlen, parameters.limb_thickness_mm)
+
+    def test_nominal_internal_placements_do_not_have_unintended_interference(self):
+        parameters = RobotCasingParameters.from_mapping(fixture())
+        parts = build_parts(parameters.to_dict())
+        offsets = assembly_offsets(parameters)
+        shell = parts["front_shell"].translate(offsets["front_shell"])
+        tray = parts["electronics_tray"].translate(offsets["electronics_tray"])
+        carrier = parts["electronics_carrier"].translate(offsets["electronics_carrier"])
+        panel = parts["service_panel"].translate(offsets["service_panel"])
+        bezel = parts["camera_bezel"].translate(offsets["camera_bezel"])
+
+        def common_volume(left, right):
+            return sum(solid.Volume() for solid in left.intersect(right).solids().vals())
+
+        # The tray's two hooks intentionally engage 7.68 mm³ of shell latch land.
+        self.assertAlmostEqual(common_volume(shell, tray), 7.68, places=2)
+        self.assertAlmostEqual(common_volume(shell, carrier), 0.0, places=6)
+        self.assertAlmostEqual(common_volume(shell, panel), 0.0, places=6)
+        self.assertAlmostEqual(common_volume(shell, bezel), 0.0, places=6)
+        self.assertAlmostEqual(common_volume(tray, carrier), 0.0, places=6)

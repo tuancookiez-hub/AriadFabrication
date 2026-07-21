@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "design_id": "ariad_two_servo_robot_casing_v0",
+  "design_id": "ariad_two_servo_robot_interlocking_v1",
   "body_width_mm": 86.0,
   "body_depth_mm": 48.0,
   "body_height_mm": 78.0,
@@ -27,6 +27,18 @@
   "joint_boss_diameter_mm": 18.0,
   "joint_boss_depth_mm": 4.0,
   "joint_running_clearance_mm": 0.5,
+  "interlock_clearance_mm": 0.4,
+  "snap_arm_length_mm": 18.0,
+  "snap_arm_thickness_mm": 1.8,
+  "snap_hook_mm": 0.8,
+  "dovetail_base_width_mm": 4.0,
+  "dovetail_top_width_mm": 6.0,
+  "dovetail_height_mm": 2.4,
+  "carrier_thickness_mm": 4.0,
+  "panel_guide_depth_mm": 1.0,
+  "panel_latch_length_mm": 16.0,
+  "adapter_key_width_mm": 1.8,
+  "adapter_retention_bead_mm": 0.4,
   "reference_components": [
     "Raspberry Pi Zero 2 W envelope",
     "two Feetech SCS009 manufacturer-envelope references; spline detail remains provisional",
@@ -34,5 +46,5 @@
     "battery and audio placeholders"
   ],
   "provenance": "Original Ariad geometry. GrowBot inspired the two-servo architecture; no GrowBot mesh or dimensions were imported.",
-  "claim_boundary": "Concept casing only. Component dimensions, fit, balance, strength, gait, slicing, printability, thermal behavior, electrical safety, and physical operation are unverified."
+  "claim_boundary": "Tool-less interlocking prototype geometry only. Joint clearances are generic FDM starting values, not calibrated fits. Component dimensions, repeated snap life, fit, balance, strength, gait, thermal behavior, electrical safety, and physical operation are unverified."
 }

@@ -48,7 +48,7 @@ describe('BuildSessionPage', () => {
     expect(screen.getByText('Codex will guide this build.')).toBeInTheDocument()
     expect(screen.getByText('Ask only what matters')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Use robot example' }))
-    expect(screen.getByLabelText('What should Ariad help you make?')).toHaveValue('Make a cute two-servo robot with long rotating side limbs that can recover when it falls. Design it as separate, serviceable parts with accessible fasteners.')
+    expect(screen.getByLabelText('What should Ariad help you make?')).toHaveValue('Make a cute two-servo robot with long rotating side limbs that can recover when it falls. Design it as separate, serviceable parts that slide or snap together without glue or screws between printed parts.')
   })
 
   it('turns one prompt into editable defaults and keeps assumptions visible', async () => {

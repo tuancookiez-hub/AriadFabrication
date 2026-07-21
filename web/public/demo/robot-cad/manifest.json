@@ -1,188 +1,197 @@
 {
   "artifact_kind": "prototype_geometry",
-  "claim_boundary": "Digitally valid prototype solids only. Component fit, tolerances, slicing, strength, motion, safety, and physical print success are unverified.",
-  "design_source_version": "0.2.0",
+  "claim_boundary": "Digitally valid tool-less prototype solids only. Nominal interfaces use generic FDM starting clearances; fit, latch life, component fit, slicing, strength, motion, safety, and physical print success are unverified.",
+  "design_source_version": "0.3.0",
   "part_count": 9,
   "parts": [
     {
+      "assembly_method": "Receives the snap-latched tray, slide-lock panel, and press-fit camera bezel.",
       "bounds_mm": {
         "x": 94.008,
-        "y": 48.007,
-        "z": 78.007
+        "y": 78.008,
+        "z": 48.008
       },
       "glb": "front_shell.glb",
-      "glb_sha256": "a0f9f6ef24dfd843ae94ad183fb648f62eca91898296e0cf680e4b4fb14c2259",
+      "glb_sha256": "51caf4d96c7a27615839355f1be6e42b0228252c2f559df7eedd2c9762435adf",
       "kernel_valid": true,
-      "manufacturing_orientation": "source prototype orientation",
+      "manufacturing_orientation": "front face on bed; rear cavity opens upward",
       "part_id": "front_shell",
       "preview": "front_shell.svg",
-      "preview_triangle_count": 4068,
+      "preview_triangle_count": 4204,
       "solid_count": 1,
       "step": "front_shell.step",
-      "step_sha256": "9f4599d5d20a9e76b4cad5905102ca98ca6a99f4165156dae83443dd56c215f1",
+      "step_sha256": "7659e37e6a4150feb0457ab29ae59091c2e5488b6b6edddecb43484b6b7566f0",
       "stl": "front_shell.stl",
-      "stl_sha256": "5025588f7e2291521c045b6c3421e2874fece6f90657134a4fcbac85b68bf356",
-      "volume_mm3": 59992.481
+      "stl_sha256": "2f17af4964ce776df8a4d5e760bc516925f51e70078f135f71a2f36ebeb1b5c7",
+      "volume_mm3": 59142.116
     },
     {
+      "assembly_method": "Slides into the shell, locks with two releasable planar snap arms, and carries two dovetail rails.",
       "bounds_mm": {
-        "x": 74.002,
+        "x": 80.8,
         "y": 39.002,
-        "z": 2.402
+        "z": 4.801
       },
       "glb": "electronics_tray.glb",
-      "glb_sha256": "f3628f6f7c8192d7e636df0c6a800bbb90cb2dfbe33782c40360ac0ee609fd6f",
+      "glb_sha256": "24d550f3f6a43c79c6bf7d1a48ccedaf58ca6670b64ba2c6178e48f7cb5870bf",
       "kernel_valid": true,
       "manufacturing_orientation": "source prototype orientation",
       "part_id": "electronics_tray",
       "preview": "electronics_tray.svg",
-      "preview_triangle_count": 444,
+      "preview_triangle_count": 548,
       "solid_count": 1,
       "step": "electronics_tray.step",
-      "step_sha256": "04f5b5ba0cd5b07b8356d0da1a92f5598a42118964b4bf0e081458f022f2a7e5",
+      "step_sha256": "6fcd7ad65f6fec51d7169e9f5d28a6d72ecb53ce9dc7f080bc9aeec9ddfeed0d",
       "stl": "electronics_tray.stl",
-      "stl_sha256": "870b77d6fa2e8587cd486cecda050e565cd16ff0c361ce9272123ff13a6cd0b0",
-      "volume_mm3": 6918.159
+      "stl_sha256": "72a49bb1ba1c171e16370c8b0738f622b919611378968ea2a3a2e4275c74ecc3",
+      "volume_mm3": 7919.439
     },
     {
+      "assembly_method": "Slides down guide channels and closes with one hand-releasable flex latch.",
       "bounds_mm": {
-        "x": 79.403,
-        "y": 2.403,
-        "z": 71.403
+        "x": 81.4,
+        "y": 71.403,
+        "z": 3.201
       },
       "glb": "service_panel.glb",
-      "glb_sha256": "cf87eb76877f790e4bdd72c519be27d9eb10a1461be9108c923b41ce6c2bfe95",
+      "glb_sha256": "f51eade338f97c41f1940fd1490ca7aa16f2a39facbfab72c39442a7271ceeb1",
       "kernel_valid": true,
-      "manufacturing_orientation": "source prototype orientation",
+      "manufacturing_orientation": "laid flat with latch relief opening upward",
       "part_id": "service_panel",
       "preview": "service_panel.svg",
-      "preview_triangle_count": 444,
+      "preview_triangle_count": 524,
       "solid_count": 1,
       "step": "service_panel.step",
-      "step_sha256": "782988c11b8c307f6dbf90e2284dc49c7bb98ac09532948f68ca8e84a286a25e",
+      "step_sha256": "1ba13084226793a5cb7c1b2a098ab47479cb32e2505c47eb5e5f3444be2b4279",
       "stl": "service_panel.stl",
-      "stl_sha256": "0538039d1c80d0d8ce662807f58b74a4f0430849ee3f744e28303f2fd6339517",
-      "volume_mm3": 13587.442
+      "stl_sha256": "57838f5a0441050925b6c3a70180ffd2147c59259defff91ac7f30a701ce6a9d",
+      "volume_mm3": 13736.882
     },
     {
+      "assembly_method": "Receives a keyed split-stem adapter; printed flat for stronger in-plane limb layers.",
       "bounds_mm": {
         "x": 66.0,
         "y": 22.01,
         "z": 14.01
       },
       "glb": "left_limb.glb",
-      "glb_sha256": "40c0ab20358e4c64be939bd3a844a619ed7fbfef42845c6c8ac4807716e71934",
+      "glb_sha256": "0dad8cb2f8e4886932b76ce6cf7aa032d7c14bb7c78a9346da5ea57251ef1f8f",
       "kernel_valid": true,
       "manufacturing_orientation": "laid flat on broad side",
       "part_id": "left_limb",
       "preview": "left_limb.svg",
-      "preview_triangle_count": 852,
+      "preview_triangle_count": 792,
       "solid_count": 1,
       "step": "left_limb.step",
-      "step_sha256": "ab94ec0421f067b52c6e9b492e7b6fd2c912e7e3893a3e9c6d0e6d7986fe0312",
+      "step_sha256": "e75c12837b9dad34b8250d5e6ed41fc11c33089afb5766a8a23d13be16e52022",
       "stl": "left_limb.stl",
-      "stl_sha256": "c660fa6dbd800164884ddb59493b2eab5328053b7ef74cf81187503f11ede937",
-      "volume_mm3": 18598.969
+      "stl_sha256": "89fa7a5d7a1105998c08e3fc1775e205d75041313676eefd263a277101df99e3",
+      "volume_mm3": 18580.123
     },
     {
+      "assembly_method": "Receives a keyed split-stem adapter; printed flat for stronger in-plane limb layers.",
       "bounds_mm": {
         "x": 66.0,
         "y": 22.01,
         "z": 14.01
       },
       "glb": "right_limb.glb",
-      "glb_sha256": "40c0ab20358e4c64be939bd3a844a619ed7fbfef42845c6c8ac4807716e71934",
+      "glb_sha256": "0dad8cb2f8e4886932b76ce6cf7aa032d7c14bb7c78a9346da5ea57251ef1f8f",
       "kernel_valid": true,
       "manufacturing_orientation": "laid flat on broad side",
       "part_id": "right_limb",
       "preview": "right_limb.svg",
-      "preview_triangle_count": 852,
+      "preview_triangle_count": 792,
       "solid_count": 1,
       "step": "right_limb.step",
-      "step_sha256": "4b5d4fd8e03f9a359d6c20b7e5afaa5541d0fa3cfe44ae1ada1ebe8fde773017",
+      "step_sha256": "578547478a5e16c544af0f530d7f663c64614175b1a070cad1a5169f7086fb66",
       "stl": "right_limb.stl",
-      "stl_sha256": "c660fa6dbd800164884ddb59493b2eab5328053b7ef74cf81187503f11ede937",
-      "volume_mm3": 18598.969
+      "stl_sha256": "89fa7a5d7a1105998c08e3fc1775e205d75041313676eefd263a277101df99e3",
+      "volume_mm3": 18580.123
     },
     {
+      "assembly_method": "Keys into the limb with a split retention stem; the purchased-servo interface remains provisional.",
       "bounds_mm": {
         "x": 18.004,
         "y": 18.006,
-        "z": 2.408
+        "z": 16.805
       },
       "glb": "left_servo_adapter.glb",
-      "glb_sha256": "f0b1907ee23ad08e3891f63c3a7e7aed0d5d821231fba18e88dbc6dd2f48f46c",
+      "glb_sha256": "d4d96931771275c6fb52063a08455b36bc22c6a6224e94aa1b3d8b25fccbe728",
       "kernel_valid": true,
       "manufacturing_orientation": "source prototype orientation",
       "part_id": "left_servo_adapter",
       "preview": "left_servo_adapter.svg",
-      "preview_triangle_count": 840,
+      "preview_triangle_count": 1632,
       "solid_count": 1,
       "step": "left_servo_adapter.step",
-      "step_sha256": "30e867e9f24307e1af895baaf8bff21ae7a7ffafa6b2acc1c478c97d076446d1",
+      "step_sha256": "8eca484f658f69980ee8f2b9030fe275ff1c597d131dcd52bf7c987f121a58f0",
       "stl": "left_servo_adapter.stl",
-      "stl_sha256": "48d7a3b8ec364de0193cd07893f72b190a439c892f64d103e536b3e5a1c29c20",
-      "volume_mm3": 567.296
+      "stl_sha256": "80fc2d34d7219d07e78afe4febb65aab9ad60bf02732be5eeebb88e8c27f9118",
+      "volume_mm3": 771.649
     },
     {
+      "assembly_method": "Keys into the limb with a split retention stem; the purchased-servo interface remains provisional.",
       "bounds_mm": {
         "x": 18.004,
         "y": 18.006,
-        "z": 2.408
+        "z": 16.805
       },
       "glb": "right_servo_adapter.glb",
-      "glb_sha256": "f0b1907ee23ad08e3891f63c3a7e7aed0d5d821231fba18e88dbc6dd2f48f46c",
+      "glb_sha256": "d4d96931771275c6fb52063a08455b36bc22c6a6224e94aa1b3d8b25fccbe728",
       "kernel_valid": true,
       "manufacturing_orientation": "source prototype orientation",
       "part_id": "right_servo_adapter",
       "preview": "right_servo_adapter.svg",
-      "preview_triangle_count": 840,
+      "preview_triangle_count": 1632,
       "solid_count": 1,
       "step": "right_servo_adapter.step",
-      "step_sha256": "d57322f401b51b3398be9573e6a6ac71b9f55b3f883b593bdb4a10581776bded",
+      "step_sha256": "fb0958f3e775f0d8a9cda7f3ca629809919dac9513241f03f300dbbf059ef858",
       "stl": "right_servo_adapter.stl",
-      "stl_sha256": "48d7a3b8ec364de0193cd07893f72b190a439c892f64d103e536b3e5a1c29c20",
-      "volume_mm3": 567.296
+      "stl_sha256": "80fc2d34d7219d07e78afe4febb65aab9ad60bf02732be5eeebb88e8c27f9118",
+      "volume_mm3": 771.649
     },
     {
+      "assembly_method": "Presses into the front opening with an annular locating collar.",
       "bounds_mm": {
         "x": 22.007,
-        "y": 2.01,
-        "z": 22.005
+        "y": 22.005,
+        "z": 5.009
       },
       "glb": "camera_bezel.glb",
-      "glb_sha256": "22a0d0bf3a04a6440263ac798810b52d7ca283516ab3eea95d7c655fff341a71",
+      "glb_sha256": "9dbaf5c18de8f5abe7a2286d770da0b11e249c2ced51669a189efce06dc7de77",
       "kernel_valid": true,
-      "manufacturing_orientation": "source prototype orientation",
+      "manufacturing_orientation": "laid flat on broad service face",
       "part_id": "camera_bezel",
       "preview": "camera_bezel.svg",
-      "preview_triangle_count": 840,
+      "preview_triangle_count": 1260,
       "solid_count": 1,
       "step": "camera_bezel.step",
-      "step_sha256": "36d574a9e028c6a9f590e0052c0864f04a1c25be0f4426023c44a5747fbe1b3b",
+      "step_sha256": "226e97bd1f95c966f4017e491ffc46056658ad647590b76dee6de7dfbb10d5f8",
       "stl": "camera_bezel.stl",
-      "stl_sha256": "3a40a0a06c68c564b9203a91ea1a0463127bec38729e5c0aa8b691982c50ccae",
-      "volume_mm3": 534.071
+      "stl_sha256": "57c088649d4ff1a5300f5e72a05960728d77aa3f176949067c433dea961ac519",
+      "volume_mm3": 891.835
     },
     {
+      "assembly_method": "Slides onto the tray's twin dovetail rails and retains the placeholder board with corner clips.",
       "bounds_mm": {
         "x": 68.001,
         "y": 32.001,
-        "z": 4.002
+        "z": 7.001
       },
       "glb": "electronics_carrier.glb",
-      "glb_sha256": "14f3dc4b9fde3d715803792646ec77e0d580873466355ec7950e2dc04190b027",
+      "glb_sha256": "bb9b165e6f30ac6ff02dc2452a3c964501fd47ede636cf641d01ecdd3e28c7fa",
       "kernel_valid": true,
       "manufacturing_orientation": "source prototype orientation",
       "part_id": "electronics_carrier",
       "preview": "electronics_carrier.svg",
-      "preview_triangle_count": 3820,
+      "preview_triangle_count": 540,
       "solid_count": 1,
       "step": "electronics_carrier.step",
-      "step_sha256": "50bbd1544c17b5df2eecec50ea8215345df40fd78bae35ea7fd7aa404578afc1",
+      "step_sha256": "ae73c7190963d141572968d2034baf9620104361ccca71bba1feac000d9c0c35",
       "stl": "electronics_carrier.stl",
-      "stl_sha256": "f4de5d26ea8675774a0df1d8e7548cbe3d65fd796928b2a71824357ef3ea5fc3",
-      "volume_mm3": 5300.2
+      "stl_sha256": "f9b360fdb7a05522de78847b39fe386c9444ee713372ec336ffa83bb38c83eae",
+      "volume_mm3": 7882.726
     }
   ]
 }

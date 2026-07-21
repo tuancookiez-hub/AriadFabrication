@@ -2631,6 +2631,7 @@ main {
 .cad-part-actions { display: flex; align-items: center; gap: .6rem; padding: .8rem 0 0; }
 .cad-part-actions div { display: flex; flex: 1; flex-direction: column; min-width: 0; }
 .cad-part-actions span { margin-top: .15rem; color: #746c63; font-size: .76rem; }
+.cad-part-actions small { margin-top: .28rem; max-width: 62ch; color: #514a43; font-size: .72rem; line-height: 1.4; }
 .cad-part-actions a { padding: .55rem .7rem; border: 1px solid #d5cbc0; border-radius: .45rem; color: #332e29; font-size: .78rem; font-weight: 700; text-decoration: none; }
 .cad-next-step { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1rem; padding: .85rem 1rem; border-left: 3px solid #c72c23; background: #fff6ec; }
 .cad-next-step p { margin: .25rem 0 0; color: #6a6158; font-size: .83rem; line-height: 1.45; }

@@ -24,7 +24,7 @@ Supported submission platform: Windows 11 x64. Hardware, physical validation, ar
 
 The image above is the official project logo. The illustration below explains the current product story and is not a substitute logo.
 
-![Ariad Fabrication Journey](assets/ariad-fabrication-journey-banner.png)
+![Ariad Fabrication interlocking robot journey](assets/ariad-header-infographic-interlocking-v2.png)
 
 ## Product contract
 

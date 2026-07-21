@@ -671,6 +671,14 @@ This file records accepted project-level decisions. Change an accepted decision 
 
 **Boundary:** This prototype package is not a Journey R4 promotion and does not prove component fit, assembly clearance, balance, motion, adhesion, accuracy, strength, safety, or physical print success. The printer and PETG profiles remain generic and uncalibrated, and hardware remains disconnected.
 
+### D-060 - Prefer tool-less printed-part interfaces for the robot prototype
+
+**Status:** Accepted by the project owner on 2026-07-21.
+
+**Decision:** Printed robot parts use serviceable slide, dovetail, keyed split-stem, press-fit, and releasable snap interfaces instead of glue or loose fasteners. Generic FDM geometry starts at 0.4 mm sliding clearance, and long snap arms are oriented in the print plane. Purchased servo horns or electronics may still require manufacturer-specified hardware.
+
+**Consequence:** Ariad exports every part separately and records its assembly method. Fit and durability remain unverified until clearance coupons and repeated assembly cycles are measured on the eventual printer/material/profile.
+
 ## Deferred decisions
 
 These require later evidence and should not be decided through preference alone:

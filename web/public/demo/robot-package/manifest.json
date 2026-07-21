@@ -7,26 +7,28 @@
     "all_single_solids": true,
     "assembly_clearance_verified": false,
     "component_fit_verified": false,
+    "interlock_fit_verified": false,
+    "latch_cycle_life_verified": false,
     "physical_print_verified": false
   },
   "claim_boundary": "Nine real prototype meshes were sliced locally with the recorded disconnected generic profile and their G-code passed digital preflight. This package is a reviewable prototype handoff, not proof of fit, print success, strength, motion, safety, or hardware readiness.",
   "download": {
-    "checksum_sha256": "a3d6e673effe3e171caed3b512c5deb229d2a3b1ccb1949f86a40ba6c3bc817a",
+    "checksum_sha256": "626b5fc6657c6a6e52be29ab68366e3e868d2bb5933bf932c168be09b069bdb7",
     "path": "ariad-robot-prototype-package.zip",
-    "size_bytes": 4651531
+    "size_bytes": 5234179
   },
   "part_count": 9,
   "parts": [
     {
       "artifacts": {
         "gcode": "parts/front_shell/toolpath.gcode",
-        "gcode_sha256": "0d48924ba04c1e38ca7abecc9f5e6596323a2762d3188767e1590668e5f569d0",
+        "gcode_sha256": "c74f4d2ca2756b349dd97f78c907dfefbc978c988a1f8f979a6beed70c593bf4",
         "slice_report": "parts/front_shell/slice_report.json",
         "slicer_project": "parts/front_shell/slicer_project.3mf"
       },
-      "estimated_seconds": 19776,
-      "filament_length_mm": 22531.36,
-      "filament_mass_g": 68.83,
+      "estimated_seconds": 18841,
+      "filament_length_mm": 21904.31,
+      "filament_mass_g": 66.91,
       "gcode_preflight_passed": true,
       "geometry": {
         "fits_generic_build_volume": true,
@@ -35,24 +37,24 @@
         "placed_on_bed": true,
         "solid_count": 1
       },
-      "layers": 390,
+      "layers": 240,
       "part_id": "front_shell",
       "slice_status": "passed_with_warnings",
       "slicer_warnings": [
-        "Collapsing overhang, Long bridging extrusions"
+        "Collapsing overhang"
       ],
       "support_risk": "review_slicer_warnings"
     },
     {
       "artifacts": {
         "gcode": "parts/electronics_tray/toolpath.gcode",
-        "gcode_sha256": "978fe41a6bce7dd5ce290c8aafba6067d71bd53c363a87614a2c1e886061b079",
+        "gcode_sha256": "e1cad136224c05797628d51cfb33a6f9993c50edbc60390729802d261f4d2847",
         "slice_report": "parts/electronics_tray/slice_report.json",
         "slicer_project": "parts/electronics_tray/slicer_project.3mf"
       },
-      "estimated_seconds": 2161,
-      "filament_length_mm": 2376.26,
-      "filament_mass_g": 7.26,
+      "estimated_seconds": 2591,
+      "filament_length_mm": 2773.33,
+      "filament_mass_g": 8.47,
       "gcode_preflight_passed": true,
       "geometry": {
         "fits_generic_build_volume": true,
@@ -61,7 +63,7 @@
         "placed_on_bed": true,
         "solid_count": 1
       },
-      "layers": 12,
+      "layers": 24,
       "part_id": "electronics_tray",
       "slice_status": "passed",
       "slicer_warnings": [],
@@ -70,13 +72,13 @@
     {
       "artifacts": {
         "gcode": "parts/service_panel/toolpath.gcode",
-        "gcode_sha256": "879f439b69eb298b5437b49574baff33bacacd1f9f3b58ae072af149390d8373",
+        "gcode_sha256": "e011966336d6740c34c8d1d86ad29e20647884687bdef11f05de6f5149963330",
         "slice_report": "parts/service_panel/slice_report.json",
         "slicer_project": "parts/service_panel/slicer_project.3mf"
       },
-      "estimated_seconds": 4552,
-      "filament_length_mm": 5548.72,
-      "filament_mass_g": 16.95,
+      "estimated_seconds": 4269,
+      "filament_length_mm": 4678.98,
+      "filament_mass_g": 14.29,
       "gcode_preflight_passed": true,
       "geometry": {
         "fits_generic_build_volume": true,
@@ -85,24 +87,22 @@
         "placed_on_bed": true,
         "solid_count": 1
       },
-      "layers": 357,
+      "layers": 16,
       "part_id": "service_panel",
-      "slice_status": "passed_with_warnings",
-      "slicer_warnings": [
-        "Low bed adhesion"
-      ],
-      "support_risk": "review_slicer_warnings"
+      "slice_status": "passed",
+      "slicer_warnings": [],
+      "support_risk": "no_slicer_warning"
     },
     {
       "artifacts": {
         "gcode": "parts/left_limb/toolpath.gcode",
-        "gcode_sha256": "176579b47558d91ae0015d0d8eca6392b7474378940f0c1a87779694b7e61799",
+        "gcode_sha256": "37ded960b83bb2001003b6a1567b5e3f4b9ae6ec1b34c61dbeba99f2a3430a4e",
         "slice_report": "parts/left_limb/slice_report.json",
         "slicer_project": "parts/left_limb/slicer_project.3mf"
       },
-      "estimated_seconds": 3462,
-      "filament_length_mm": 3814.3,
-      "filament_mass_g": 11.65,
+      "estimated_seconds": 3474,
+      "filament_length_mm": 3818.43,
+      "filament_mass_g": 11.66,
       "gcode_preflight_passed": true,
       "geometry": {
         "fits_generic_build_volume": true,
@@ -120,13 +120,13 @@
     {
       "artifacts": {
         "gcode": "parts/right_limb/toolpath.gcode",
-        "gcode_sha256": "b531ee5658a8d16985f813496ec689f240aed0306ffc48a0eac98d2627ff1bde",
+        "gcode_sha256": "5e673b48334196fe07c287ae5e93922b94ddcb8136ce3e3b04aa7b4ae79dd3e7",
         "slice_report": "parts/right_limb/slice_report.json",
         "slicer_project": "parts/right_limb/slicer_project.3mf"
       },
-      "estimated_seconds": 3462,
-      "filament_length_mm": 3814.3,
-      "filament_mass_g": 11.65,
+      "estimated_seconds": 3474,
+      "filament_length_mm": 3818.43,
+      "filament_mass_g": 11.66,
       "gcode_preflight_passed": true,
       "geometry": {
         "fits_generic_build_volume": true,
@@ -144,13 +144,13 @@
     {
       "artifacts": {
         "gcode": "parts/left_servo_adapter/toolpath.gcode",
-        "gcode_sha256": "efb869c2730e36969d13a51850546fd99537ce6f9351ce61c248f5abf7561489",
+        "gcode_sha256": "6db2b2b31db416f90318c17fd3f2582acf184fd54bae69977c8af1d1d388b083",
         "slice_report": "parts/left_servo_adapter/slice_report.json",
         "slicer_project": "parts/left_servo_adapter/slicer_project.3mf"
       },
-      "estimated_seconds": 231,
-      "filament_length_mm": 218.44,
-      "filament_mass_g": 0.67,
+      "estimated_seconds": 500,
+      "filament_length_mm": 302.43,
+      "filament_mass_g": 0.92,
       "gcode_preflight_passed": true,
       "geometry": {
         "fits_generic_build_volume": true,
@@ -159,72 +159,24 @@
         "placed_on_bed": true,
         "solid_count": 1
       },
-      "layers": 12,
+      "layers": 84,
       "part_id": "left_servo_adapter",
-      "slice_status": "passed",
-      "slicer_warnings": [],
-      "support_risk": "no_slicer_warning"
-    },
-    {
-      "artifacts": {
-        "gcode": "parts/right_servo_adapter/toolpath.gcode",
-        "gcode_sha256": "d30db1d1ca363a1ac3421fd497611ef1724fc202e71debe463a153340efa67fc",
-        "slice_report": "parts/right_servo_adapter/slice_report.json",
-        "slicer_project": "parts/right_servo_adapter/slicer_project.3mf"
-      },
-      "estimated_seconds": 231,
-      "filament_length_mm": 218.44,
-      "filament_mass_g": 0.67,
-      "gcode_preflight_passed": true,
-      "geometry": {
-        "fits_generic_build_volume": true,
-        "kernel_valid": true,
-        "manifold_mesh": true,
-        "placed_on_bed": true,
-        "solid_count": 1
-      },
-      "layers": 12,
-      "part_id": "right_servo_adapter",
-      "slice_status": "passed",
-      "slicer_warnings": [],
-      "support_risk": "no_slicer_warning"
-    },
-    {
-      "artifacts": {
-        "gcode": "parts/camera_bezel/toolpath.gcode",
-        "gcode_sha256": "214b00d169cf3b8b8fba35ae546a2bc4bbfdabeb9145994c099519b4c81261f0",
-        "slice_report": "parts/camera_bezel/slice_report.json",
-        "slicer_project": "parts/camera_bezel/slicer_project.3mf"
-      },
-      "estimated_seconds": 582,
-      "filament_length_mm": 215.93,
-      "filament_mass_g": 0.66,
-      "gcode_preflight_passed": true,
-      "geometry": {
-        "fits_generic_build_volume": true,
-        "kernel_valid": true,
-        "manifold_mesh": true,
-        "placed_on_bed": true,
-        "solid_count": 1
-      },
-      "layers": 110,
-      "part_id": "camera_bezel",
       "slice_status": "passed_with_warnings",
       "slicer_warnings": [
-        "Low bed adhesion, Loose extrusions"
+        "Floating bridge anchors, Loose extrusions"
       ],
       "support_risk": "review_slicer_warnings"
     },
     {
       "artifacts": {
-        "gcode": "parts/electronics_carrier/toolpath.gcode",
-        "gcode_sha256": "aaed308691a38c006188115ac31fc771594c0eeba36baa8cc2379bbb55a3c797",
-        "slice_report": "parts/electronics_carrier/slice_report.json",
-        "slicer_project": "parts/electronics_carrier/slicer_project.3mf"
+        "gcode": "parts/right_servo_adapter/toolpath.gcode",
+        "gcode_sha256": "a0861c8120a49922f36bf5077223fd1495cba9662aff7e5fa997d39701837078",
+        "slice_report": "parts/right_servo_adapter/slice_report.json",
+        "slicer_project": "parts/right_servo_adapter/slicer_project.3mf"
       },
-      "estimated_seconds": 1851,
-      "filament_length_mm": 1858.79,
-      "filament_mass_g": 5.68,
+      "estimated_seconds": 500,
+      "filament_length_mm": 302.43,
+      "filament_mass_g": 0.92,
       "gcode_preflight_passed": true,
       "geometry": {
         "fits_generic_build_volume": true,
@@ -233,7 +185,57 @@
         "placed_on_bed": true,
         "solid_count": 1
       },
-      "layers": 20,
+      "layers": 84,
+      "part_id": "right_servo_adapter",
+      "slice_status": "passed_with_warnings",
+      "slicer_warnings": [
+        "Floating bridge anchors, Loose extrusions"
+      ],
+      "support_risk": "review_slicer_warnings"
+    },
+    {
+      "artifacts": {
+        "gcode": "parts/camera_bezel/toolpath.gcode",
+        "gcode_sha256": "c8d02bb6a9f58ba0542a2801669037671adb7497e70eebad3bddc0743afbf375",
+        "slice_report": "parts/camera_bezel/slice_report.json",
+        "slicer_project": "parts/camera_bezel/slicer_project.3mf"
+      },
+      "estimated_seconds": 353,
+      "filament_length_mm": 371.88,
+      "filament_mass_g": 1.14,
+      "gcode_preflight_passed": true,
+      "geometry": {
+        "fits_generic_build_volume": true,
+        "kernel_valid": true,
+        "manifold_mesh": true,
+        "placed_on_bed": true,
+        "solid_count": 1
+      },
+      "layers": 25,
+      "part_id": "camera_bezel",
+      "slice_status": "passed",
+      "slicer_warnings": [],
+      "support_risk": "no_slicer_warning"
+    },
+    {
+      "artifacts": {
+        "gcode": "parts/electronics_carrier/toolpath.gcode",
+        "gcode_sha256": "7aa4d974fe03b982017fa54f42adc249c55841cc89c3fd6ea05b0be2d9674238",
+        "slice_report": "parts/electronics_carrier/slice_report.json",
+        "slicer_project": "parts/electronics_carrier/slicer_project.3mf"
+      },
+      "estimated_seconds": 2237,
+      "filament_length_mm": 2370.47,
+      "filament_mass_g": 7.24,
+      "gcode_preflight_passed": true,
+      "geometry": {
+        "fits_generic_build_volume": true,
+        "kernel_valid": true,
+        "manifold_mesh": true,
+        "placed_on_bed": true,
+        "solid_count": 1
+      },
+      "layers": 35,
       "part_id": "electronics_carrier",
       "slice_status": "passed",
       "slicer_warnings": [],
@@ -250,13 +252,15 @@
   "schema_version": "1.0.0",
   "status": "sliced_with_unresolved_assembly_and_physical_checks",
   "totals": {
-    "estimated_seconds": 36308,
-    "filament_length_mm": 40596.54,
-    "filament_mass_g": 124.02
+    "estimated_seconds": 36239,
+    "filament_length_mm": 40340.69,
+    "filament_mass_g": 123.21
   },
   "unresolved_warnings": [
     "Exact purchased-component fit is not verified against measured hardware.",
-    "Assembly clearances, collisions, balance, and motion are not verified.",
+    "The generic 0.4 mm interlock allowance is not calibrated to a printer or material batch.",
+    "Snap retention force, removal force, and repeated latch life are not physically verified.",
+    "Assembly clearances, collisions, balance, and motion are not physically verified.",
     "The generic printer and PETG profiles are not calibrated to physical hardware.",
     "Slicer support and bridge warnings require human review before a physical attempt.",
     "No physical print, dimensional inspection, strength test, or safety test occurred."

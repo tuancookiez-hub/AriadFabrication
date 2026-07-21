@@ -13,15 +13,36 @@ from ariad_fabrication.cad.glb import export_glb
 
 ROOT = Path(__file__).resolve().parents[1]
 
+ASSEMBLY_METHODS = {
+    "front_shell": "Receives the snap-latched tray, slide-lock panel, and press-fit camera bezel.",
+    "electronics_tray": "Slides into the shell, locks with two releasable planar snap arms, and carries two dovetail rails.",
+    "service_panel": "Slides down guide channels and closes with one hand-releasable flex latch.",
+    "left_limb": "Receives a keyed split-stem adapter; printed flat for stronger in-plane limb layers.",
+    "right_limb": "Receives a keyed split-stem adapter; printed flat for stronger in-plane limb layers.",
+    "left_servo_adapter": "Keys into the limb with a split retention stem; the purchased-servo interface remains provisional.",
+    "right_servo_adapter": "Keys into the limb with a split retention stem; the purchased-servo interface remains provisional.",
+    "camera_bezel": "Presses into the front opening with an annular locating collar.",
+    "electronics_carrier": "Slides onto the tray's twin dovetail rails and retains the placeholder board with corner clips.",
+}
+
 
 def manufacturing_orientation(name, part):
     """Place prototype parts on Z=0 in the intended fabrication review pose."""
 
     orientation = "source prototype orientation"
     oriented = part
-    if name in {"left_limb", "right_limb"}:
+    if name == "front_shell":
+        oriented = part.rotate((0, 0, 0), (1, 0, 0), 90)
+        orientation = "front face on bed; rear cavity opens upward"
+    elif name in {"left_limb", "right_limb"}:
         oriented = part.rotate((0, 0, 0), (0, 1, 0), 90)
         orientation = "laid flat on broad side"
+    elif name == "service_panel":
+        oriented = part.rotate((0, 0, 0), (1, 0, 0), -90)
+        orientation = "laid flat with latch relief opening upward"
+    elif name == "camera_bezel":
+        oriented = part.rotate((0, 0, 0), (1, 0, 0), 90)
+        orientation = "laid flat on broad service face"
     bounds = oriented.val().BoundingBox()
     oriented = oriented.translate((0, 0, -bounds.zmin))
     return oriented, orientation
@@ -72,6 +93,7 @@ def main() -> None:
                 "solid_count": len(manufacturing_part.solids().vals()),
                 "volume_mm3": round(manufacturing_part.val().Volume(), 3),
                 "manufacturing_orientation": orientation,
+                "assembly_method": ASSEMBLY_METHODS[name],
                 "bounds_mm": {
                     "x": round(bounds.xlen, 3),
                     "y": round(bounds.ylen, 3),
@@ -86,8 +108,9 @@ def main() -> None:
         "part_count": len(records),
         "parts": records,
         "claim_boundary": (
-            "Digitally valid prototype solids only. Component fit, tolerances, slicing, "
-            "strength, motion, safety, and physical print success are unverified."
+            "Digitally valid tool-less prototype solids only. Nominal interfaces use generic "
+            "FDM starting clearances; fit, latch life, component fit, slicing, strength, motion, "
+            "safety, and physical print success are unverified."
         ),
     }
     (output / "manifest.json").write_text(

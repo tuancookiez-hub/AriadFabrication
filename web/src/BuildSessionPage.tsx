@@ -84,7 +84,7 @@ function fallbackDesignPlan(prompt: string): ProjectDesignPlanRequest {
       : ['Primary mating interface'],
     constraints: ['FDM manufacturing', 'Avoid supports where practical', 'Preserve user-approved dimensions and evidence boundaries'],
     unresolved_questions: robot
-      ? ['Confirm exact servo and horn', 'Confirm camera module', 'Confirm compute board and battery', 'Confirm fastener strategy']
+      ? ['Confirm exact servo and horn', 'Confirm camera module', 'Confirm compute board and battery', 'Calibrate interlock clearances on the eventual printer']
       : ['Confirm the exact real-world object that defines the critical fit'],
   }
 }
@@ -211,7 +211,7 @@ export function BuildSessionPage() {
         <div className="build-focus-card build-prompt-card">
           <div className="conversation-label"><span className="conversation-avatar">C</span><div><strong>Start with what you need</strong><small>Codex will turn intent into an editable fabrication brief.</small></div></div>
           <h2>What should Ariad help you make?</h2>
-          <form onSubmit={understand}><textarea aria-label="What should Ariad help you make?" required rows={6} value={prompt} onChange={(event) => setPrompt(event.target.value)} placeholder="Describe the object, how it should work, and anything it must fit. You can stay in plain language." /><div className="prompt-suggestion"><span>Try the demo idea</span><button type="button" onClick={() => setPrompt('Make a cute two-servo robot with long rotating side limbs that can recover when it falls. Design it as separate, serviceable parts with accessible fasteners.')}>Use robot example</button></div><button aria-label="Continue" className="primary-action" disabled={busy || !prompt.trim()}>{busy ? 'Understanding…' : 'Begin guided build →'}</button></form>
+      <form onSubmit={understand}><textarea aria-label="What should Ariad help you make?" required rows={6} value={prompt} onChange={(event) => setPrompt(event.target.value)} placeholder="Describe the object, how it should work, and anything it must fit. You can stay in plain language." /><div className="prompt-suggestion"><span>Try the demo idea</span><button type="button" onClick={() => setPrompt('Make a cute two-servo robot with long rotating side limbs that can recover when it falls. Design it as separate, serviceable parts that slide or snap together without glue or screws between printed parts.')}>Use robot example</button></div><button aria-label="Continue" className="primary-action" disabled={busy || !prompt.trim()}>{busy ? 'Understanding…' : 'Begin guided build →'}</button></form>
         </div>
         <aside className="build-preview-panel">
           <div className="preview-panel-heading"><div><p className="eyebrow">Your build companion</p><h2>Codex will guide this build.</h2></div><span className="live-indicator"><i /> Ready</span></div>
