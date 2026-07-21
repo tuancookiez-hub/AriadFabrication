@@ -21,6 +21,10 @@ It does not mean every passing digital model will print successfully or survive 
 
 No interface should collapse these levels into a single green “printable” badge.
 
+### Live bounded-generation note
+
+The authenticated `ariad_l_bracket_v1` action executes committed parametric source and records its exact parameters, content hashes, valid-kernel state, solid count, bounds, and preview triangle count. This demonstrates that judge-entered dimensions produce real new CAD rather than replaying a fixture. It intentionally remains outside Journey R1/R2 until the normal worker, lineage, report, and revision contracts adopt the family. Its allowed claim is “live parameter-bound digital CAD generated”; it may not claim printability, slicing, fit, strength, safety, or physical success.
+
 ## Stage gates
 
 ### Brief gate

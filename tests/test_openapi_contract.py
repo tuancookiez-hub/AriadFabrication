@@ -33,6 +33,8 @@ class OpenApiContractTests(unittest.TestCase):
                 "/api/v1/codex/turns",
                 "/api/v1/session",
                 "/api/v1/intake",
+                "/api/v1/live-cad/l-bracket",
+                "/api/v1/live-cad/{generation_id}/{filename}",
                 "/api/v1/projects",
                 "/api/v1/projects/{project_id}",
                 "/api/v1/projects/{project_id}/draft",
@@ -55,7 +57,7 @@ class OpenApiContractTests(unittest.TestCase):
                 expected_methods = {"put"}
             elif route == "/api/v1/projects/{project_id}/brief-confirmation":
                 expected_methods = {"post"}
-            elif route in {"/api/v1/intake", "/api/v1/codex/cancel", "/api/v1/codex/turns"}:
+            elif route in {"/api/v1/intake", "/api/v1/codex/cancel", "/api/v1/codex/turns", "/api/v1/live-cad/l-bracket"}:
                 expected_methods = {"post"}
             else:
                 expected_methods = {"get"}
@@ -68,7 +70,7 @@ class OpenApiContractTests(unittest.TestCase):
         self.assertEqual(capabilities["properties"]["hardware_actions"]["const"], False)
 
         health = document["components"]["schemas"]["HealthResponse"]["properties"]
-        self.assertEqual(health["schema_version"]["const"], "1.19.0")
+        self.assertEqual(health["schema_version"]["const"], "1.20.0")
         self.assertEqual(health["service"]["const"], "ariad-interface-api")
         self.assertEqual(health["status"]["const"], "ok")
 
@@ -108,6 +110,10 @@ class OpenApiContractTests(unittest.TestCase):
             "InspectionView",
             "JobView",
             "LocalCodexStatusResponse",
+            "LiveCadArtifactView",
+            "LiveCadBoundsView",
+            "LiveCadChecksView",
+            "LiveLBracketResponse",
             "PackageView",
             "ProjectIntentListResponse",
             "ProjectIntentView",

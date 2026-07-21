@@ -715,6 +715,14 @@ This file records accepted project-level decisions. Change an accepted decision 
 
 **Presentation consequence:** My Builds defaults to newest distinct prompts while retaining an explicit control to reveal rehearsal duplicates. The evidence route is labelled as advanced technical material and no longer exposes the internal M4 milestone in its user-facing hero. These presentation changes do not delete persisted records or alter evidence.
 
+### D-065 - Register one bounded live CAD family without opening generated-code execution
+
+**Status:** Accepted by the project owner on 2026-07-22 to make the judge path demonstrably live.
+
+**Decision:** A confirmed prompt containing an L-bracket may execute the existing seven-parameter `ariad_l_bracket_v1` family through an authenticated loopback action. The request can select only width, base depth, upright height, thickness, hole diameter, hole spacing, and edge margin within closed numeric ceilings. Ariad, not Codex, executes the committed CadQuery source and emits STEP, STL, GLB, checksums, parameter identity, one-solid/kernel checks, and an explicit claim boundary. Equal parameters may deterministically reuse the same result; changed parameters create a different identity and artifacts.
+
+**Boundary:** This action is live digital generation but is not promoted into the Journey evidence ladder. It does not run arbitrary generated code, select a printer profile, assess printability, slice, contact hardware, or establish physical success. The prepared robot remains the richer multi-part reference journey, and unsupported prompt families still stop at planning.
+
 ## Deferred decisions
 
 These require later evidence and should not be decided through preference alone:

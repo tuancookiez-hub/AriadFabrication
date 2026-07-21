@@ -18,6 +18,8 @@ import type {
   RevisionDetail,
   RevisionListResponse,
   AssemblySpec,
+  LiveLBracket,
+  LiveLBracketRequest,
 } from './types'
 
 const apiRoot = (import.meta.env.VITE_ARIAD_API_ROOT ?? '').replace(/\/$/, '')
@@ -157,6 +159,18 @@ export function saveProjectDesignPlan(projectId: string, plan: ProjectDesignPlan
 
 export function getProjectDesignProposal(projectId: string, sessionToken: string, signal?: AbortSignal): Promise<ProjectDesignProposal> {
   return requestJson(`/api/v1/projects/${encodeURIComponent(projectId)}/design-proposal`, signal, {
+    headers: { 'X-Ariad-Session': sessionToken },
+  })
+}
+
+export function generateLiveLBracket(
+  request: LiveLBracketRequest,
+  sessionToken: string,
+  signal?: AbortSignal,
+): Promise<LiveLBracket> {
+  return requestJson('/api/v1/live-cad/l-bracket', signal, {
+    method: 'POST',
+    body: JSON.stringify(request),
     headers: { 'X-Ariad-Session': sessionToken },
   })
 }

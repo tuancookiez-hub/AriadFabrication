@@ -16,6 +16,7 @@ from ..codex_conversation import LocalCodexConversation
 from ..intake import CapabilityLane, CurrentCapabilityRouter, IntentProposal, PromptIntake
 from ..local_codex import LocalCodexSnapshot, LocalCodexStatus, probe_local_codex
 from ..domain import AssemblySpec
+from ..cad.live_l_bracket import generate_l_bracket, live_artifact_path
 from .agent_tool_runtime import ReadOnlyAgentToolRuntime
 
 from .models import (
@@ -31,6 +32,8 @@ from .models import (
     IntakeRequest,
     IntakeResponse,
     LocalCodexStatusResponse,
+    LiveLBracketRequest,
+    LiveLBracketResponse,
     ProjectIntentCreateRequest,
     ProjectDetailResponse,
     ProjectBriefConfirmRequest,
@@ -118,8 +121,7 @@ def create_app(
         summary="Evidence replay, conversation, project clarification, R0 confirmation, and Design planning.",
         description=(
             "This API replays persisted records, captures bounded ideas, and may save a "
-            "user-confirmed project intent, explicitly confirm a complete PartSpec through the existing R0 Brief gate, and persist a planning-only Design plan. It cannot generate CAD, upload G-code, select a printer, heat "
-            "hardware, move hardware, or start manufacturing."
+            "user-confirmed project intent, explicitly confirm a complete PartSpec through the existing R0 Brief gate, and persist a planning-only Design plan. It cannot execute arbitrary generated CAD code, upload G-code, select a printer, heat hardware, move hardware, or start manufacturing. One explicitly bounded L-bracket family may generate parameter-bound digital CAD."
         ),
         version=INTERFACE_API_VERSION,
         docs_url=None,
@@ -132,6 +134,7 @@ def create_app(
         app.state.runs_root.name == "interface" and app.state.runs_root.parent.name == "benchmarks"
     )
     app.state.project_store = ProjectIntentStore(projects_root)
+    app.state.live_cad_root = Path(projects_root).expanduser().resolve().parent / "live-cad"
     app.state.agent_tool_runtime = ReadOnlyAgentToolRuntime(repository, app.state.project_store)
     app.state.codex_executable = codex_executable
     app.state.codex_snapshot = None
@@ -357,6 +360,69 @@ def create_app(
             fabrication_started=False,
             hardware_actions=False,
         )
+
+    @app.post("/api/v1/live-cad/l-bracket", response_model=LiveLBracketResponse)
+    def generate_live_l_bracket(
+        request: LiveLBracketRequest,
+        _: None = Depends(require_browser_session),
+    ) -> LiveLBracketResponse:
+        store: ProjectIntentStore = app.state.project_store
+        try:
+            store.get(request.project_id)
+            if store.get_brief(request.project_id) is None:
+                raise ProjectStoreError("A confirmed R0 Brief is required before CAD generation.")
+            manifest, cache_reused = generate_l_bracket(
+                request.model_dump(exclude={"project_id"}),
+                app.state.live_cad_root,
+            )
+        except ProjectStoreError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        except ImportError as exc:
+            raise HTTPException(
+                status_code=503,
+                detail="The optional pinned CAD environment is not installed. Run uv sync --frozen --extra test --extra cad.",
+            ) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        except OSError as exc:
+            raise HTTPException(status_code=409, detail=f"Live CAD generation failed: {type(exc).__name__}.") from exc
+        artifacts = [
+            {
+                **artifact,
+                "download_url": (
+                    f"/api/v1/live-cad/{manifest['generation_id']}/{artifact['filename']}"
+                ),
+            }
+            for artifact in manifest["artifacts"]
+        ]
+        response_value = dict(manifest)
+        response_value.pop("artifacts", None)
+        response_value.pop("schema_version", None)
+        return LiveLBracketResponse(
+            schema_version=INTERFACE_API_VERSION,
+            **response_value,
+            artifacts=artifacts,
+            cache_reused=cache_reused,
+        )
+
+    @app.get("/api/v1/live-cad/{generation_id}/{filename}")
+    def live_cad_artifact(generation_id: str, filename: str) -> Response:
+        try:
+            path = live_artifact_path(app.state.live_cad_root, generation_id, filename)
+        except ValueError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        media_types = {
+            ".step": "model/step",
+            ".stl": "model/stl",
+            ".glb": "model/gltf-binary",
+            ".json": "application/json",
+        }
+        response = Response(content=path.read_bytes(), media_type=media_types[path.suffix])
+        response.headers["Cache-Control"] = "no-store"
+        response.headers["Content-Disposition"] = f'attachment; filename="{path.name}"'
+        response.headers["X-Ariad-Evidence-Mode"] = "live-digital-generation"
+        response.headers["X-Ariad-Hardware-Action"] = "false"
+        return response
 
     @app.put("/api/v1/projects/{project_id}/draft", response_model=ProjectDraftView)
     def save_project_draft(

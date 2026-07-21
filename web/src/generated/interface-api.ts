@@ -126,6 +126,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/live-cad/{generation_id}/{filename}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Live Cad Artifact */
+        get: operations["live_cad_artifact_api_v1_live_cad__generation_id___filename__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/live-cad/l-bracket": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate Live L Bracket */
+        post: operations["generate_live_l_bracket_api_v1_live_cad_l_bracket_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/projects": {
         parameters: {
             query?: never;
@@ -471,7 +505,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.19.0";
+            schema_version: "1.20.0";
             /**
              * Simulation Run
              * @constant
@@ -502,7 +536,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.19.0";
+            schema_version: "1.20.0";
             /** Session Token */
             session_token: string;
         };
@@ -691,7 +725,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.19.0";
+            schema_version: "1.20.0";
         };
         /** ConversationEventsResponse */
         ConversationEventsResponse: {
@@ -710,7 +744,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.19.0";
+            schema_version: "1.20.0";
             /**
              * Tools Registered
              * @constant
@@ -765,7 +799,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.19.0";
+            schema_version: "1.20.0";
             /**
              * Tools Registered
              * @constant
@@ -942,7 +976,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.19.0";
+            schema_version: "1.20.0";
             /**
              * Service
              * @constant
@@ -1175,7 +1209,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.19.0";
+            schema_version: "1.20.0";
         };
         /** IntentProviderView */
         IntentProviderView: {
@@ -1231,6 +1265,112 @@ export interface components {
              */
             updated_at: string;
         };
+        /** LiveCadArtifactView */
+        LiveCadArtifactView: {
+            /** Checksum Sha256 */
+            checksum_sha256: string;
+            /** Download Url */
+            download_url: string;
+            /** Filename */
+            filename: string;
+            /** Media Type */
+            media_type: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "editable_step" | "compatibility_stl" | "browser_preview";
+            /** Size Bytes */
+            size_bytes: number;
+        };
+        /** LiveCadBoundsView */
+        LiveCadBoundsView: {
+            /** X */
+            x: number;
+            /** Y */
+            y: number;
+            /** Z */
+            z: number;
+        };
+        /** LiveCadChecksView */
+        LiveCadChecksView: {
+            bounds_mm: components["schemas"]["LiveCadBoundsView"];
+            /** Kernel Valid */
+            kernel_valid: boolean;
+            /** Preview Triangle Count */
+            preview_triangle_count: number;
+            /** Solid Count */
+            solid_count: number;
+        };
+        /** LiveLBracketRequest */
+        LiveLBracketRequest: {
+            /** Base Depth Mm */
+            base_depth_mm: number;
+            /** Edge Margin Mm */
+            edge_margin_mm: number;
+            /** Hole Diameter Mm */
+            hole_diameter_mm: number;
+            /** Hole Spacing Mm */
+            hole_spacing_mm: number;
+            /** Project Id */
+            project_id: string;
+            /** Thickness Mm */
+            thickness_mm: number;
+            /** Upright Height Mm */
+            upright_height_mm: number;
+            /** Width Mm */
+            width_mm: number;
+        };
+        /** LiveLBracketResponse */
+        LiveLBracketResponse: {
+            /** Artifacts */
+            artifacts: components["schemas"]["LiveCadArtifactView"][];
+            /** Cache Reused */
+            cache_reused: boolean;
+            checks: components["schemas"]["LiveCadChecksView"];
+            /** Claim Boundary */
+            claim_boundary: string;
+            /**
+             * Design Id
+             * @constant
+             */
+            design_id: "ariad_l_bracket_v1";
+            /** Design Source Version */
+            design_source_version: string;
+            /**
+             * Evidence Mode
+             * @constant
+             */
+            evidence_mode: "live_digital_generation";
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+            /** Generation Id */
+            generation_id: string;
+            /**
+             * Hardware Actions
+             * @constant
+             */
+            hardware_actions: false;
+            /** Parameter Sha256 */
+            parameter_sha256: string;
+            /** Parameters */
+            parameters: {
+                [key: string]: number;
+            };
+            /**
+             * Physical Validation
+             * @constant
+             */
+            physical_validation: false;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "1.20.0";
+        };
         /**
          * LocalCodexStatus
          * @enum {string}
@@ -1265,7 +1405,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.19.0";
+            schema_version: "1.20.0";
             status: components["schemas"]["LocalCodexStatus"];
             /**
              * Tools Registered
@@ -1512,7 +1652,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.19.0";
+            schema_version: "1.20.0";
         };
         /** ProjectDraftRequest */
         ProjectDraftRequest: {
@@ -1625,7 +1765,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.19.0";
+            schema_version: "1.20.0";
         };
         /** ProjectIntentView */
         ProjectIntentView: {
@@ -1707,7 +1847,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.19.0";
+            schema_version: "1.20.0";
             /** Summaries */
             summaries: components["schemas"]["ComparisonAreaSummaryView"][];
             /** Total Change Count */
@@ -1726,7 +1866,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.19.0";
+            schema_version: "1.20.0";
             source: components["schemas"]["SourceView"];
             /** Stages */
             stages: components["schemas"]["StageView"][];
@@ -1740,7 +1880,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.19.0";
+            schema_version: "1.20.0";
             window: components["schemas"]["RevisionListWindowView"];
         };
         /** RevisionListWindowView */
@@ -2109,6 +2249,73 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    live_cad_artifact_api_v1_live_cad__generation_id___filename__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                filename: string;
+                generation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generate_live_l_bracket_api_v1_live_cad_l_bracket_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-ariad-session"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LiveLBracketRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LiveLBracketResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

@@ -23,8 +23,8 @@ from ..intake import CapabilityLane, RouteStatus
 from ..local_codex import LocalCodexStatus
 
 
-InterfaceApiVersion = Literal["1.19.0"]
-INTERFACE_API_VERSION: InterfaceApiVersion = "1.19.0"
+InterfaceApiVersion = Literal["1.20.0"]
+INTERFACE_API_VERSION: InterfaceApiVersion = "1.20.0"
 Timestamp = Annotated[str, Field(json_schema_extra={"format": "date-time"})]
 
 
@@ -277,6 +277,56 @@ class ProjectBriefView(ApiModel):
     status: Literal["ready_for_design"]
     fabrication_started: Literal[False]
     hardware_actions: Literal[False]
+
+
+class LiveLBracketRequest(ApiModel):
+    project_id: str = Field(min_length=1, max_length=120)
+    width_mm: float = Field(gt=0, le=220)
+    base_depth_mm: float = Field(gt=0, le=220)
+    upright_height_mm: float = Field(gt=0, le=220)
+    thickness_mm: float = Field(gt=0, le=20)
+    hole_diameter_mm: float = Field(gt=0, le=30)
+    hole_spacing_mm: float = Field(gt=0, le=200)
+    edge_margin_mm: float = Field(gt=0, le=50)
+
+
+class LiveCadBoundsView(ApiModel):
+    x: float = Field(gt=0)
+    y: float = Field(gt=0)
+    z: float = Field(gt=0)
+
+
+class LiveCadChecksView(ApiModel):
+    kernel_valid: bool
+    solid_count: int = Field(ge=0)
+    bounds_mm: LiveCadBoundsView
+    preview_triangle_count: int = Field(gt=0)
+
+
+class LiveCadArtifactView(ApiModel):
+    role: Literal["editable_step", "compatibility_stl", "browser_preview"]
+    filename: str
+    media_type: str
+    size_bytes: int = Field(gt=0)
+    checksum_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    download_url: str
+
+
+class LiveLBracketResponse(ApiModel):
+    schema_version: InterfaceApiVersion
+    generation_id: str
+    design_id: Literal["ariad_l_bracket_v1"]
+    design_source_version: str
+    generated_at: Timestamp
+    parameter_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    parameters: dict[str, float]
+    checks: LiveCadChecksView
+    artifacts: list[LiveCadArtifactView]
+    cache_reused: bool
+    evidence_mode: Literal["live_digital_generation"]
+    claim_boundary: str
+    hardware_actions: Literal[False]
+    physical_validation: Literal[False]
 
 
 class ProjectDesignPlanRequest(ApiModel):

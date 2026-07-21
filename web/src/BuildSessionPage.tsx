@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 
 import { AssemblyBlueprint } from './AssemblyBlueprint'
 import { BuildCodexPanel } from './BuildCodexPanel'
+import { LiveBracketWorkspace } from './LiveBracketWorkspace'
 import { RobotCadWorkspace } from './RobotCadWorkspace'
 import {
   ApiError,
@@ -12,10 +13,11 @@ import {
   getBrowserSession,
   getLocalCodexStatus,
   getProjectDesignProposal,
+  generateLiveLBracket,
   saveProjectDesignPlan,
   saveProjectDraft,
 } from './api'
-import type { IntakeResponse, ProjectBrief, ProjectDesignPlanRequest, ProjectDraftRequest, ProjectIntent } from './types'
+import type { IntakeResponse, LiveLBracket, LiveLBracketRequest, ProjectBrief, ProjectDesignPlanRequest, ProjectDraftRequest, ProjectIntent } from './types'
 
 type SessionStep = 'describe' | 'review' | 'components' | 'blueprint' | 'cad' | 'verify' | 'slice' | 'package'
 
@@ -30,6 +32,7 @@ type StoredBuildSession = {
   brief: ProjectBrief | null
   designPlan: ProjectDesignPlanRequest
   planSource: 'codex' | 'local' | null
+  liveCad: LiveLBracket | null
 }
 
 function restoreBuildSession(): StoredBuildSession | null {
@@ -57,18 +60,40 @@ function suggestedPartType(prompt: string): string {
 
 function suggestedDraft(prompt: string): ProjectDraftRequest {
   const robot = prompt.toLowerCase().includes('robot')
+  const bracket = /\b(?:l[ -]?bracket|bracket)\b/i.test(prompt)
+  const dimensions = prompt.match(/(\d+(?:\.\d+)?)\s*(?:mm)?\s*[x×]\s*(\d+(?:\.\d+)?)\s*(?:mm)?\s*[x×]\s*(\d+(?:\.\d+)?)\s*mm\b/i)
   return {
     name: suggestedTitle(prompt),
     purpose: prompt.trim(),
     part_type: suggestedPartType(prompt),
-    size_x_mm: robot ? 120 : 100,
-    size_y_mm: robot ? 58 : 100,
-    size_z_mm: robot ? 167 : 100,
+    size_x_mm: dimensions ? Number(dimensions[1]) : robot ? 120 : bracket ? 60 : 100,
+    size_y_mm: dimensions ? Number(dimensions[2]) : robot ? 58 : bracket ? 40 : 100,
+    size_z_mm: dimensions ? Number(dimensions[3]) : robot ? 167 : bracket ? 45 : 100,
     material: 'PETG',
     tolerance_mm: 0.3,
     support_policy: 'avoid',
     manufacturing_process: 'FDM',
     safety_class: 'general',
+  }
+}
+
+function liveBracketRequest(projectId: string, draft: ProjectDraftRequest): LiveLBracketRequest {
+  const width = Number(draft.size_x_mm ?? 60)
+  const depth = Number(draft.size_y_mm ?? 40)
+  const height = Number(draft.size_z_mm ?? 45)
+  const thickness = Math.max(3, Math.min(6, Math.round(Math.min(depth, height) * 0.1 * 10) / 10))
+  const holeDiameter = 4.2
+  const edgeMargin = Math.max(4, Math.min(8, Math.round(width * 0.1 * 10) / 10))
+  const maximumSpacing = width - 2 * (holeDiameter / 2 + edgeMargin)
+  return {
+    project_id: projectId,
+    width_mm: width,
+    base_depth_mm: depth,
+    upright_height_mm: height,
+    thickness_mm: thickness,
+    hole_diameter_mm: holeDiameter,
+    hole_spacing_mm: Math.round(Math.min(width * 0.55, maximumSpacing) * 10) / 10,
+    edge_margin_mm: edgeMargin,
   }
 }
 
@@ -103,6 +128,8 @@ const stageIndex: Record<SessionStep, number> = {
   slice: 6,
   package: 7,
 }
+const bracketStageLabels = ['Idea', 'Confirm', 'CAD', 'Verify', 'Slice', 'Package']
+const bracketStageIndex: Partial<Record<SessionStep, number>> = { describe: 0, review: 1, cad: 2, verify: 3, slice: 4, package: 5 }
 
 export function BuildSessionPage() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -117,6 +144,7 @@ export function BuildSessionPage() {
   const [brief, setBrief] = useState<ProjectBrief | null>(restored?.brief ?? null)
   const [designPlan, setDesignPlan] = useState<ProjectDesignPlanRequest>(restored?.designPlan ?? fallbackDesignPlan(''))
   const [planSource, setPlanSource] = useState<'codex' | 'local' | null>(restored?.planSource ?? null)
+  const [liveCad, setLiveCad] = useState<LiveLBracket | null>(restored?.liveCad ?? null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [codexContext, setCodexContext] = useState<string | null>(null)
@@ -135,11 +163,13 @@ export function BuildSessionPage() {
   }, [searchParams, setSearchParams])
 
   useEffect(() => {
-    const value: StoredBuildSession = { step, prompt, intake, draft, project, brief, designPlan, planSource }
+    const value: StoredBuildSession = { step, prompt, intake, draft, project, brief, designPlan, planSource, liveCad }
     sessionStorage.setItem(BUILD_SESSION_KEY, JSON.stringify(value))
-  }, [brief, designPlan, draft, intake, planSource, project, prompt, step])
+  }, [brief, designPlan, draft, intake, liveCad, planSource, project, prompt, step])
 
-  const activeIndex = useMemo(() => stageIndex[step], [step])
+  const bracketPath = /\b(?:l[ -]?bracket|bracket)\b/i.test(prompt)
+  const displayedStageLabels = bracketPath ? bracketStageLabels : stageLabels
+  const activeIndex = useMemo(() => bracketPath ? (bracketStageIndex[step] ?? 0) : stageIndex[step], [bracketPath, step])
   const localFallback = intake?.provider.configured === false
   const reviewSummary = localFallback ? suggestedPartType(prompt) : intake?.route.summary
   const reviewReason = localFallback
@@ -156,7 +186,7 @@ export function BuildSessionPage() {
     setBusy(true); setError(null)
     try {
       const result = await captureIdea(prompt)
-      setIntake(result); setDraft(suggestedDraft(prompt)); setStep('review')
+      setLiveCad(null); setIntake(result); setDraft(suggestedDraft(prompt)); setStep('review')
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Ariad could not understand the request.')
     } finally { setBusy(false) }
@@ -194,7 +224,12 @@ export function BuildSessionPage() {
       }
       const savedPlan = await saveProjectDesignPlan(created.project_id, proposedPlan, token)
       setDesignPlan(savedPlan)
-      setStep(prompt.toLowerCase().includes('robot') ? 'components' : 'cad')
+      if (/\b(?:l[ -]?bracket|bracket)\b/i.test(prompt)) {
+        setLiveCad(await generateLiveLBracket(liveBracketRequest(created.project_id, draft), token))
+        setStep('cad')
+      } else {
+        setStep(prompt.toLowerCase().includes('robot') ? 'components' : 'cad')
+      }
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'The project brief could not be prepared.')
     } finally { setBusy(false) }
@@ -211,7 +246,7 @@ export function BuildSessionPage() {
     else if (step === 'review') setStep('describe')
   }
 
-  const backLabel = step === 'package' ? 'Back to slice' : step === 'slice' ? 'Back to verification' : step === 'verify' ? 'Back to CAD' : step === 'cad' ? 'Back to blueprint' : step === 'blueprint' ? 'Back to components' : step === 'components' ? 'Back to requirements' : step === 'review' ? 'Back to idea' : null
+  const backLabel = step === 'package' ? 'Back to slice' : step === 'slice' ? 'Back to verification' : step === 'verify' ? 'Back to CAD' : step === 'cad' ? (prompt.toLowerCase().includes('robot') ? 'Back to blueprint' : 'Back to requirements') : step === 'blueprint' ? 'Back to components' : step === 'components' ? 'Back to requirements' : step === 'review' ? 'Back to idea' : null
 
   return (
     <div className="build-session">
@@ -220,8 +255,8 @@ export function BuildSessionPage() {
         <div className="build-session-status"><span>Current step</span><strong>{step === 'package' ? 'Reviewing the package' : step === 'slice' ? 'Reviewing the real slice' : step === 'verify' ? 'Checking print preparation' : step === 'cad' ? 'Inspecting CAD' : step === 'blueprint' ? 'Approving the blueprint' : step === 'components' ? 'Confirming hardware' : step === 'review' ? 'Confirm the brief' : 'Describe your idea'}</strong><small><i /> Guided workflow active</small></div>
       </header>
 
-      <ol className="build-stage-rail" aria-label="Build stages">
-        {stageLabels.map((label, index) => <li className={index < activeIndex ? 'stage-done' : index === activeIndex ? 'stage-active' : ''} key={label}><span>{index < activeIndex ? '✓' : index + 1}</span>{label}</li>)}
+      <ol className="build-stage-rail" aria-label="Build stages" style={{ gridTemplateColumns: `repeat(${displayedStageLabels.length}, 1fr)` }}>
+        {displayedStageLabels.map((label, index) => <li className={index < activeIndex ? 'stage-done' : index === activeIndex ? 'stage-active' : ''} key={label}><span>{index < activeIndex ? '✓' : index + 1}</span>{label}</li>)}
       </ol>
       {backLabel ? <div className="build-navigation"><button type="button" onClick={goBack}>← {backLabel}</button><span>Your work is preserved when you move between steps.</span></div> : null}
 
@@ -229,7 +264,7 @@ export function BuildSessionPage() {
         <div className="build-focus-card build-prompt-card">
           <div className="conversation-label"><span className="conversation-avatar">C</span><div><strong>Start with what you need</strong><small>Codex will turn intent into an editable fabrication brief.</small></div></div>
           <h2>What should Ariad help you make?</h2>
-      <form onSubmit={understand}><textarea aria-label="What should Ariad help you make?" required rows={6} value={prompt} onChange={(event) => setPrompt(event.target.value)} placeholder="Describe the object, how it should work, and anything it must fit. You can stay in plain language." /><div className="prompt-suggestion"><span>Try the complete CAD demo</span><button type="button" onClick={() => setPrompt('Make a cute two-servo robot around a Raspberry Pi Zero 2 W, two SCS0009 servos, a camera, and an IMU. Give it exactly two long rotating side limbs and no fixed feet so it can explore recovery after a fall. Use separate serviceable printed parts and external regulated power for the first revision.')}>Use robot example</button></div><div className="supported-path-note"><strong>Complete CAD path available</strong><span>The current end-to-end demo supports the two-servo robot family. Other ideas can be captured and planned without invented geometry.</span></div><button aria-label="Continue" className="primary-action" disabled={busy || !prompt.trim()}>{busy ? 'Understanding…' : 'Begin guided build →'}</button></form>
+      <form onSubmit={understand}><textarea aria-label="What should Ariad help you make?" required rows={6} value={prompt} onChange={(event) => setPrompt(event.target.value)} placeholder="Describe the object, how it should work, and anything it must fit. You can stay in plain language." /><div className="prompt-suggestion"><span>Try a live generated part</span><button type="button" onClick={() => setPrompt('Make a 60 x 40 x 45 mm L-bracket in PETG for mounting a small controller.')}>Use live bracket example</button></div><div className="prompt-suggestion"><span>Explore the complete robot reference</span><button type="button" onClick={() => setPrompt('Make a cute two-servo robot around a Raspberry Pi Zero 2 W, two SCS0009 servos, a camera, and an IMU. Give it exactly two long rotating side limbs and no fixed feet so it can explore recovery after a fall. Use separate serviceable printed parts and external regulated power for the first revision.')}>Use robot example</button></div><div className="supported-path-note"><strong>Two honest CAD paths</strong><span>L-bracket dimensions generate fresh CAD on demand. The robot demonstrates the richer registered multi-part evidence journey. Other ideas stop at planning.</span></div><button aria-label="Continue" className="primary-action" disabled={busy || !prompt.trim()}>{busy ? 'Understanding…' : 'Begin guided build →'}</button></form>
         </div>
         <aside className="build-preview-panel">
           <div className="preview-panel-heading"><div><p className="eyebrow">Your build companion</p><h2>Codex will guide this build.</h2></div><span className="live-indicator"><i /> Ready</span></div>
@@ -280,12 +315,13 @@ export function BuildSessionPage() {
 
       {(['components', 'blueprint', 'cad', 'verify', 'slice', 'package'] as SessionStep[]).includes(step) && project ? <details className="build-work-log"><summary>What Codex prepared</summary><div><strong>{planSource === 'codex' ? 'Codex-authored plan' : 'Local deterministic plan'}</strong><p>{designPlan.geometry_strategy}</p><span>{designPlan.critical_features.length} features · {designPlan.assembly_interfaces.length} interfaces · {designPlan.unresolved_questions.length} open decisions</span></div></details> : null}
 
-      {(['cad', 'verify', 'slice', 'package'] as SessionStep[]).includes(step) && project && !prompt.toLowerCase().includes('robot') ? <section className="build-complete-card">
+      {(['cad', 'verify', 'slice', 'package'] as SessionStep[]).includes(step) && project && !prompt.toLowerCase().includes('robot') && !/\b(?:l[ -]?bracket|bracket)\b/i.test(prompt) ? <section className="build-complete-card">
         <div className="completion-mark">✓</div><p className="eyebrow">Design plan saved</p><h2>This idea needs a qualified CAD family.</h2><p>Ariad will not invent printable geometry for an unsupported family. The approved robot example is currently the first connected CAD path.</p>
         <div className="next-actions"><Link className="primary-action" to={`/projects/${encodeURIComponent(project.project_id)}`}>Review project thread</Link><Link className="secondary-action" to={`/chat?project=${encodeURIComponent(project.project_id)}`}>Discuss open decisions with Codex</Link></div>
       </section> : null}
 
       {(['cad', 'verify', 'slice', 'package'] as SessionStep[]).includes(step) && project && prompt.toLowerCase().includes('robot') ? <RobotCadWorkspace key={step} mode={step as 'cad' | 'verify' | 'slice' | 'package'} onAskCodex={setCodexContext} onContinue={() => setStep(step === 'cad' ? 'verify' : step === 'verify' ? 'slice' : 'package')} /> : null}
+      {(['cad', 'verify', 'slice', 'package'] as SessionStep[]).includes(step) && project && liveCad && /\b(?:l[ -]?bracket|bracket)\b/i.test(prompt) ? <LiveBracketWorkspace result={liveCad} key={step} mode={step as 'cad' | 'verify' | 'slice' | 'package'} onAskCodex={setCodexContext} onContinue={() => setStep(step === 'cad' ? 'verify' : step === 'verify' ? 'slice' : 'package')} /> : null}
       {codexContext && project ? <BuildCodexPanel available={codexAvailable} key={codexContext} context={codexContext} projectId={project.project_id} sessionToken={token} onClose={() => setCodexContext(null)} /> : null}
 
       {error ? <div className="build-error" role="alert">{error}</div> : null}

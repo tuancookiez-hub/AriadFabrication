@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom/vitest'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -153,5 +153,42 @@ describe('BuildSessionPage', () => {
     expect(screen.getByRole('heading', { name: 'These parts define the robot body.' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: '← Back to requirements' }))
     expect(screen.getByRole('heading', { name: 'Review the choices that shape the result' })).toBeInTheDocument()
+  })
+
+  it('generates fresh bounded bracket CAD from prompt dimensions', async () => {
+    let generationBody: Record<string, unknown> | null = null
+    vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input)
+      if (url.endsWith('/api/v1/session')) return response({ schema_version: '1.20.0', session_token: 'browser-secret' })
+      if (url.endsWith('/api/v1/intake')) return response(intake)
+      if (url.endsWith('/api/v1/projects') && init?.method === 'POST') return response({ project_id: 'project_bracket', title: 'Bracket', prompt: 'Make a bracket.' })
+      if (url.endsWith('/draft')) return response({ status: 'ready_for_confirmation', missing_fields: [] })
+      if (url.endsWith('/brief-confirmation')) return response({ project_id: 'project_bracket', job_id: 'job_bracket', revision_id: 'rev_bracket', evidence_level: 'R0' })
+      if (url.endsWith('/design-proposal')) return missing()
+      if (url.endsWith('/design-plan')) return response({ lane: 'functional_parametric', geometry_strategy: 'Parameter-bound bracket.', critical_features: [], assembly_interfaces: [], constraints: [], unresolved_questions: [] })
+      if (url.endsWith('/api/v1/live-cad/l-bracket')) {
+        generationBody = JSON.parse(String(init?.body)) as Record<string, unknown>
+        return response({
+          schema_version: '1.20.0', generation_id: 'lbracket_12345678901234567890', design_id: 'ariad_l_bracket_v1', design_source_version: '0.1.0', generated_at: '2026-07-22T00:00:00+00:00', parameter_sha256: 'a'.repeat(64),
+          parameters: { width_mm: 72, base_depth_mm: 44, upright_height_mm: 50, thickness_mm: 4.4, hole_diameter_mm: 4.2, hole_spacing_mm: 39.6, edge_margin_mm: 7.2 },
+          checks: { kernel_valid: true, solid_count: 1, bounds_mm: { x: 72, y: 44, z: 50 }, preview_triangle_count: 240 },
+          artifacts: [{ role: 'browser_preview', filename: 'preview.glb', media_type: 'model/gltf-binary', size_bytes: 1200, checksum_sha256: 'b'.repeat(64), download_url: '/api/v1/live-cad/lbracket_12345678901234567890/preview.glb' }],
+          cache_reused: false, evidence_mode: 'live_digital_generation', claim_boundary: 'Digital geometry only.', hardware_actions: false, physical_validation: false,
+        })
+      }
+      if (url.endsWith('/preview.glb')) return new Response(new ArrayBuffer(0), { status: 200 })
+      throw new Error(`Unexpected request: ${url}`)
+    }))
+    render(<MemoryRouter><BuildSessionPage /></MemoryRouter>)
+
+    fireEvent.change(screen.getByLabelText('What should Ariad help you make?'), { target: { value: 'Make a 72 x 44 x 50 mm L-bracket in PETG.' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Approve and continue' }))
+
+    expect(await screen.findByRole('heading', { name: 'This CAD was generated from your dimensions.' })).toBeInTheDocument()
+    expect(screen.getByText('Generated in this session')).toBeInTheDocument()
+    await waitFor(() => expect(generationBody).not.toBeNull())
+    expect(generationBody).toMatchObject({ width_mm: 72, base_depth_mm: 44, upright_height_mm: 50 })
+    expect(screen.getByText('lbracket_12345678901234567890')).toBeInTheDocument()
   })
 })
