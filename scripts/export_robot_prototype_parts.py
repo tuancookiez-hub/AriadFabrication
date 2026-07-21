@@ -7,7 +7,11 @@ import hashlib
 import json
 from pathlib import Path
 
-from ariad_fabrication.cad.robot_casing_design import DESIGN_SOURCE_VERSION, build_parts
+from ariad_fabrication.cad.robot_casing_design import (
+    DESIGN_SOURCE_VERSION,
+    build_component_envelopes,
+    build_parts,
+)
 from ariad_fabrication.cad.glb import export_glb
 
 
@@ -15,14 +19,14 @@ ROOT = Path(__file__).resolve().parents[1]
 
 ASSEMBLY_METHODS = {
     "front_shell": "Receives the snap-latched tray, slide-lock panel, and press-fit camera bezel.",
-    "electronics_tray": "Slides into the shell, locks with two releasable planar snap arms, and carries two dovetail rails.",
+    "electronics_tray": "Slides into the shell, locks with two releasable planar snap arms, and includes two SCS0009-sized servo cradles.",
     "service_panel": "Slides down guide channels and closes with one hand-releasable flex latch.",
     "left_limb": "Receives a keyed split-stem adapter; printed flat for stronger in-plane limb layers.",
     "right_limb": "Receives a keyed split-stem adapter; printed flat for stronger in-plane limb layers.",
     "left_servo_adapter": "Keys into the limb with a split retention stem; the purchased-servo interface remains provisional.",
     "right_servo_adapter": "Keys into the limb with a split retention stem; the purchased-servo interface remains provisional.",
-    "camera_bezel": "Presses into the front opening with an annular locating collar.",
-    "electronics_carrier": "Slides onto the tray's twin dovetail rails and retains the placeholder board with corner clips.",
+    "camera_bezel": "Presses into the front opening and extends into a 25 x 24 mm camera-board locating frame.",
+    "electronics_carrier": "Slides onto the tray and provides the Pi Zero 2 W 58 x 23 mm M2.5 mounting pattern.",
 }
 
 
@@ -58,8 +62,9 @@ def main() -> None:
     parameters_path = ROOT / "benchmarks" / "robot_casing" / "parameters.json"
     parameters = json.loads(parameters_path.read_text(encoding="utf-8"))
     parts = build_parts(parameters)
+    components = build_component_envelopes(parameters)
 
-    from cadquery import exporters
+    from cadquery import Compound, exporters
 
     records = []
     for name, part in parts.items():
@@ -102,15 +107,31 @@ def main() -> None:
             }
         )
 
+    component_shape = Compound.makeCompound([solid.val() for solid in components.values()])
+    component_glb_path = output / "component_layout.glb"
+    component_stats = export_glb(
+        component_shape,
+        component_glb_path,
+        linear_tolerance_mm=0.08,
+        angular_tolerance_rad=0.12,
+    )
     manifest = {
         "artifact_kind": "prototype_geometry",
         "design_source_version": DESIGN_SOURCE_VERSION,
         "part_count": len(records),
         "parts": records,
+        "component_layout": {
+            "glb": component_glb_path.name,
+            "glb_sha256": hashlib.sha256(component_glb_path.read_bytes()).hexdigest(),
+            "preview_triangle_count": component_stats["triangle_count"],
+            "components": list(components),
+            "evidence": "manufacturer dimensions plus a supplier-dependent camera reservation",
+        },
         "claim_boundary": (
-            "Digitally valid tool-less prototype solids only. Nominal interfaces use generic "
-            "FDM starting clearances; fit, latch life, component fit, slicing, strength, motion, "
-            "safety, and physical print success are unverified."
+            "Digitally valid component-first Rev A prototype solids. The Pi outline and mounting "
+            "pattern and servo body envelopes are manufacturer-sourced; camera revision, servo "
+            "horn fit, nominal FDM interfaces, latch life, slicing, strength, motion, electrical "
+            "integration, and physical print success remain unverified."
         ),
     }
     (output / "manifest.json").write_text(
@@ -131,7 +152,7 @@ def main() -> None:
         "border-radius:14px;padding:14px}img{display:block;width:100%;height:220px;object-fit:contain;background:#f7f3ed}"
         "h2{font-size:18px;text-transform:capitalize;margin:12px 0 5px}article p{margin:0;color:#756b60;font-size:13px}"
         "footer{margin-top:20px;border-left:4px solid #c92f26;padding:12px 16px;background:#fff8ec;color:#5b5045}</style>"
-        "<header><h1>ARIAD ROBOT · PROTOTYPE PARTS V1</h1><p>9 separate STEP + STL solids</p></header>"
+        "<header><h1>ARIAD ROBOT · COMPONENT-FIRST REV A</h1><p>9 separate STEP + STL solids</p></header>"
         f"<main>{cards}</main><footer>{manifest['claim_boundary']}</footer>",
         encoding="utf-8",
     )

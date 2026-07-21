@@ -1019,7 +1019,7 @@ class InterfaceHttpTests(unittest.TestCase):
         self.assertEqual(len(payload["interfaces"]), 7)
         self.assertEqual(
             [item["evidence"] for item in payload["component_envelopes"]],
-            ["placeholder", "manufacturer", "placeholder", "placeholder"],
+            ["manufacturer", "manufacturer", "placeholder", "placeholder"],
         )
         self.assertFalse(payload["cad_generated"])
         self.assertFalse(payload["simulation_run"])

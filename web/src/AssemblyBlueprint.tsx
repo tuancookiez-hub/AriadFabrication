@@ -1,4 +1,4 @@
-import modelSheetUrl from '../../assets/ariad-robot-interlocking-model-sheet-v3.png'
+import modelSheetUrl from '../../assets/ariad-robot-component-first-model-sheet-v4.png'
 
 type AssemblyBlueprintProps = {
   compact?: boolean
@@ -14,10 +14,10 @@ export function AssemblyBlueprint({ compact = false }: AssemblyBlueprintProps) {
       <div className="model-sheet-image-wrap">
         <img
           src={modelSheetUrl}
-          alt="Ariad interlocking robot visual blueprint with front, side, rear, three-quarter, exploded, and tool-less interface detail views"
+          alt="Ariad component-first robot blueprint with assembled, rear service, internal hardware, exploded assembly, and flat-print part views"
         />
       </div>
-      <figcaption><strong>Visual blueprint</strong><span>Generated concept image · not generated CAD or fit evidence.</span></figcaption>
+      <figcaption><strong>Component-first blueprint</strong><span>Pi and servo architecture precedes the shell · visual intent, not physical fit evidence.</span></figcaption>
     </figure>
   )
 }

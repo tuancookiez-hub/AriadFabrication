@@ -89,7 +89,14 @@ def render(spec: AssemblySpec) -> str:
                     size=13,
                     css="muted",
                 ),
-                _text(x + 16, y + 48, "PLACEHOLDER - VERIFY", size=12, css="red"),
+                _text(
+                    x + 16,
+                    y + 48,
+                    component.evidence.value.upper()
+                    + (" - VERIFY UNIT" if component.evidence.value != "measured" else ""),
+                    size=12,
+                    css="red",
+                ),
             ]
         )
     lines.extend(

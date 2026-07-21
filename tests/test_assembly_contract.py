@@ -37,7 +37,7 @@ class AssemblyContractTests(unittest.TestCase):
         self.assertEqual(
             [item.evidence for item in assembly.component_envelopes],
             [
-                EnvelopeEvidence.PLACEHOLDER,
+                EnvelopeEvidence.MANUFACTURER,
                 EnvelopeEvidence.MANUFACTURER,
                 EnvelopeEvidence.PLACEHOLDER,
                 EnvelopeEvidence.PLACEHOLDER,

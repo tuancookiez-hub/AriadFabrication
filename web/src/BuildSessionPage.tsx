@@ -15,7 +15,7 @@ import {
 } from './api'
 import type { IntakeResponse, ProjectBrief, ProjectDesignPlanRequest, ProjectDraftRequest, ProjectIntent } from './types'
 
-type SessionStep = 'describe' | 'review' | 'blueprint' | 'cad' | 'verify' | 'slice' | 'package'
+type SessionStep = 'describe' | 'review' | 'components' | 'blueprint' | 'cad' | 'verify' | 'slice' | 'package'
 
 const BUILD_SESSION_KEY = 'ariad.active-build.v2'
 
@@ -33,7 +33,7 @@ type StoredBuildSession = {
 function restoreBuildSession(): StoredBuildSession | null {
   try {
     const value = JSON.parse(sessionStorage.getItem(BUILD_SESSION_KEY) ?? 'null') as Partial<StoredBuildSession> | null
-    if (!value || !['describe', 'review', 'blueprint', 'cad', 'verify', 'slice', 'package'].includes(value.step ?? '') || typeof value.prompt !== 'string' || !value.draft || !value.designPlan) return null
+    if (!value || !['describe', 'review', 'components', 'blueprint', 'cad', 'verify', 'slice', 'package'].includes(value.step ?? '') || typeof value.prompt !== 'string' || !value.draft || !value.designPlan) return null
     return value as StoredBuildSession
   } catch {
     return null
@@ -59,9 +59,9 @@ function suggestedDraft(prompt: string): ProjectDraftRequest {
     name: suggestedTitle(prompt),
     purpose: prompt.trim(),
     part_type: suggestedPartType(prompt),
-    size_x_mm: robot ? 110 : 100,
-    size_y_mm: robot ? 70 : 100,
-    size_z_mm: robot ? 100 : 100,
+    size_x_mm: robot ? 120 : 100,
+    size_y_mm: robot ? 58 : 100,
+    size_z_mm: robot ? 167 : 100,
     material: 'PETG',
     tolerance_mm: 0.3,
     support_policy: 'avoid',
@@ -78,27 +78,28 @@ function fallbackDesignPlan(prompt: string): ProjectDesignPlanRequest {
       ? 'Decompose the robot into separately manufactured parametric parts around verified component envelopes, then validate each part and the complete assembly independently.'
       : 'Create dimension-driven parametric geometry from the approved envelope and keep every critical interface editable.',
     critical_features: robot
-      ? ['Serviceable body shell', 'Two aligned rotating side joints', 'Removable electronics carrier', 'Unobstructed camera opening']
+      ? ['Pi Zero 2 W four-hole carrier', 'Two structurally captured SCS0009 servos', 'Serviceable body shell', 'Unobstructed camera-board frame']
       : ['Approved overall envelope', 'Critical fit interface', 'Minimum wall thickness'],
     assembly_interfaces: robot
       ? ['Shell to electronics tray', 'Left and right servo-to-limb joints', 'Camera to bezel', 'Service panel access']
       : ['Primary mating interface'],
     constraints: ['FDM manufacturing', 'Avoid supports where practical', 'Preserve user-approved dimensions and evidence boundaries'],
     unresolved_questions: robot
-      ? ['Confirm exact servo and horn', 'Confirm camera module', 'Confirm compute board and battery', 'Calibrate interlock clearances on the eventual printer']
+      ? ['Measure the supplied servo horns', 'Select the exact OV5647 camera and IMU boards', 'Confirm the regulated 5 V tether', 'Calibrate interlock clearances on the eventual printer']
       : ['Confirm the exact real-world object that defines the critical fit'],
   }
 }
 
-const stageLabels = ['Idea', 'Confirm', 'Blueprint', 'CAD', 'Verify', 'Slice', 'Package']
+const stageLabels = ['Idea', 'Confirm', 'Components', 'Blueprint', 'CAD', 'Verify', 'Slice', 'Package']
 const stageIndex: Record<SessionStep, number> = {
   describe: 0,
   review: 1,
-  blueprint: 2,
-  cad: 3,
-  verify: 4,
-  slice: 5,
-  package: 6,
+  components: 2,
+  blueprint: 3,
+  cad: 4,
+  verify: 5,
+  slice: 6,
+  package: 7,
 }
 
 export function BuildSessionPage() {
@@ -141,7 +142,7 @@ export function BuildSessionPage() {
     : intake?.route.reason
   const reviewQuestion = localFallback
     ? (prompt.toLowerCase().includes('robot')
-        ? 'Which exact servo, camera, compute board, and battery should define the enclosure?'
+        ? 'Use a Pi Zero 2 W and SCS0009 servos now; select the exact camera, IMU, and power cable before physical release.'
         : 'Which exact real-world object or component should define the critical fit?')
     : intake?.route.questions[0]
 
@@ -188,7 +189,7 @@ export function BuildSessionPage() {
       }
       const savedPlan = await saveProjectDesignPlan(created.project_id, proposedPlan, token)
       setDesignPlan(savedPlan)
-      setStep(prompt.toLowerCase().includes('robot') ? 'blueprint' : 'cad')
+      setStep(prompt.toLowerCase().includes('robot') ? 'components' : 'cad')
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'The project brief could not be prepared.')
     } finally { setBusy(false) }
@@ -200,17 +201,18 @@ export function BuildSessionPage() {
     else if (step === 'slice') setStep('verify')
     else if (step === 'verify') setStep('cad')
     else if (step === 'cad') setStep(prompt.toLowerCase().includes('robot') ? 'blueprint' : 'review')
-    else if (step === 'blueprint') setStep('review')
+    else if (step === 'blueprint') setStep('components')
+    else if (step === 'components') setStep('review')
     else if (step === 'review') setStep('describe')
   }
 
-  const backLabel = step === 'package' ? 'Back to slice' : step === 'slice' ? 'Back to verification' : step === 'verify' ? 'Back to CAD' : step === 'cad' ? 'Back to blueprint' : step === 'blueprint' ? 'Back to requirements' : step === 'review' ? 'Back to idea' : null
+  const backLabel = step === 'package' ? 'Back to slice' : step === 'slice' ? 'Back to verification' : step === 'verify' ? 'Back to CAD' : step === 'cad' ? 'Back to blueprint' : step === 'blueprint' ? 'Back to components' : step === 'components' ? 'Back to requirements' : step === 'review' ? 'Back to idea' : null
 
   return (
     <div className="build-session">
       <header className={`build-session-header${step === 'describe' ? ' build-session-header-intake' : ''}`}>
-        <div><p className="eyebrow">Make something</p><h1 data-route-heading tabIndex={-1}>{['cad', 'verify', 'slice', 'package'].includes(step) ? 'Your model stays at the center.' : step === 'blueprint' ? 'Check the design before CAD.' : 'Tell Codex what you need.'}</h1><p>{['cad', 'verify', 'slice', 'package'].includes(step) ? 'Inspect it, ask for a change, or continue. Ariad keeps the technical records in the background.' : step === 'blueprint' ? 'Confirm the shape, parts, and assembly idea. Dimensions still come from the CAD that follows.' : 'Ariad guides the design and shows technical detail only when you ask for it.'}</p></div>
-        <div className="build-session-status"><span>Current step</span><strong>{step === 'package' ? 'Reviewing the package' : step === 'slice' ? 'Reviewing the real slice' : step === 'verify' ? 'Checking print preparation' : step === 'cad' ? 'Inspecting CAD' : step === 'blueprint' ? 'Approving visual intent' : step === 'review' ? 'Confirm the brief' : 'Describe your idea'}</strong><small><i /> Codex is guiding</small></div>
+        <div><p className="eyebrow">Make something</p><h1 data-route-heading tabIndex={-1}>{['cad', 'verify', 'slice', 'package'].includes(step) ? 'Your model stays at the center.' : step === 'components' ? 'Choose what the body must fit.' : step === 'blueprint' ? 'Check the design before CAD.' : 'Tell Codex what you need.'}</h1><p>{['cad', 'verify', 'slice', 'package'].includes(step) ? 'Inspect it, ask for a change, or continue. Ariad keeps the technical records in the background.' : step === 'components' ? 'Codex selected a safe first hardware layout. Confirm it before Ariad shapes the shell.' : step === 'blueprint' ? 'Confirm the component-aware shape and assembly idea before CAD.' : 'Ariad guides the design and shows technical detail only when you ask for it.'}</p></div>
+        <div className="build-session-status"><span>Current step</span><strong>{step === 'package' ? 'Reviewing the package' : step === 'slice' ? 'Reviewing the real slice' : step === 'verify' ? 'Checking print preparation' : step === 'cad' ? 'Inspecting CAD' : step === 'blueprint' ? 'Approving the blueprint' : step === 'components' ? 'Confirming hardware' : step === 'review' ? 'Confirm the brief' : 'Describe your idea'}</strong><small><i /> Codex is guiding</small></div>
       </header>
 
       <ol className="build-stage-rail" aria-label="Build stages">
@@ -222,7 +224,7 @@ export function BuildSessionPage() {
         <div className="build-focus-card build-prompt-card">
           <div className="conversation-label"><span className="conversation-avatar">C</span><div><strong>Start with what you need</strong><small>Codex will turn intent into an editable fabrication brief.</small></div></div>
           <h2>What should Ariad help you make?</h2>
-      <form onSubmit={understand}><textarea aria-label="What should Ariad help you make?" required rows={6} value={prompt} onChange={(event) => setPrompt(event.target.value)} placeholder="Describe the object, how it should work, and anything it must fit. You can stay in plain language." /><div className="prompt-suggestion"><span>Try the demo idea</span><button type="button" onClick={() => setPrompt('Make a cute two-servo robot with long rotating side limbs that can recover when it falls. Design it as separate, serviceable parts that slide or snap together without glue or screws between printed parts.')}>Use robot example</button></div><button aria-label="Continue" className="primary-action" disabled={busy || !prompt.trim()}>{busy ? 'Understanding…' : 'Begin guided build →'}</button></form>
+      <form onSubmit={understand}><textarea aria-label="What should Ariad help you make?" required rows={6} value={prompt} onChange={(event) => setPrompt(event.target.value)} placeholder="Describe the object, how it should work, and anything it must fit. You can stay in plain language." /><div className="prompt-suggestion"><span>Try the demo idea</span><button type="button" onClick={() => setPrompt('Make a cute two-servo robot around a Raspberry Pi Zero 2 W, two SCS0009 servos, a camera, and an IMU. Give it exactly two long rotating side limbs and no fixed feet so it can explore recovery after a fall. Use separate serviceable printed parts and external regulated power for the first revision.')}>Use robot example</button></div><button aria-label="Continue" className="primary-action" disabled={busy || !prompt.trim()}>{busy ? 'Understanding…' : 'Begin guided build →'}</button></form>
         </div>
         <aside className="build-preview-panel">
           <div className="preview-panel-heading"><div><p className="eyebrow">Your build companion</p><h2>Codex will guide this build.</h2></div><span className="live-indicator"><i /> Ready</span></div>
@@ -253,13 +255,25 @@ export function BuildSessionPage() {
         </aside>
       </section> : null}
 
+      {step === 'components' && project && prompt.toLowerCase().includes('robot') ? <section className="component-first-stage">
+        <div className="component-first-heading"><div><p className="eyebrow">Component-first layout</p><h2>These parts define the robot body.</h2><p>Codex removed the unknown battery from Rev A and sized the enclosure around selected compute and motion hardware. You can replace a component later and Ariad will revise the shell.</p></div><span>External 5 V · no battery</span></div>
+        <div className="component-first-grid">
+          <article><strong>Raspberry Pi Zero 2 W</strong><span>65 × 30 mm board</span><small>Official outline · four M2.5 mounting points</small></article>
+          <article><strong>2× Feetech SCS0009</strong><span>23.2 × 12.1 × 25.25 mm each</span><small>Manufacturer envelope · structural chassis cradles</small></article>
+          <article><strong>OV5647 camera</strong><span>25 × 24 mm reservation</span><small>Exact supplier board and ribbon still need measurement</small></article>
+          <article><strong>MPU-6050 IMU</strong><span>Reserved, not mounted yet</span><small>Select the exact GY-521 board before releasing its clip</small></article>
+        </div>
+        <div className="component-first-boundary"><strong>Why Ariad pauses here</strong><p>The shell follows these envelopes. It is not generated first and filled with imaginary electronics afterward.</p></div>
+        <div className="blueprint-approval-actions"><Link className="secondary-action" to={`/chat?project=${encodeURIComponent(project.project_id)}`}>Ask Codex to change a component</Link><button className="primary-action" type="button" onClick={() => setStep('blueprint')}>Use this hardware layout</button></div>
+      </section> : null}
+
       {step === 'blueprint' && project && prompt.toLowerCase().includes('robot') ? <section className="blueprint-approval-stage">
-        <div className="blueprint-approval-heading"><div><p className="eyebrow">Generated visual blueprint</p><h2>Does this match what you meant?</h2><p>Check the silhouette, two side limbs, service access, and tool-less part breakdown. This image guides the CAD; it does not provide dimensions or prove fit.</p></div><span>Concept only</span></div>
+        <div className="blueprint-approval-heading"><div><p className="eyebrow">Component-aware visual blueprint</p><h2>Does this arrangement match what you meant?</h2><p>Check the selected hardware, structural servo chassis, long side limbs, rear service access, and nine-part print layout. CAD dimensions and fit evidence follow.</p></div><span>Layout approved before shell</span></div>
         <AssemblyBlueprint compact />
         <div className="blueprint-approval-actions"><Link className="secondary-action" to={`/chat?project=${encodeURIComponent(project.project_id)}`}>Ask Codex for a visual change</Link><button className="primary-action" type="button" onClick={() => setStep('cad')}>Approve blueprint and inspect CAD</button></div>
       </section> : null}
 
-      {(['blueprint', 'cad', 'verify', 'slice', 'package'] as SessionStep[]).includes(step) && project ? <details className="build-work-log"><summary>What Codex prepared</summary><div><strong>{planSource === 'codex' ? 'Codex-authored plan' : 'Local deterministic plan'}</strong><p>{designPlan.geometry_strategy}</p><span>{designPlan.critical_features.length} features · {designPlan.assembly_interfaces.length} interfaces · {designPlan.unresolved_questions.length} open decisions</span></div></details> : null}
+      {(['components', 'blueprint', 'cad', 'verify', 'slice', 'package'] as SessionStep[]).includes(step) && project ? <details className="build-work-log"><summary>What Codex prepared</summary><div><strong>{planSource === 'codex' ? 'Codex-authored plan' : 'Local deterministic plan'}</strong><p>{designPlan.geometry_strategy}</p><span>{designPlan.critical_features.length} features · {designPlan.assembly_interfaces.length} interfaces · {designPlan.unresolved_questions.length} open decisions</span></div></details> : null}
 
       {(['cad', 'verify', 'slice', 'package'] as SessionStep[]).includes(step) && project && !prompt.toLowerCase().includes('robot') ? <section className="build-complete-card">
         <div className="completion-mark">✓</div><p className="eyebrow">Design plan saved</p><h2>This idea needs a qualified CAD family.</h2><p>Ariad will not invent printable geometry for an unsupported family. The approved robot example is currently the first connected CAD path.</p>

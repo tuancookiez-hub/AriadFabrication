@@ -695,6 +695,16 @@ This file records accepted project-level decisions. Change an accepted decision 
 
 **Boundary:** Blueprint approval confirms visual intent only. The image is labelled as generated concept imagery, dimensions are nominal, and it establishes no CAD, fit, printability, slicing, or physical evidence. The subsequent exact multi-part CAD remains the Design outcome under D-057.
 
+### D-063 - Select functional components before releasing a robot blueprint or shell
+
+**Status:** Accepted by the project owner on 2026-07-21; supersedes the robot-stage ordering in D-062 while retaining its visual-evidence boundary.
+
+**Decision:** The supported robot path is Idea → Confirm → Components → Blueprint → CAD → Verify → Slice → Package. Rev A is designed around the official Raspberry Pi Zero 2 W board outline and mounting pattern, two Feetech SCS0009 body envelopes, an OV5647-family camera reservation, and an unmounted GY-521 reservation. It uses an external regulated 5 V tether and contains no battery or charging circuit. The chassis, Pi carrier, camera frame, shell, and service opening follow those internal constraints.
+
+**Mechanical boundary:** The Pi uses purchased M2.5 nylon fasteners at its official four-hole pattern. Printed-part joins remain slide, dovetail, snap, press, or keyed interfaces. Servo horn center hardware may follow the manufacturer. The exact camera, IMU, servo horn, connector, and cable variants must be selected and measured before their fit can be claimed.
+
+**Evidence boundary:** Manufacturer drawings establish planning envelopes, not purchased-unit fit. The generated component-aware model sheet remains visual intent only. Parametric CAD, manifold meshes, and disconnected slicing do not prove component fit, electrical integration, balance, motion, thermal behavior, or physical success.
+
 ## Deferred decisions
 
 These require later evidence and should not be decided through preference alone:

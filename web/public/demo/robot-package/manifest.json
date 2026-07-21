@@ -11,11 +11,11 @@
     "latch_cycle_life_verified": false,
     "physical_print_verified": false
   },
-  "claim_boundary": "Nine real prototype meshes were sliced locally with the recorded disconnected generic profile and their G-code passed digital preflight. This package is a reviewable prototype handoff, not proof of fit, print success, strength, motion, safety, or hardware readiness.",
+  "claim_boundary": "Nine component-first Rev A prototype meshes were sliced locally with the recorded disconnected generic profile and their G-code passed digital preflight. The Pi outline/mounting pattern and servo body envelopes are manufacturer-sourced, but this package is not proof of purchased-unit fit, print success, strength, motion, electrical safety, thermal behavior, or hardware readiness.",
   "download": {
-    "checksum_sha256": "613f7d1a1913ee926e029ed4654f091cd4b25466e13fd869ee8f4ae648c1e06e",
+    "checksum_sha256": "07f87566f6722dd8654d4a25c41ec1268c4331671ebb6e31227e024437853d8c",
     "path": "ariad-robot-prototype-package.zip",
-    "size_bytes": 5823604
+    "size_bytes": 8137733
   },
   "first_print_calibration": {
     "candidate_clearances_mm": [
@@ -44,13 +44,13 @@
     {
       "artifacts": {
         "gcode": "parts/front_shell/toolpath.gcode",
-        "gcode_sha256": "d94f764c2e8c0340606ceecf66216c811cb52d9740bef61428fdd4c2645ccd3b",
+        "gcode_sha256": "f799a8b8a2a0557aa17365920fb1d4c4227a462971b66f68195d8f92772e6cf1",
         "slice_report": "parts/front_shell/slice_report.json",
         "slicer_project": "parts/front_shell/slicer_project.3mf"
       },
-      "estimated_seconds": 18841,
-      "filament_length_mm": 21904.31,
-      "filament_mass_g": 66.91,
+      "estimated_seconds": 28713,
+      "filament_length_mm": 33549.72,
+      "filament_mass_g": 102.48,
       "gcode_preflight_passed": true,
       "geometry": {
         "fits_generic_build_volume": true,
@@ -59,7 +59,7 @@
         "placed_on_bed": true,
         "solid_count": 1
       },
-      "layers": 240,
+      "layers": 290,
       "part_id": "front_shell",
       "slice_status": "passed_with_warnings",
       "slicer_warnings": [
@@ -70,13 +70,13 @@
     {
       "artifacts": {
         "gcode": "parts/electronics_tray/toolpath.gcode",
-        "gcode_sha256": "243ef0cfedda4a3e26890c6ca3c645fefb5a79d5320f60f75c5fd13dd96fb8c7",
+        "gcode_sha256": "0daa83f21165ed7201dfe55d1a5f2eefc5779e197355345448ff51c5f48c06a3",
         "slice_report": "parts/electronics_tray/slice_report.json",
         "slicer_project": "parts/electronics_tray/slicer_project.3mf"
       },
-      "estimated_seconds": 2591,
-      "filament_length_mm": 2773.33,
-      "filament_mass_g": 8.47,
+      "estimated_seconds": 5755,
+      "filament_length_mm": 6180.0,
+      "filament_mass_g": 18.88,
       "gcode_preflight_passed": true,
       "geometry": {
         "fits_generic_build_volume": true,
@@ -85,7 +85,7 @@
         "placed_on_bed": true,
         "solid_count": 1
       },
-      "layers": 24,
+      "layers": 103,
       "part_id": "electronics_tray",
       "slice_status": "passed",
       "slicer_warnings": [],
@@ -94,13 +94,13 @@
     {
       "artifacts": {
         "gcode": "parts/service_panel/toolpath.gcode",
-        "gcode_sha256": "34e45d25f0be80df73b0cfde97fa86c1f2ec1af50f5f7bdaaa7cb0c534e410aa",
+        "gcode_sha256": "1e46980ce253d4740743aa3f2e3cfa258b5580b6c5bf49f98ca10ebc7ee480e0",
         "slice_report": "parts/service_panel/slice_report.json",
         "slicer_project": "parts/service_panel/slicer_project.3mf"
       },
-      "estimated_seconds": 4269,
-      "filament_length_mm": 4678.98,
-      "filament_mass_g": 14.29,
+      "estimated_seconds": 6647,
+      "filament_length_mm": 7311.85,
+      "filament_mass_g": 22.34,
       "gcode_preflight_passed": true,
       "geometry": {
         "fits_generic_build_volume": true,
@@ -118,13 +118,13 @@
     {
       "artifacts": {
         "gcode": "parts/left_limb/toolpath.gcode",
-        "gcode_sha256": "42222802b096101d7b03c8172f468bef27a5f3ee02f3bee0ced6ba27c24acaa4",
+        "gcode_sha256": "1cd64d7afc868f70cd8dd07876c602885560c69ae861b33a9d3dda3226023785",
         "slice_report": "parts/left_limb/slice_report.json",
         "slicer_project": "parts/left_limb/slicer_project.3mf"
       },
-      "estimated_seconds": 3474,
-      "filament_length_mm": 3818.43,
-      "filament_mass_g": 11.66,
+      "estimated_seconds": 5716,
+      "filament_length_mm": 6407.21,
+      "filament_mass_g": 19.57,
       "gcode_preflight_passed": true,
       "geometry": {
         "fits_generic_build_volume": true,
@@ -142,13 +142,13 @@
     {
       "artifacts": {
         "gcode": "parts/right_limb/toolpath.gcode",
-        "gcode_sha256": "44e14e756d99185d46159eb93fc95852cb1ff79b82f061bb72c2daee11327caf",
+        "gcode_sha256": "c97413fb58018e93f7fa288d7d5e2381b9e0d8c8403b6f7b53fd21a1c64806a9",
         "slice_report": "parts/right_limb/slice_report.json",
         "slicer_project": "parts/right_limb/slicer_project.3mf"
       },
-      "estimated_seconds": 3474,
-      "filament_length_mm": 3818.43,
-      "filament_mass_g": 11.66,
+      "estimated_seconds": 5716,
+      "filament_length_mm": 6407.21,
+      "filament_mass_g": 19.57,
       "gcode_preflight_passed": true,
       "geometry": {
         "fits_generic_build_volume": true,
@@ -166,7 +166,7 @@
     {
       "artifacts": {
         "gcode": "parts/left_servo_adapter/toolpath.gcode",
-        "gcode_sha256": "3a14f81dc0f737fc57355286530ea0d6819c4b41b5bd4f6aeed600112aac6800",
+        "gcode_sha256": "ccd90049e91c8fa1017ab08cad232d609d14fbcae11242ac8d99d8529b63c7bd",
         "slice_report": "parts/left_servo_adapter/slice_report.json",
         "slicer_project": "parts/left_servo_adapter/slicer_project.3mf"
       },
@@ -192,7 +192,7 @@
     {
       "artifacts": {
         "gcode": "parts/right_servo_adapter/toolpath.gcode",
-        "gcode_sha256": "82f6dcae8c4884ff5e7f77f6ae983594df56871d342bb533166284bb2df1a4dd",
+        "gcode_sha256": "d6d66a8362065315157ee2137cd7047dabc173e0444e8725a417638ff07d1c43",
         "slice_report": "parts/right_servo_adapter/slice_report.json",
         "slicer_project": "parts/right_servo_adapter/slicer_project.3mf"
       },
@@ -218,13 +218,13 @@
     {
       "artifacts": {
         "gcode": "parts/camera_bezel/toolpath.gcode",
-        "gcode_sha256": "200be748ee513f901e623a478b0cdc11702f03e52d5de2e03e01e87602e5b7ea",
+        "gcode_sha256": "08b701dce3128c520253f31cb4d50e9a437f7a44d1f33963b9e04c53248e8de8",
         "slice_report": "parts/camera_bezel/slice_report.json",
         "slicer_project": "parts/camera_bezel/slicer_project.3mf"
       },
-      "estimated_seconds": 353,
-      "filament_length_mm": 371.88,
-      "filament_mass_g": 1.14,
+      "estimated_seconds": 846,
+      "filament_length_mm": 941.93,
+      "filament_mass_g": 2.88,
       "gcode_preflight_passed": true,
       "geometry": {
         "fits_generic_build_volume": true,
@@ -233,22 +233,24 @@
         "placed_on_bed": true,
         "solid_count": 1
       },
-      "layers": 25,
+      "layers": 37,
       "part_id": "camera_bezel",
-      "slice_status": "passed",
-      "slicer_warnings": [],
-      "support_risk": "no_slicer_warning"
+      "slice_status": "passed_with_warnings",
+      "slicer_warnings": [
+        "Floating bridge anchors, Loose extrusions, Long bridging extrusions"
+      ],
+      "support_risk": "review_slicer_warnings"
     },
     {
       "artifacts": {
         "gcode": "parts/electronics_carrier/toolpath.gcode",
-        "gcode_sha256": "a70e6f9dcac5970866617aa93e654d8a835919c3ebdafa03856d2eafaf887d77",
+        "gcode_sha256": "a362093207ae862e52499737ce8c9e22d06168772fe84feab815a1ab75975f2d",
         "slice_report": "parts/electronics_carrier/slice_report.json",
         "slicer_project": "parts/electronics_carrier/slicer_project.3mf"
       },
-      "estimated_seconds": 2237,
-      "filament_length_mm": 2370.47,
-      "filament_mass_g": 7.24,
+      "estimated_seconds": 2491,
+      "filament_length_mm": 2506.81,
+      "filament_mass_g": 7.66,
       "gcode_preflight_passed": true,
       "geometry": {
         "fits_generic_build_volume": true,
@@ -257,7 +259,7 @@
         "placed_on_bed": true,
         "solid_count": 1
       },
-      "layers": 35,
+      "layers": 40,
       "part_id": "electronics_carrier",
       "slice_status": "passed",
       "slicer_warnings": [],
@@ -274,12 +276,14 @@
   "schema_version": "1.0.0",
   "status": "sliced_with_unresolved_assembly_and_physical_checks",
   "totals": {
-    "estimated_seconds": 36239,
-    "filament_length_mm": 40340.69,
-    "filament_mass_g": 123.21
+    "estimated_seconds": 56884,
+    "filament_length_mm": 63909.59,
+    "filament_mass_g": 195.22
   },
   "unresolved_warnings": [
-    "Exact purchased-component fit is not verified against measured hardware.",
+    "The Pi and servo envelopes are manufacturer-sourced, but purchased-unit and connector fit is not verified against measured hardware.",
+    "The exact OV5647 camera, GY-521 IMU, supplied servo horns, and external power cable remain supplier-dependent selections.",
+    "Rev A intentionally excludes a battery and charging circuit.",
     "The generic 0.4 mm interlock allowance is not calibrated to a printer or material batch.",
     "Snap retention force, removal force, and repeated latch life are not physically verified.",
     "Assembly clearances, collisions, balance, and motion are not physically verified.",

@@ -164,7 +164,9 @@ def main() -> None:
                 "physical_print_verified": False,
             },
             "unresolved_warnings": [
-                "Exact purchased-component fit is not verified against measured hardware.",
+                "The Pi and servo envelopes are manufacturer-sourced, but purchased-unit and connector fit is not verified against measured hardware.",
+                "The exact OV5647 camera, GY-521 IMU, supplied servo horns, and external power cable remain supplier-dependent selections.",
+                "Rev A intentionally excludes a battery and charging circuit.",
                 "The generic 0.4 mm interlock allowance is not calibrated to a printer or material batch.",
                 "Snap retention force, removal force, and repeated latch life are not physically verified.",
                 "Assembly clearances, collisions, balance, and motion are not physically verified.",
@@ -187,10 +189,11 @@ def main() -> None:
                 "checksum_sha256": coupon["download"]["checksum_sha256"],
             },
             "claim_boundary": (
-                "Nine real prototype meshes were sliced locally with the recorded disconnected "
-                "generic profile and their G-code passed digital preflight. This package is a "
-                "reviewable prototype handoff, not proof of fit, print success, strength, motion, "
-                "safety, or hardware readiness."
+                "Nine component-first Rev A prototype meshes were sliced locally with the recorded "
+                "disconnected generic profile and their G-code passed digital preflight. The Pi "
+                "outline/mounting pattern and servo body envelopes are manufacturer-sourced, but "
+                "this package is not proof of purchased-unit fit, print success, strength, motion, "
+                "electrical safety, thermal behavior, or hardware readiness."
             ),
         }
         manifest_path = work / "package-manifest.json"

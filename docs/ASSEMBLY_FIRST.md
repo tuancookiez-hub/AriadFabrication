@@ -34,7 +34,7 @@ Visual approval does not establish dimensions. Assembly planning does not establ
 - rotating axes, running clearances, service requirements, and unresolved questions;
 - literal-false hardware-action and physical-validation fields.
 
-The first fixture decomposes the Ariad robot into nine parts, four placeholder component envelopes, and seven interfaces. Printed parts now use tool-less slide, dovetail, press-fit, and releasable snap interfaces. It remains draft because exact servos, battery, camera, calibrated interlock fits, snap-cycle life, mass distribution, and motion are unresolved. Purchased components may still require manufacturer-specified hardware.
+The first fixture decomposes the Ariad robot into nine printed parts, two manufacturer-sourced component envelopes, two supplier-dependent reservations, and seven interfaces. Rev A selects a Pi Zero 2 W and two SCS0009 servos before shaping the shell, uses external regulated power, and contains no battery. Printed parts use slide, dovetail, press-fit, keyed, and releasable snap interfaces; the Pi uses M2.5 nylon hardware and servo horns may use their manufacturer hardware. Camera/IMU variants, horn fit, calibrated interlocks, mass distribution, motion, and physical behavior remain unresolved.
 
 ## Required final-app experience
 

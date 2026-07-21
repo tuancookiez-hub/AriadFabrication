@@ -11,6 +11,7 @@ from ariad_fabrication.cad.robot_casing_design import (
     DESIGN_ID,
     RobotCasingParameters,
     assembly_offsets,
+    build_component_envelopes,
     build_parts,
 )
 from scripts.export_robot_prototype_parts import manufacturing_orientation
@@ -29,7 +30,8 @@ class RobotCasingParameterTests(unittest.TestCase):
     def test_fixture_has_a_closed_valid_parameter_boundary(self):
         parameters = RobotCasingParameters.from_mapping(fixture())
         self.assertEqual(parameters.to_dict()["design_id"], DESIGN_ID)
-        self.assertEqual(parameters.body_width_mm, 86.0)
+        self.assertEqual(parameters.body_width_mm, 112.0)
+        self.assertEqual(parameters.pi_hole_spacing_x_mm, 58.0)
 
     def test_rejects_side_servo_axis_outside_lower_body(self):
         values = fixture()
@@ -97,9 +99,32 @@ class RobotCasingCadTests(unittest.TestCase):
             self.assertEqual(len(part.solids().vals()), 1)
             self.assertGreater(part.val().Volume(), 0.0)
         bounds = parts["front_shell"].val().BoundingBox()
-        self.assertAlmostEqual(bounds.xlen, 94.0, places=6)
-        self.assertAlmostEqual(bounds.ylen, 48.0, places=6)
-        self.assertAlmostEqual(bounds.zlen, 78.0, places=6)
+        self.assertAlmostEqual(bounds.xlen, 120.0, places=6)
+        self.assertAlmostEqual(bounds.ylen, 58.0, places=6)
+        self.assertAlmostEqual(bounds.zlen, 92.0, places=6)
+
+    def test_selected_component_envelopes_fit_the_released_body_cavity(self):
+        parameters = RobotCasingParameters.from_mapping(fixture())
+        components = build_component_envelopes(parameters)
+        self.assertEqual(
+            set(components),
+            {
+                "raspberry_pi_zero_2_w",
+                "left_scs0009",
+                "right_scs0009",
+                "ov5647_camera_reservation",
+            },
+        )
+        for name, component in components.items():
+            bounds = component.val().BoundingBox()
+            side_limit = parameters.body_width_mm / 2.0 if "scs0009" in name else parameters.body_width_mm / 2.0 - parameters.wall_mm
+            self.assertGreaterEqual(bounds.xmin, -side_limit)
+            self.assertLessEqual(bounds.xmax, side_limit)
+            front_limit = 0.0 if name == "ov5647_camera_reservation" else parameters.wall_mm
+            self.assertGreaterEqual(bounds.ymin, front_limit)
+            self.assertLessEqual(bounds.ymax, parameters.body_depth_mm - parameters.wall_mm)
+            self.assertGreaterEqual(bounds.zmin, parameters.wall_mm)
+            self.assertLessEqual(bounds.zmax, parameters.body_height_mm - parameters.wall_mm)
 
     def test_limb_manufacturing_orientation_lays_the_broad_side_on_z_zero(self):
         limb = build_parts(fixture())["left_limb"]
@@ -121,7 +146,8 @@ class RobotCasingCadTests(unittest.TestCase):
             bounds = oriented.val().BoundingBox()
             self.assertEqual(label, expected[name])
             self.assertAlmostEqual(bounds.zmin, 0.0, places=6)
-            self.assertGreater(max(bounds.xlen, bounds.ylen), bounds.zlen * 4)
+            minimum_ratio = 3.5 if name == "camera_bezel" else 4.0
+            self.assertGreater(max(bounds.xlen, bounds.ylen), bounds.zlen * minimum_ratio)
 
     def test_interlocking_features_are_present_in_part_envelopes(self):
         parameters = RobotCasingParameters.from_mapping(fixture())

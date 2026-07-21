@@ -12,8 +12,8 @@ from math import isfinite
 from typing import Any, Mapping
 
 
-DESIGN_ID = "ariad_two_servo_robot_interlocking_v1"
-DESIGN_SOURCE_VERSION = "0.3.0"
+DESIGN_ID = "ariad_two_servo_robot_component_first_rev_a"
+DESIGN_SOURCE_VERSION = "0.4.0"
 
 
 def _positive(value: Any, name: str) -> float:
@@ -37,9 +37,21 @@ class RobotCasingParameters:
     corner_radius_mm: float
     camera_diameter_mm: float
     camera_center_z_mm: float
+    camera_board_width_mm: float
+    camera_board_height_mm: float
+    camera_board_thickness_mm: float
     servo_width_mm: float
     servo_depth_mm: float
+    servo_height_mm: float
+    servo_fit_clearance_mm: float
     servo_axis_body_z_mm: float
+    pi_board_length_mm: float
+    pi_board_width_mm: float
+    pi_board_thickness_mm: float
+    pi_hole_spacing_x_mm: float
+    pi_hole_spacing_y_mm: float
+    pi_mount_hole_diameter_mm: float
+    pi_standoff_height_mm: float
     connector_width_mm: float
     connector_height_mm: float
     panel_clearance_mm: float
@@ -97,6 +109,8 @@ class RobotCasingParameters:
             raise ValueError("servo envelopes do not fit across the body")
         if self.servo_depth_mm + 2.0 * self.wall_mm > self.body_depth_mm:
             raise ValueError("servo envelopes do not fit inside the body depth")
+        if self.servo_height_mm + self.wall_mm >= self.body_height_mm / 2.0:
+            raise ValueError("servo envelopes consume too much body height")
         if not self.wall_mm < self.servo_axis_body_z_mm < (
             self.body_height_mm / 2.0
         ):
@@ -105,6 +119,21 @@ class RobotCasingParameters:
             raise ValueError("connector opening does not fit on the side wall")
         if self.connector_height_mm + 2.0 * self.wall_mm > self.body_height_mm:
             raise ValueError("connector opening does not fit on the side wall")
+        if self.pi_board_length_mm + 2.0 * self.servo_width_mm + 8.0 > (
+            self.body_width_mm - 2.0 * self.wall_mm
+        ):
+            raise ValueError("Pi and both servo envelopes do not fit across the body")
+        if self.pi_board_width_mm + 2.0 * self.wall_mm > self.body_depth_mm:
+            raise ValueError("Pi envelope does not fit inside the body depth")
+        if self.pi_hole_spacing_x_mm >= self.pi_board_length_mm or self.pi_hole_spacing_y_mm >= self.pi_board_width_mm:
+            raise ValueError("Pi mounting-hole pattern does not fit the board")
+        if self.pi_mount_hole_diameter_mm >= min(
+            self.pi_board_length_mm - self.pi_hole_spacing_x_mm,
+            self.pi_board_width_mm - self.pi_hole_spacing_y_mm,
+        ):
+            raise ValueError("Pi mounting holes exceed the board edge margin")
+        if self.camera_board_width_mm + 2.0 * self.wall_mm > self.body_width_mm or self.camera_board_height_mm + 2.0 * self.wall_mm > self.body_height_mm:
+            raise ValueError("camera board envelope does not fit behind the front face")
         if self.panel_clearance_mm >= self.wall_mm:
             raise ValueError("rear-panel clearance must be smaller than the wall")
         if self.panel_thickness_mm > self.wall_mm:
@@ -242,6 +271,30 @@ def build_parts(values: Mapping[str, Any] | RobotCasingParameters):
     )
     collar = cq.Workplane(obj=collar_outer.cut(collar_inner))
     camera_bezel = camera_bezel.union(collar).clean()
+    # The visible ring continues into a rectangular rear frame sized for the
+    # selected 25 x 24 mm OV5647-family reservation.  It locates the camera
+    # PCB against the shell rather than pretending the lens alone is a mount.
+    camera_frame_outer = (
+        cq.Workplane("XY")
+        .box(
+            p.camera_board_width_mm + 4.0,
+            2.4,
+            p.camera_board_height_mm + 4.0,
+            centered=(True, False, True),
+        )
+        .translate((0.0, p.wall_mm, p.camera_center_z_mm))
+    )
+    camera_frame_window = (
+        cq.Workplane("XY")
+        .box(
+            p.camera_diameter_mm + 2.0,
+            2.8,
+            p.camera_diameter_mm + 2.0,
+            centered=(True, False, True),
+        )
+        .translate((0.0, p.wall_mm - 0.2, p.camera_center_z_mm))
+    )
+    camera_bezel = camera_bezel.union(camera_frame_outer.cut(camera_frame_window)).clean()
 
     speaker_z = p.body_height_mm * 0.35
     speaker_points = (
@@ -380,7 +433,21 @@ def build_parts(values: Mapping[str, Any] | RobotCasingParameters):
         .box(latch_width, p.snap_hook_mm, 1.6, centered=(True, False, False))
         .translate((0.0, -p.snap_hook_mm, panel_height - 2.2))
     )
-    service_panel = service_panel.union(panel_hook).clean()
+    service_panel = service_panel.union(panel_hook)
+    # Rev A is deliberately tethered.  This rear notch admits a regulated 5 V
+    # lead while leaving the service panel removable; it is not a claim that
+    # every cable overmould will fit.
+    power_notch = (
+        cq.Workplane("XY")
+        .box(
+            p.connector_width_mm,
+            p.panel_thickness_mm + 2.0 * overrun,
+            p.connector_height_mm,
+            centered=(True, True, False),
+        )
+        .translate((-8.5, p.panel_thickness_mm / 2.0, -overrun))
+    )
+    service_panel = service_panel.cut(power_notch).clean()
 
     # The tray and carrier are deliberately independent: the tray establishes
     # the structural body interface, while the carrier can be revised around
@@ -396,6 +463,40 @@ def build_parts(values: Mapping[str, Any] | RobotCasingParameters):
         .fillet(2.0)
         .clean()
     )
+    # Two manufacturer-envelope servo cradles are structural features of the
+    # chassis, not decorative holes in the shell.  Each U-shaped pocket sits
+    # on the tray and includes inward lips as provisional serviceable retainers.
+    servo_inner_x = p.servo_width_mm + 2.0 * p.servo_fit_clearance_mm
+    servo_inner_y = p.servo_depth_mm + 2.0 * p.servo_fit_clearance_mm
+    cradle_wall = 1.8
+    cradle_height = p.servo_height_mm * 0.72
+    servo_center_x = tray_width / 2.0 - cradle_wall - servo_inner_x / 2.0 - 1.0
+    for center_x in (-servo_center_x, servo_center_x):
+        for side in (-1.0, 1.0):
+            wall = (
+                cq.Workplane("XY")
+                .box(cradle_wall, servo_inner_y + 2.0 * cradle_wall, cradle_height, centered=(True, True, False))
+                .translate((center_x + side * (servo_inner_x + cradle_wall) / 2.0, 0.0, p.panel_thickness_mm))
+            )
+            electronics_tray = electronics_tray.union(wall)
+        for side in (-1.0, 1.0):
+            end_wall = (
+                cq.Workplane("XY")
+                .box(servo_inner_x, cradle_wall, 7.0, centered=(True, True, False))
+                .translate((center_x, side * (servo_inner_y + cradle_wall) / 2.0, p.panel_thickness_mm))
+            )
+            electronics_tray = electronics_tray.union(end_wall)
+        for side in (-1.0, 1.0):
+            lip = (
+                cq.Workplane("XY")
+                .box(cradle_wall + 1.0, 5.0, 1.6, centered=(True, True, False))
+                .translate((
+                    center_x + side * (servo_inner_x / 2.0 + cradle_wall / 2.0 - 0.5),
+                    0.0,
+                    p.panel_thickness_mm + cradle_height - 1.6,
+                ))
+            )
+            electronics_tray = electronics_tray.union(lip)
     # Cut two planar reliefs to create long XY cantilever arms, then add
     # tapered outward hooks.  The arms remain part of the tray at their front
     # roots and flex inward as the tray enters the shell.
@@ -472,17 +573,25 @@ def build_parts(values: Mapping[str, Any] | RobotCasingParameters):
             length=rail_length + 2.0 * p.interlock_clearance_mm,
         ).translate((x, 0.0, -0.05))
         electronics_carrier = electronics_carrier.cut(groove)
-    # Four solid corner clips replace screw posts.  Their exact board fit is
-    # intentionally provisional until the purchased board is measured.
-    clip_height = 3.0
-    for x in (-carrier_width / 2.0 + 2.5, carrier_width / 2.0 - 2.5):
-        for y in (-carrier_depth / 2.0 + 2.5, carrier_depth / 2.0 - 2.5):
-            clip = (
-                cq.Workplane("XY")
-                .box(3.0, 3.0, clip_height, centered=(True, True, False))
-                .translate((x, y, p.carrier_thickness_mm))
+    # The Pi carrier uses the official Zero-family 58 x 23 mm hole pattern.
+    # Purchased M2.5 nylon hardware is preferred here: tool-less printed-part
+    # interfaces do not justify risking an expensive PCB with improvised clips.
+    standoff_outer_diameter = 6.0
+    for x in (-p.pi_hole_spacing_x_mm / 2.0, p.pi_hole_spacing_x_mm / 2.0):
+        for y in (-p.pi_hole_spacing_y_mm / 2.0, p.pi_hole_spacing_y_mm / 2.0):
+            standoff = cq.Solid.makeCylinder(
+                standoff_outer_diameter / 2.0,
+                p.pi_standoff_height_mm,
+                cq.Vector(x, y, p.carrier_thickness_mm),
+                cq.Vector(0.0, 0.0, 1.0),
             )
-            electronics_carrier = electronics_carrier.union(clip)
+            hole = cq.Solid.makeCylinder(
+                p.pi_mount_hole_diameter_mm / 2.0,
+                p.carrier_thickness_mm + p.pi_standoff_height_mm + 2.0 * overrun,
+                cq.Vector(x, y, -overrun),
+                cq.Vector(0.0, 0.0, 1.0),
+            )
+            electronics_carrier = electronics_carrier.union(cq.Workplane(obj=standoff)).cut(cq.Workplane(obj=hole))
     electronics_carrier = electronics_carrier.clean()
 
     contact_radius = p.limb_contact_diameter_mm / 2.0
@@ -607,6 +716,103 @@ def build_parts(values: Mapping[str, Any] | RobotCasingParameters):
                 f"(solids={len(part.solids().vals())}, valid={part.val().isValid()})"
             )
     return parts
+
+
+def build_component_envelopes(values: Mapping[str, Any] | RobotCasingParameters):
+    """Return selected Rev A hardware envelopes in body-local coordinates.
+
+    These solids are layout references, never printable parts. They make the
+    component-first constraint inspectable while preserving the distinction
+    between manufacturer dimensions and unmeasured supplier details.
+    """
+
+    import cadquery as cq
+
+    p = values if isinstance(values, RobotCasingParameters) else RobotCasingParameters.from_mapping(values)
+    tray_width = p.body_width_mm - 2.0 * p.wall_mm - 2.0 * p.interlock_clearance_mm
+    cradle_wall = 1.8
+    servo_inner_x = p.servo_width_mm + 2.0 * p.servo_fit_clearance_mm
+    servo_center_x = tray_width / 2.0 - cradle_wall - servo_inner_x / 2.0 - 1.0
+    component_floor_z = p.wall_mm + p.panel_thickness_mm
+    pi_floor_z = component_floor_z + p.carrier_thickness_mm + p.pi_standoff_height_mm
+
+    pi = (
+        cq.Workplane("XY")
+        .box(p.pi_board_length_mm, p.pi_board_width_mm, p.pi_board_thickness_mm, centered=(True, True, False))
+        .translate((0.0, p.body_depth_mm / 2.0, pi_floor_z))
+    )
+    for x in (-p.pi_hole_spacing_x_mm / 2.0, p.pi_hole_spacing_x_mm / 2.0):
+        for y in (-p.pi_hole_spacing_y_mm / 2.0, p.pi_hole_spacing_y_mm / 2.0):
+            pi = pi.cut(cq.Workplane(obj=cq.Solid.makeCylinder(
+                p.pi_mount_hole_diameter_mm / 2.0,
+                p.pi_board_thickness_mm + 0.4,
+                cq.Vector(x, p.body_depth_mm / 2.0 + y, pi_floor_z - 0.2),
+                cq.Vector(0.0, 0.0, 1.0),
+            )))
+    for x, width in ((-9.0, 8.0), (6.0, 7.0)):
+        connector = (
+            cq.Workplane("XY")
+            .box(width, 4.0, 3.2, centered=(True, False, False))
+            .translate((x, p.body_depth_mm / 2.0 + p.pi_board_width_mm / 2.0 - 0.2, pi_floor_z))
+        )
+        pi = pi.union(connector)
+    left_servo = (
+        cq.Workplane("XY")
+        .box(p.servo_width_mm, p.servo_depth_mm, p.servo_height_mm, centered=(True, True, False))
+        .translate((-servo_center_x, p.body_depth_mm / 2.0, component_floor_z))
+    )
+    right_servo = (
+        cq.Workplane("XY")
+        .box(p.servo_width_mm, p.servo_depth_mm, p.servo_height_mm, centered=(True, True, False))
+        .translate((servo_center_x, p.body_depth_mm / 2.0, component_floor_z))
+    )
+    for side, center_x in ((-1.0, -servo_center_x), (1.0, servo_center_x)):
+        flange = (
+            cq.Workplane("XY")
+            .box(1.8, p.servo_depth_mm + 4.0, 5.0, centered=(True, True, True))
+            .translate((
+                center_x + side * (p.servo_width_mm / 2.0 - 0.9),
+                p.body_depth_mm / 2.0,
+                p.servo_axis_body_z_mm,
+            ))
+        )
+        shaft = cq.Solid.makeCylinder(
+            2.0,
+            2.5,
+            cq.Vector(
+                center_x + side * p.servo_width_mm / 2.0,
+                p.body_depth_mm / 2.0,
+                p.servo_axis_body_z_mm,
+            ),
+            cq.Vector(side, 0.0, 0.0),
+        )
+        if side < 0:
+            left_servo = left_servo.union(flange).union(cq.Workplane(obj=shaft))
+        else:
+            right_servo = right_servo.union(flange).union(cq.Workplane(obj=shaft))
+    camera = (
+        cq.Workplane("XY")
+        .box(
+            p.camera_board_width_mm,
+            p.camera_board_thickness_mm,
+            p.camera_board_height_mm,
+            centered=(True, True, True),
+        )
+        .translate((0.0, p.wall_mm + 2.4 + p.camera_board_thickness_mm / 2.0, p.camera_center_z_mm))
+    )
+    camera_lens = cq.Solid.makeCylinder(
+        p.camera_diameter_mm / 2.0,
+        5.0,
+        cq.Vector(0.0, p.wall_mm + 2.4, p.camera_center_z_mm),
+        cq.Vector(0.0, -1.0, 0.0),
+    )
+    camera = camera.union(cq.Workplane(obj=camera_lens))
+    return {
+        "raspberry_pi_zero_2_w": pi,
+        "left_scs0009": left_servo,
+        "right_scs0009": right_servo,
+        "ov5647_camera_reservation": camera,
+    }
 
 
 def assembly_offsets(p: RobotCasingParameters) -> dict[str, tuple[float, float, float]]:

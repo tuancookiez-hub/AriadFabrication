@@ -26,9 +26,9 @@ Start on **Build session** and say:
 
 ### 0:15–1:35 — One smooth guided build
 
-Use the robot example. Show the concise assumptions, approve the Brief, then pause on the generated interlocking blueprint. Point out the consistent views, exploded tool-less assembly, and explicit “not generated CAD” boundary. Approve it and continue through the real multi-part CAD viewport, Verify, real Slice, Package, and the smaller first-print calibration coupon. Say:
+Use the robot example and approve the Brief. Pause on **Components**: point out the Pi Zero 2 W, two SCS0009 servos, supplier-dependent camera/IMU, external 5 V tether, and deliberate absence of a battery. Continue to the component-aware blueprint, then show the internal-hardware viewport before the nine printable parts. Continue through Verify, real Slice, Package, and the smaller first-print calibration coupon. Say:
 
-> Codex guides the intent and revisions. The blueprint confirms what I mean, CAD defines the parts, Ariad checks them, and PrusaSlicer produces the manufacturing files.
+> Codex selects what the robot must fit before Ariad shapes the shell. The blueprint confirms the arrangement, CAD defines the parts, Ariad checks them, and PrusaSlicer produces the manufacturing files.
 
 Do not edit every field on camera. If no Codex proposal is retained, show the labelled local fallback and say so.
 
