@@ -14,7 +14,7 @@ import {
 } from './api'
 import type { IntakeResponse, ProjectBrief, ProjectDesignPlanRequest, ProjectDraftRequest, ProjectIntent } from './types'
 
-type SessionStep = 'describe' | 'review' | 'cad' | 'verify'
+type SessionStep = 'describe' | 'review' | 'cad' | 'verify' | 'slice' | 'package'
 
 const BUILD_SESSION_KEY = 'ariad.active-build.v2'
 
@@ -32,7 +32,7 @@ type StoredBuildSession = {
 function restoreBuildSession(): StoredBuildSession | null {
   try {
     const value = JSON.parse(sessionStorage.getItem(BUILD_SESSION_KEY) ?? 'null') as Partial<StoredBuildSession> | null
-    if (!value || !['describe', 'review', 'cad', 'verify'].includes(value.step ?? '') || typeof value.prompt !== 'string' || !value.draft || !value.designPlan) return null
+    if (!value || !['describe', 'review', 'cad', 'verify', 'slice', 'package'].includes(value.step ?? '') || typeof value.prompt !== 'string' || !value.draft || !value.designPlan) return null
     return value as StoredBuildSession
   } catch {
     return null
@@ -123,7 +123,7 @@ export function BuildSessionPage() {
     sessionStorage.setItem(BUILD_SESSION_KEY, JSON.stringify(value))
   }, [brief, designPlan, draft, intake, planSource, project, prompt, step])
 
-  const activeIndex = useMemo(() => step === 'describe' ? 0 : step === 'review' ? 1 : step === 'cad' ? 2 : 3, [step])
+  const activeIndex = useMemo(() => stageLabels.findIndex((label) => label.toLowerCase() === step), [step])
   const localFallback = intake?.provider.configured === false
   const reviewSummary = localFallback ? suggestedPartType(prompt) : intake?.route.summary
   const reviewReason = localFallback
@@ -186,18 +186,20 @@ export function BuildSessionPage() {
 
   function goBack() {
     setError(null)
-    if (step === 'verify') setStep('cad')
+    if (step === 'package') setStep('slice')
+    else if (step === 'slice') setStep('verify')
+    else if (step === 'verify') setStep('cad')
     else if (step === 'cad') setStep('review')
     else if (step === 'review') setStep('describe')
   }
 
-  const backLabel = step === 'verify' ? 'Back to CAD' : step === 'cad' ? 'Back to requirements' : step === 'review' ? 'Back to idea' : null
+  const backLabel = step === 'package' ? 'Back to slice' : step === 'slice' ? 'Back to verification' : step === 'verify' ? 'Back to CAD' : step === 'cad' ? 'Back to requirements' : step === 'review' ? 'Back to idea' : null
 
   return (
     <div className="build-session">
       <header className={`build-session-header${step === 'describe' ? ' build-session-header-intake' : ''}`}>
-        <div><p className="eyebrow">Make something</p><h1 data-route-heading tabIndex={-1}>{step === 'cad' || step === 'verify' ? 'Your model stays at the center.' : 'Tell Codex what you need.'}</h1><p>{step === 'cad' || step === 'verify' ? 'Inspect it, ask for a change, or continue. Ariad keeps the technical records in the background.' : 'Ariad guides the design and shows technical detail only when you ask for it.'}</p></div>
-        <div className="build-session-status"><span>Current step</span><strong>{step === 'verify' ? 'Checking print readiness' : step === 'cad' ? 'Inspecting CAD' : step === 'review' ? 'Confirm the brief' : 'Describe your idea'}</strong><small><i /> Codex is guiding</small></div>
+        <div><p className="eyebrow">Make something</p><h1 data-route-heading tabIndex={-1}>{['cad', 'verify', 'slice', 'package'].includes(step) ? 'Your model stays at the center.' : 'Tell Codex what you need.'}</h1><p>{['cad', 'verify', 'slice', 'package'].includes(step) ? 'Inspect it, ask for a change, or continue. Ariad keeps the technical records in the background.' : 'Ariad guides the design and shows technical detail only when you ask for it.'}</p></div>
+        <div className="build-session-status"><span>Current step</span><strong>{step === 'package' ? 'Reviewing the package' : step === 'slice' ? 'Reviewing the real slice' : step === 'verify' ? 'Checking print preparation' : step === 'cad' ? 'Inspecting CAD' : step === 'review' ? 'Confirm the brief' : 'Describe your idea'}</strong><small><i /> Codex is guiding</small></div>
       </header>
 
       <ol className="build-stage-rail" aria-label="Build stages">
@@ -240,14 +242,14 @@ export function BuildSessionPage() {
         </aside>
       </section> : null}
 
-      {(step === 'cad' || step === 'verify') && project ? <details className="build-work-log"><summary>What Codex prepared</summary><div><strong>{planSource === 'codex' ? 'Codex-authored plan' : 'Local deterministic plan'}</strong><p>{designPlan.geometry_strategy}</p><span>{designPlan.critical_features.length} features · {designPlan.assembly_interfaces.length} interfaces · {designPlan.unresolved_questions.length} open decisions</span></div></details> : null}
+      {(['cad', 'verify', 'slice', 'package'] as SessionStep[]).includes(step) && project ? <details className="build-work-log"><summary>What Codex prepared</summary><div><strong>{planSource === 'codex' ? 'Codex-authored plan' : 'Local deterministic plan'}</strong><p>{designPlan.geometry_strategy}</p><span>{designPlan.critical_features.length} features · {designPlan.assembly_interfaces.length} interfaces · {designPlan.unresolved_questions.length} open decisions</span></div></details> : null}
 
-      {(step === 'cad' || step === 'verify') && project && !prompt.toLowerCase().includes('robot') ? <section className="build-complete-card">
+      {(['cad', 'verify', 'slice', 'package'] as SessionStep[]).includes(step) && project && !prompt.toLowerCase().includes('robot') ? <section className="build-complete-card">
         <div className="completion-mark">✓</div><p className="eyebrow">Design plan saved</p><h2>This idea needs a qualified CAD family.</h2><p>Ariad will not invent printable geometry for an unsupported family. The approved robot example is currently the first connected CAD path.</p>
         <div className="next-actions"><Link className="primary-action" to={`/projects/${encodeURIComponent(project.project_id)}`}>Review project thread</Link><Link className="secondary-action" to={`/chat?project=${encodeURIComponent(project.project_id)}`}>Discuss open decisions with Codex</Link></div>
       </section> : null}
 
-      {(step === 'cad' || step === 'verify') && project && prompt.toLowerCase().includes('robot') ? <RobotCadWorkspace mode={step} projectId={project.project_id} onContinue={() => setStep('verify')} /> : null}
+      {(['cad', 'verify', 'slice', 'package'] as SessionStep[]).includes(step) && project && prompt.toLowerCase().includes('robot') ? <RobotCadWorkspace mode={step as 'cad' | 'verify' | 'slice' | 'package'} projectId={project.project_id} onContinue={() => setStep(step === 'cad' ? 'verify' : step === 'verify' ? 'slice' : 'package')} /> : null}
 
       {error ? <div className="build-error" role="alert">{error}</div> : null}
     </div>

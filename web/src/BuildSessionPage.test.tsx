@@ -25,6 +25,18 @@ function missing() {
   return new Response(JSON.stringify({ detail: 'No proposal available.' }), { status: 404, headers: { 'Content-Type': 'application/json' } })
 }
 
+function robotPackage() {
+  return {
+    artifact_kind: 'robot_prototype_fabrication_package', part_count: 1,
+    profile: { printer: 'generic_open_fdm_220_v1', material: 'generic_petg_175_v1', slicer: 'PrusaSlicer 2.9.6', calibrated_to_hardware: false },
+    totals: { estimated_seconds: 3600, filament_mass_g: 10 },
+    parts: [{ part_id: 'front_shell', slice_status: 'passed_with_warnings', support_risk: 'review_slicer_warnings', slicer_warnings: ['Bridge review'], layers: 100, estimated_seconds: 3600, filament_mass_g: 10, gcode_preflight_passed: true, geometry: { manifold_mesh: true, fits_generic_build_volume: true, placed_on_bed: true } }],
+    checks: { all_kernel_valid: true, all_single_solids: true, all_fit_generic_build_volume: true, all_gcode_preflight_passed: true, component_fit_verified: false, assembly_clearance_verified: false, physical_print_verified: false },
+    unresolved_warnings: ['Physical print unverified.'], claim_boundary: 'Digital package only.',
+    download: { path: 'robot.zip', size_bytes: 1_000_000, checksum_sha256: 'c'.repeat(64) },
+  }
+}
+
 describe('BuildSessionPage', () => {
   it('presents the demo example as an assembly plan instead of generated concept art', async () => {
     vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL) => {
@@ -70,6 +82,7 @@ describe('BuildSessionPage', () => {
       if (url.endsWith('/design-proposal')) return missing()
       if (url.endsWith('/design-plan')) return response({ lane: 'functional_parametric', geometry_strategy: 'Separate parts.', critical_features: [], assembly_interfaces: [], constraints: [], unresolved_questions: ['Choose servo.'] })
       if (url.endsWith('/demo/robot-cad/manifest.json')) return response({ artifact_kind: 'prototype_geometry', design_source_version: '0.2.0', part_count: 1, claim_boundary: 'Prototype only.', parts: [{ part_id: 'front_shell', step: 'front_shell.step', stl: 'front_shell.stl', glb: 'front_shell.glb', glb_sha256: 'b'.repeat(64), kernel_valid: true, solid_count: 1, volume_mm3: 1000 }] })
+      if (url.endsWith('/demo/robot-package/manifest.json')) return response(robotPackage())
       return response({ project_id: 'project_demo', job_id: 'job_demo', revision_id: 'rev_demo', evidence_level: 'R0' })
     }))
     render(<MemoryRouter><BuildSessionPage /></MemoryRouter>)
@@ -78,7 +91,7 @@ describe('BuildSessionPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Approve and continue' }))
 
-    expect(await screen.findByRole('heading', { name: 'Inspect the model before print checks.' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Inspect the model.' })).toBeInTheDocument()
     expect(screen.queryByText(/R0 evidence/i)).not.toBeInTheDocument()
   })
 
@@ -93,6 +106,7 @@ describe('BuildSessionPage', () => {
       if (url.endsWith('/design-proposal')) return missing()
       if (url.endsWith('/design-plan')) return response({ lane: 'functional_parametric', geometry_strategy: 'Separate parts.', critical_features: [], assembly_interfaces: [], constraints: [], unresolved_questions: ['Choose servo.'] })
       if (url.endsWith('/demo/robot-cad/manifest.json')) return response({ artifact_kind: 'prototype_geometry', design_source_version: '0.2.0', part_count: 1, claim_boundary: 'Prototype only.', parts: [{ part_id: 'front_shell', step: 'front_shell.step', stl: 'front_shell.stl', glb: 'front_shell.glb', glb_sha256: 'b'.repeat(64), kernel_valid: true, solid_count: 1, volume_mm3: 1000, manufacturing_orientation: 'source prototype orientation', bounds_mm: { x: 94, y: 48, z: 78 } }] })
+      if (url.endsWith('/demo/robot-package/manifest.json')) return response(robotPackage())
       if (url.endsWith('/demo/robot-cad/front_shell.glb')) return new Response(new ArrayBuffer(0), { status: 200 })
       throw new Error(`Unexpected request: ${url}`)
     }))
@@ -102,17 +116,25 @@ describe('BuildSessionPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Approve and continue' }))
 
-    expect(await screen.findByRole('heading', { name: 'Inspect the model before print checks.' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Inspect the model.' })).toBeInTheDocument()
     expect(screen.getByText('What Codex prepared')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Front Shell.*Valid solid/i })).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Check print readiness' }))
-    expect(screen.getByRole('heading', { name: 'The model passed basic geometry checks.' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Check print preparation' }))
+    expect(screen.getByRole('heading', { name: 'Review print preparation.' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Review real slice' }))
+    expect(screen.getByRole('heading', { name: 'Inspect the slicing result.' })).toBeInTheDocument()
+    expect(screen.getByText('Bridge review')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Build package' }))
+    expect(screen.getByRole('heading', { name: 'Download the complete handoff.' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Download package/i })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /Back to slice/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Back to verification/i }))
     fireEvent.click(screen.getByRole('button', { name: '← Back to CAD' }))
-    expect(screen.getByRole('heading', { name: 'Inspect the model before print checks.' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Inspect the model.' })).toBeInTheDocument()
 
     view.unmount()
     render(<MemoryRouter><BuildSessionPage /></MemoryRouter>)
-    expect(await screen.findByRole('heading', { name: 'Inspect the model before print checks.' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Inspect the model.' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: '← Back to requirements' }))
     expect(screen.getByRole('heading', { name: 'Review the choices that shape the result' })).toBeInTheDocument()
   })

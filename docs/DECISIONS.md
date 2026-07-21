@@ -659,7 +659,17 @@ This file records accepted project-level decisions. Change an accepted decision 
 
 **Evidence:** The Guided Build Session now moves directly from one Brief approval to the robot CAD viewport, retains the generated plan in a collapsed work log, separates CAD inspection from basic geometry verification, and supports Verify-to-CAD and CAD-to-requirements navigation. Focused frontend tests, type generation, lint, production build, and a live browser prompt-to-CAD-to-Verify-to-CAD rehearsal pass without console errors.
 
-**Boundary:** The current robot path proves only prototype part geometry and one-solid-per-part checks. It truthfully stops before Slice because robot clearance, support-risk, component-fit, and profile-specific slicing evidence are not connected. Smoothness does not authorize fabricated progress or printer-ready claims.
+**Boundary at acceptance:** The robot path initially proved only prototype part geometry and one-solid-per-part checks and stopped before Slice. D-059 supersedes that temporary stopping point after real profile-specific slicing and package evidence was connected; smoothness still does not authorize fabricated progress or printer-ready claims.
+
+### D-059 - Complete the robot demo as a warned prototype package
+
+**Status:** Accepted by the project owner on 2026-07-21.
+
+**Decision:** The Guided Build Session may advance from robot Verify through Slice and Package when each separately manufactured mesh is manifold, placed on the bed, inside the recorded generic build volume, sliced by the approved disconnected PrusaSlicer adapter, and its G-code passes preflight. Missing assembly-clearance, purchased-component-fit, calibration, and physical evidence remain visible package warnings; they do not prevent creation of a clearly labelled prototype handoff.
+
+**Evidence:** Nine robot STLs were sliced locally with PrusaSlicer 2.9.6 under the generic 220 mm PETG profile. All nine were manifold, on-bed, inside the profile volume, and passed disconnected G-code preflight. The generated package contains the nine CAD/mesh/preview sets, nine 3MF projects and G-code files, exact profiles, reports, logs, checksums, parameters, and AssemblySpec. PrusaSlicer reported warnings for the front shell, service panel, and camera bezel; the UI exposes them per part. The reversible CAD → Verify → Slice → Package frontend path is regression-tested and passed a live browser rehearsal without console warnings or errors.
+
+**Boundary:** This prototype package is not a Journey R4 promotion and does not prove component fit, assembly clearance, balance, motion, adhesion, accuracy, strength, safety, or physical print success. The printer and PETG profiles remain generic and uncalibrated, and hardware remains disconnected.
 
 ## Deferred decisions
 

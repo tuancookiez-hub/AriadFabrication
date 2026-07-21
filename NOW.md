@@ -1,6 +1,6 @@
 # Current work
 
-**Updated:** 2026-07-19
+**Updated:** 2026-07-21
 **Current milestone:** M4 - Fabrication Journey interface and local Codex conversation
 **Project state:** M3 complete; the Golden Part reaches a printer-independent, profile-specific R4 package
 
@@ -85,10 +85,10 @@ The assembly-first correction is implemented at the domain and read-only interfa
 
 ## Next actions
 
-1. Replace robot component placeholders with measured or manufacturer-controlled envelopes and freeze a confirmed robot-casing PartSpec.
-2. Connect geometry, clearance, wall, orientation, and support-risk checks to the Guided Build Session, then advance automatically to an explicit generic or selected printer profile.
-3. Connect real profile-specific slicing and layer preview to the same model-first workspace, followed by a downloadable fabrication package.
-4. Rehearse clean-checkout setup, record the demo, obtain `/feedback`, and complete the external Devpost/repository tasks.
+1. Rehearse the connected robot CAD → Verify → Slice → Package story from a clean Build Session and record the demo.
+2. Replace robot component placeholders with measured or manufacturer-controlled envelopes, then add assembly-clearance and collision evidence as a child revision.
+3. Add robot G-code layer playback to the model-first Slice step; current robot slicing exposes real per-part summaries and packaged toolpaths but not in-place layer rendering.
+4. Obtain `/feedback` and complete the external Devpost/repository tasks.
 5. Continue sandbox qualification before exposing browser-triggered CAD execution.
 
 ## Exit gate for M4

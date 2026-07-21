@@ -2636,5 +2636,13 @@ main {
 .cad-next-step p { margin: .25rem 0 0; color: #6a6158; font-size: .83rem; line-height: 1.45; }
 .cad-next-actions { display: flex; flex: 0 0 auto; gap: .55rem; align-items: center; }
 .cad-next-actions .primary-action { width: auto; margin: 0; white-space: nowrap; }
+.robot-check-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; margin-top: .75rem; overflow: hidden; border: 1px solid #ded5ca; border-radius: .65rem; background: #ded5ca; }
+.robot-check-summary span { display: flex; align-items: center; gap: .45rem; min-height: 2.8rem; padding: .6rem .75rem; background: #faf7f1; color: #5f584f; font-size: .76rem; }
+.robot-check-summary b { color: #28704f; font-size: .83rem; }
+.robot-part-warning { display: flex; gap: .65rem; margin-top: .65rem; padding: .65rem .8rem; border-radius: .55rem; background: #fff0d8; color: #725018; font-size: .78rem; }
+.robot-package-summary { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1rem; padding: .9rem 1rem; border: 1px solid #bdd7c8; border-radius: .7rem; background: #edf8f1; }
+.robot-package-summary div { display: flex; flex-direction: column; gap: .2rem; }
+.robot-package-summary span { color: #53645a; font-size: .78rem; }
+.robot-package-summary .primary-action { width: auto; margin: 0; white-space: nowrap; }
 .cad-workspace-loading { max-width: 1180px; margin: 2rem auto; padding: 2rem; text-align: center; }
-@media (max-width: 800px) { .cad-workspace-layout { grid-template-columns: 1fr; } .cad-part-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); max-height: none; } .cad-workspace-heading, .cad-next-step { align-items: stretch; flex-direction: column; } .cad-next-actions { align-items: stretch; flex-direction: column; } .cad-flow-strip { grid-template-columns: repeat(2, 1fr); } .cad-flow-strip > span:nth-child(3) { border-left: 0; border-top: 1px solid #ded5ca; } .cad-flow-strip > span:nth-child(4) { border-top: 1px solid #ded5ca; } .cad-part-preview .model-viewport { min-height: 330px; } }
+@media (max-width: 800px) { .cad-workspace-layout { grid-template-columns: 1fr; } .cad-part-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); max-height: none; } .cad-workspace-heading, .cad-next-step, .robot-package-summary { align-items: stretch; flex-direction: column; } .cad-next-actions { align-items: stretch; flex-direction: column; } .cad-flow-strip { grid-template-columns: repeat(2, 1fr); } .cad-flow-strip > span:nth-child(3) { border-left: 0; border-top: 1px solid #ded5ca; } .cad-flow-strip > span:nth-child(4) { border-top: 1px solid #ded5ca; } .cad-part-preview .model-viewport { min-height: 330px; } .robot-check-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
