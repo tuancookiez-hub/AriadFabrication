@@ -18,7 +18,7 @@ pnpm --dir web install --frozen-lockfile
 .\scripts\start_demo.ps1 -Evidence showcase
 ```
 
-Open the printed loopback URL, then use **Build session** for the guided prompt → confirmed Brief → Design-plan flow. Return to **Journey** to inspect the committed success/failure fixtures and any locally available real R4 model/toolpath evidence. The demo remains useful when PrusaSlicer and the optional 1 GiB CAD environment are absent; those are needed only to regenerate real R2/R4 artifacts.
+Open the printed loopback URL, then use **Build session** for the guided prompt → confirmed Brief → generated visual blueprint → multi-part CAD → Verify → Slice → Package flow. Return to **Journey** for the committed success/failure fixtures and locally available real R4 model/toolpath evidence. The demo remains useful when PrusaSlicer and the optional 1 GiB CAD environment are absent; those are needed only to regenerate real R2/R4 artifacts.
 
 Supported submission platform: Windows 11 x64. Hardware, physical validation, arbitrary-prompt CAD execution, and browser-triggered generated-code execution are deliberately unavailable. See the [two-minute-fifty-second runbook](docs/DEMO_RUNBOOK.md) and [submission readiness matrix](docs/HACKATHON.md).
 

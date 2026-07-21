@@ -92,6 +92,9 @@ describe('BuildSessionPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Approve and continue' }))
 
+    expect(await screen.findByRole('heading', { name: 'Does this match what you meant?' })).toBeInTheDocument()
+    expect(screen.getByText('Generated concept image · not generated CAD or fit evidence.')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Approve blueprint and inspect CAD' }))
     expect(await screen.findByRole('heading', { name: 'Inspect the model.' })).toBeInTheDocument()
     expect(screen.queryByText(/R0 evidence/i)).not.toBeInTheDocument()
   })
@@ -117,6 +120,8 @@ describe('BuildSessionPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Approve and continue' }))
 
+    expect(await screen.findByRole('heading', { name: 'Does this match what you meant?' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Approve blueprint and inspect CAD' }))
     expect(await screen.findByRole('heading', { name: 'Inspect the model.' })).toBeInTheDocument()
     expect(screen.getByText('What Codex prepared')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Front Shell.*Valid solid/i })).toBeInTheDocument()
@@ -138,6 +143,8 @@ describe('BuildSessionPage', () => {
     view.unmount()
     render(<MemoryRouter><BuildSessionPage /></MemoryRouter>)
     expect(await screen.findByRole('heading', { name: 'Inspect the model.' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: '← Back to blueprint' }))
+    expect(screen.getByRole('heading', { name: 'Does this match what you meant?' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: '← Back to requirements' }))
     expect(screen.getByRole('heading', { name: 'Review the choices that shape the result' })).toBeInTheDocument()
   })

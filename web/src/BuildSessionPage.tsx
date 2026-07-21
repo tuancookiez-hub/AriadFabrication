@@ -1,6 +1,7 @@
 import { type FormEvent, useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 
+import { AssemblyBlueprint } from './AssemblyBlueprint'
 import { RobotCadWorkspace } from './RobotCadWorkspace'
 import {
   ApiError,
@@ -14,7 +15,7 @@ import {
 } from './api'
 import type { IntakeResponse, ProjectBrief, ProjectDesignPlanRequest, ProjectDraftRequest, ProjectIntent } from './types'
 
-type SessionStep = 'describe' | 'review' | 'cad' | 'verify' | 'slice' | 'package'
+type SessionStep = 'describe' | 'review' | 'blueprint' | 'cad' | 'verify' | 'slice' | 'package'
 
 const BUILD_SESSION_KEY = 'ariad.active-build.v2'
 
@@ -32,7 +33,7 @@ type StoredBuildSession = {
 function restoreBuildSession(): StoredBuildSession | null {
   try {
     const value = JSON.parse(sessionStorage.getItem(BUILD_SESSION_KEY) ?? 'null') as Partial<StoredBuildSession> | null
-    if (!value || !['describe', 'review', 'cad', 'verify', 'slice', 'package'].includes(value.step ?? '') || typeof value.prompt !== 'string' || !value.draft || !value.designPlan) return null
+    if (!value || !['describe', 'review', 'blueprint', 'cad', 'verify', 'slice', 'package'].includes(value.step ?? '') || typeof value.prompt !== 'string' || !value.draft || !value.designPlan) return null
     return value as StoredBuildSession
   } catch {
     return null
@@ -89,7 +90,16 @@ function fallbackDesignPlan(prompt: string): ProjectDesignPlanRequest {
   }
 }
 
-const stageLabels = ['Idea', 'Confirm', 'CAD', 'Verify', 'Slice', 'Package']
+const stageLabels = ['Idea', 'Confirm', 'Blueprint', 'CAD', 'Verify', 'Slice', 'Package']
+const stageIndex: Record<SessionStep, number> = {
+  describe: 0,
+  review: 1,
+  blueprint: 2,
+  cad: 3,
+  verify: 4,
+  slice: 5,
+  package: 6,
+}
 
 export function BuildSessionPage() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -123,7 +133,7 @@ export function BuildSessionPage() {
     sessionStorage.setItem(BUILD_SESSION_KEY, JSON.stringify(value))
   }, [brief, designPlan, draft, intake, planSource, project, prompt, step])
 
-  const activeIndex = useMemo(() => stageLabels.findIndex((label) => label.toLowerCase() === step), [step])
+  const activeIndex = useMemo(() => stageIndex[step], [step])
   const localFallback = intake?.provider.configured === false
   const reviewSummary = localFallback ? suggestedPartType(prompt) : intake?.route.summary
   const reviewReason = localFallback
@@ -178,7 +188,7 @@ export function BuildSessionPage() {
       }
       const savedPlan = await saveProjectDesignPlan(created.project_id, proposedPlan, token)
       setDesignPlan(savedPlan)
-      setStep('cad')
+      setStep(prompt.toLowerCase().includes('robot') ? 'blueprint' : 'cad')
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'The project brief could not be prepared.')
     } finally { setBusy(false) }
@@ -189,17 +199,18 @@ export function BuildSessionPage() {
     if (step === 'package') setStep('slice')
     else if (step === 'slice') setStep('verify')
     else if (step === 'verify') setStep('cad')
-    else if (step === 'cad') setStep('review')
+    else if (step === 'cad') setStep(prompt.toLowerCase().includes('robot') ? 'blueprint' : 'review')
+    else if (step === 'blueprint') setStep('review')
     else if (step === 'review') setStep('describe')
   }
 
-  const backLabel = step === 'package' ? 'Back to slice' : step === 'slice' ? 'Back to verification' : step === 'verify' ? 'Back to CAD' : step === 'cad' ? 'Back to requirements' : step === 'review' ? 'Back to idea' : null
+  const backLabel = step === 'package' ? 'Back to slice' : step === 'slice' ? 'Back to verification' : step === 'verify' ? 'Back to CAD' : step === 'cad' ? 'Back to blueprint' : step === 'blueprint' ? 'Back to requirements' : step === 'review' ? 'Back to idea' : null
 
   return (
     <div className="build-session">
       <header className={`build-session-header${step === 'describe' ? ' build-session-header-intake' : ''}`}>
-        <div><p className="eyebrow">Make something</p><h1 data-route-heading tabIndex={-1}>{['cad', 'verify', 'slice', 'package'].includes(step) ? 'Your model stays at the center.' : 'Tell Codex what you need.'}</h1><p>{['cad', 'verify', 'slice', 'package'].includes(step) ? 'Inspect it, ask for a change, or continue. Ariad keeps the technical records in the background.' : 'Ariad guides the design and shows technical detail only when you ask for it.'}</p></div>
-        <div className="build-session-status"><span>Current step</span><strong>{step === 'package' ? 'Reviewing the package' : step === 'slice' ? 'Reviewing the real slice' : step === 'verify' ? 'Checking print preparation' : step === 'cad' ? 'Inspecting CAD' : step === 'review' ? 'Confirm the brief' : 'Describe your idea'}</strong><small><i /> Codex is guiding</small></div>
+        <div><p className="eyebrow">Make something</p><h1 data-route-heading tabIndex={-1}>{['cad', 'verify', 'slice', 'package'].includes(step) ? 'Your model stays at the center.' : step === 'blueprint' ? 'Check the design before CAD.' : 'Tell Codex what you need.'}</h1><p>{['cad', 'verify', 'slice', 'package'].includes(step) ? 'Inspect it, ask for a change, or continue. Ariad keeps the technical records in the background.' : step === 'blueprint' ? 'Confirm the shape, parts, and assembly idea. Dimensions still come from the CAD that follows.' : 'Ariad guides the design and shows technical detail only when you ask for it.'}</p></div>
+        <div className="build-session-status"><span>Current step</span><strong>{step === 'package' ? 'Reviewing the package' : step === 'slice' ? 'Reviewing the real slice' : step === 'verify' ? 'Checking print preparation' : step === 'cad' ? 'Inspecting CAD' : step === 'blueprint' ? 'Approving visual intent' : step === 'review' ? 'Confirm the brief' : 'Describe your idea'}</strong><small><i /> Codex is guiding</small></div>
       </header>
 
       <ol className="build-stage-rail" aria-label="Build stages">
@@ -242,7 +253,13 @@ export function BuildSessionPage() {
         </aside>
       </section> : null}
 
-      {(['cad', 'verify', 'slice', 'package'] as SessionStep[]).includes(step) && project ? <details className="build-work-log"><summary>What Codex prepared</summary><div><strong>{planSource === 'codex' ? 'Codex-authored plan' : 'Local deterministic plan'}</strong><p>{designPlan.geometry_strategy}</p><span>{designPlan.critical_features.length} features · {designPlan.assembly_interfaces.length} interfaces · {designPlan.unresolved_questions.length} open decisions</span></div></details> : null}
+      {step === 'blueprint' && project && prompt.toLowerCase().includes('robot') ? <section className="blueprint-approval-stage">
+        <div className="blueprint-approval-heading"><div><p className="eyebrow">Generated visual blueprint</p><h2>Does this match what you meant?</h2><p>Check the silhouette, two side limbs, service access, and tool-less part breakdown. This image guides the CAD; it does not provide dimensions or prove fit.</p></div><span>Concept only</span></div>
+        <AssemblyBlueprint compact />
+        <div className="blueprint-approval-actions"><Link className="secondary-action" to={`/chat?project=${encodeURIComponent(project.project_id)}`}>Ask Codex for a visual change</Link><button className="primary-action" type="button" onClick={() => setStep('cad')}>Approve blueprint and inspect CAD</button></div>
+      </section> : null}
+
+      {(['blueprint', 'cad', 'verify', 'slice', 'package'] as SessionStep[]).includes(step) && project ? <details className="build-work-log"><summary>What Codex prepared</summary><div><strong>{planSource === 'codex' ? 'Codex-authored plan' : 'Local deterministic plan'}</strong><p>{designPlan.geometry_strategy}</p><span>{designPlan.critical_features.length} features · {designPlan.assembly_interfaces.length} interfaces · {designPlan.unresolved_questions.length} open decisions</span></div></details> : null}
 
       {(['cad', 'verify', 'slice', 'package'] as SessionStep[]).includes(step) && project && !prompt.toLowerCase().includes('robot') ? <section className="build-complete-card">
         <div className="completion-mark">✓</div><p className="eyebrow">Design plan saved</p><h2>This idea needs a qualified CAD family.</h2><p>Ariad will not invent printable geometry for an unsupported family. The approved robot example is currently the first connected CAD path.</p>

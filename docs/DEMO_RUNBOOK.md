@@ -24,19 +24,15 @@ Start on **Build session** and say:
 
 > A generated mesh is not manufacturing evidence. Ariad gives Codex a reliable fabrication workflow and lets beginners follow the thread from an idea to what was actually checked.
 
-### 0:15–0:55 — One smooth guided build
+### 0:15–1:35 — One smooth guided build
 
-Enter: **“Make a cute two-servo robot with long rotating side limbs.”** Show the editable defaults, visible assumptions, and exact-component question. Save the project, approve the separate R0 checkpoint, and prepare the Design plan. Say:
+Use the robot example. Show the concise assumptions, approve the Brief, then pause on the generated interlocking blueprint. Point out the consistent views, exploded tool-less assembly, and explicit “not generated CAD” boundary. Approve it and continue through the real multi-part CAD viewport, Verify, real Slice, Package, and the smaller first-print calibration coupon. Say:
 
-> Codex can propose the plan; Ariad keeps assumptions editable and never turns planning into CAD evidence. R0 proves confirmed requirements only.
+> Codex guides the intent and revisions. The blueprint confirms what I mean, CAD defines the parts, Ariad checks them, and PrusaSlicer produces the manufacturing files.
 
 Do not edit every field on camera. If no Codex proposal is retained, show the labelled local fallback and say so.
 
-### 0:55–1:15 — Assembly-first robot story
-
-Open **Robot assembly**. Show the approved concept beside nine separately manufactured parts, component-envelope confidence, interfaces, and open decisions. Say that the current robot STEP/STL files are prototype geometry, not verified component fit or print success.
-
-### 1:15–2:05 — Real registered benchmark
+### 1:35–2:05 — Real registered benchmark
 
 Return to **Journey** and open the card labelled **Persisted pipeline revision** and **R4**. Show:
 

@@ -687,6 +687,14 @@ This file records accepted project-level decisions. Change an accepted decision 
 
 **Boundary:** Clean slicing does not select a clearance or hook engagement. Until physical results are recorded against exact printer, material, and process identities, every measured field remains null or false and the robot retains its generic 0.4 mm starting assumption.
 
+### D-062 - Put visual-blueprint approval between Confirm and CAD
+
+**Status:** Accepted by the project owner on 2026-07-21.
+
+**Decision:** The supported robot path presents a generated five-view interlocking model sheet immediately after the confirmed Brief and before the 3D viewport. The user may return to requirements, ask Codex for a visual change, or approve the blueprint and continue to CAD. CAD can return to the same preserved blueprint.
+
+**Boundary:** Blueprint approval confirms visual intent only. The image is labelled as generated concept imagery, dimensions are nominal, and it establishes no CAD, fit, printability, slicing, or physical evidence. The subsequent exact multi-part CAD remains the Design outcome under D-057.
+
 ## Deferred decisions
 
 These require later evidence and should not be decided through preference alone:

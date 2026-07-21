@@ -2402,7 +2402,7 @@ main {
 .build-session-status { min-width: 210px; padding: 1rem; border: 1px solid #d7cec2; border-radius: .75rem; background: #fffdf9; }
 .build-session-status span, .build-session-status small { display: block; color: #71685e; }
 .build-session-status strong { display: block; margin: .3rem 0 .65rem; color: #b82821; }
-.build-stage-rail { display: grid; grid-template-columns: repeat(6, 1fr); margin: 2rem 0; padding: 0; list-style: none; border: 1px solid #d8d0c4; border-radius: .75rem; overflow: hidden; background: #f3eee6; }
+.build-stage-rail { display: grid; grid-template-columns: repeat(7, 1fr); margin: 2rem 0; padding: 0; list-style: none; border: 1px solid #d8d0c4; border-radius: .75rem; overflow: hidden; background: #f3eee6; }
 .build-stage-rail li { display: flex; align-items: center; gap: .55rem; padding: .8rem; color: #82796f; font-size: .78rem; text-transform: uppercase; letter-spacing: .05em; }
 .build-stage-rail li + li { border-left: 1px solid #d8d0c4; }
 .build-stage-rail span { display: grid; width: 1.65rem; height: 1.65rem; place-items: center; border-radius: 50%; background: #ded6cb; }
@@ -2461,7 +2461,7 @@ main {
 .design-session-grid label { display: grid; gap: .4rem; color: #514a43; font-size: .82rem; font-weight: 750; }
 .design-save-row { display: flex; justify-content: space-between; gap: 1rem; align-items: center; margin-top: 1rem; padding: 1rem; border-left: 3px solid #c72e25; background: #fff7eb; }
 .design-save-row p { margin: 0; color: #665d53; }
-@media (max-width: 900px) { .build-session-header { display: block; } .build-session-status { margin-top: 1rem; } .build-review-grid { grid-template-columns: 1fr; } .build-stage-rail { overflow-x: auto; grid-template-columns: repeat(6, minmax(115px, 1fr)); } .brief-summary { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 900px) { .build-session-header { display: block; } .build-session-status { margin-top: 1rem; } .build-review-grid { grid-template-columns: 1fr; } .build-stage-rail { overflow-x: auto; grid-template-columns: repeat(7, minmax(115px, 1fr)); } .brief-summary { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 620px) { .build-session { padding: 1rem; } .build-fields { grid-template-columns: 1fr; } .build-fields label:nth-child(2), .dimension-row { grid-column: auto; } .dimension-row, .brief-summary, .design-session-grid { grid-template-columns: 1fr; } .brief-summary div + div { border-left: 0; border-top: 1px solid #ded5ca; } .next-actions, .design-save-row, .design-session-heading { flex-direction: column; } }
 
 /* Demo workbench: prompt, planned assembly, and evidence share one surface. */
@@ -2473,8 +2473,8 @@ main {
     #f4f0e9;
 }
 .build-session-header-intake { display: none; }
-.build-session-header-intake + .build-stage-rail { grid-template-columns: repeat(6, 1fr); margin-top: 0; }
-.build-stage-rail { grid-template-columns: repeat(6, 1fr); }
+.build-session-header-intake + .build-stage-rail { grid-template-columns: repeat(7, 1fr); margin-top: 0; }
+.build-stage-rail { grid-template-columns: repeat(7, 1fr); }
 .build-session-header { align-items: center; }
 .build-session-header h1 {
   max-width: 760px;
@@ -2602,7 +2602,17 @@ main {
 @media (max-width: 1120px) { .build-start-workspace { grid-template-columns: 1fr; } .build-prompt-card { min-height: auto; } }
 @media (max-width: 620px) { .blueprint-canvas, .assembly-blueprint-compact .blueprint-canvas { min-height: 300px; } .blueprint-robot { right: 0; } .model-sheet-views { display: none; } .blueprint-part span { display: none; } .preview-evidence-row { grid-template-columns: 1fr; } .preview-evidence-row span + span { border-top: 1px solid #383431; border-left: 0; } .prompt-suggestion { align-items: flex-start; flex-direction: column; } }
 
-/* Connected robot CAD workspace: practical inspection instead of a terminal concept image. */
+.blueprint-approval-stage { max-width: 1180px; margin: 0 auto; padding: 1rem; border: 1px solid #d8cec1; border-radius: 1rem; background: #fffdfa; box-shadow: 0 18px 50px #46362b18; }
+.blueprint-approval-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: .8rem; }
+.blueprint-approval-heading h2 { margin: .1rem 0 .35rem; font-size: clamp(1.45rem, 2.2vw, 2rem); }
+.blueprint-approval-heading p { max-width: 72ch; margin: 0; color: #655d55; font-size: .88rem; line-height: 1.5; }
+.blueprint-approval-heading > span { flex: none; padding: .38rem .58rem; border: 1px solid #d8c6a8; border-radius: 999px; background: #fff7e8; color: #735f3f; font-size: .7rem; font-weight: 700; }
+.blueprint-approval-stage .assembly-blueprint { margin: 0; }
+.blueprint-approval-actions { display: flex; justify-content: flex-end; gap: .65rem; margin-top: .8rem; }
+.blueprint-approval-actions .primary-action { width: auto; margin: 0; }
+@media (max-width: 700px) { .blueprint-approval-heading, .blueprint-approval-actions { align-items: stretch; flex-direction: column; } .blueprint-approval-heading > span { align-self: flex-start; } }
+
+/* Connected robot CAD workspace: practical inspection after visual intent approval. */
 .cad-workspace { width: 100%; box-sizing: border-box; margin: 0 0 3rem; padding: 1.35rem; border: 1px solid #d8d0c4; border-radius: 1rem; background: #fffdfa; box-shadow: 0 18px 48px #3f31251a; }
 .cad-workspace-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
 .cad-workspace-heading h2 { margin: .2rem 0 .35rem; font-family: Inter, system-ui, sans-serif; font-size: clamp(1.45rem, 2.2vw, 2rem); letter-spacing: -.025em; }

@@ -24,10 +24,11 @@ Use this as a factual worksheet. Rewrite the final Devpost description in your o
 3. Persists a project draft only after the user chooses to save it.
 4. Creates R0 Brief evidence only after a separate explicit approval.
 5. Retrieves an R0-bound Codex Design-plan proposal when available, with a labelled editable local fallback.
-6. Continues into a nine-part tool-less robot CAD set using snap, slide, dovetail, press-fit, and keyed interfaces, then performs real disconnected slicing and builds a downloadable warned prototype package.
-7. Provides a much smaller first-print calibration coupon for five dovetail clearances and three snap engagements before the user risks the complete robot.
-8. Replays a persisted real Golden Part journey through editable CadQuery source, exact STEP lineage, OCCT geometry checks, profile-specific printability checks, real PrusaSlicer G-code, and a checksummed R4 package.
-9. Displays failed and incomplete fixtures at their actual stopping gates and compares persisted revisions without pretending the comparison reran validation.
+6. Shows a generated interlocking visual blueprint for approval while explicitly separating concept imagery from CAD evidence.
+7. Continues into a nine-part tool-less robot CAD set using snap, slide, dovetail, press-fit, and keyed interfaces, then performs real disconnected slicing and builds a downloadable warned prototype package.
+8. Provides a much smaller first-print calibration coupon for five dovetail clearances and three snap engagements before the user risks the complete robot.
+9. Replays a persisted real Golden Part journey through editable CadQuery source, exact STEP lineage, OCCT geometry checks, profile-specific printability checks, real PrusaSlicer G-code, and a checksummed R4 package.
+10. Displays failed and incomplete fixtures at their actual stopping gates and compares persisted revisions without pretending the comparison reran validation.
 
 ## How Codex and GPT-5.6 were used
 
@@ -39,7 +40,7 @@ Use this as a factual worksheet. Rewrite the final Devpost description in your o
 
 ## New work to highlight
 
-- Guided prompt → editable defaults → project → explicit R0 → editable Design-plan user experience.
+- Guided prompt → editable defaults → explicit R0 → generated visual blueprint → editable multi-part CAD user experience.
 - Local Codex conversation and bounded tool integration.
 - Evidence-replay API and React Journey explorer.
 - Real GLB model inspection and worker-isolated 250-layer toolpath playback.

@@ -35,6 +35,8 @@ The owner's designation establishes project usage, not trademark clearance or a 
 
 `ariad-robot-model-sheet-v2.png` is the dashboard-scale successor: five consistent product views, a nine-callout exploded assembly, provisional envelope dimensions, and an explicit `PLANNING REFERENCE · NOT GENERATED CAD` label. It remains concept imagery only and cannot provide geometry, printability, simulation, or physical evidence.
 
+`ariad-robot-interlocking-model-sheet-v3.png` supersedes that sheet in the Guided Build Session. It depicts the current nine-part tool-less architecture, including snap latches, dovetail slide, press-fit bezel, keyed split-stem adapters, and service-panel latch; it contains no printed-part screws or glue. It is a generated visual blueprint, not CAD or fit evidence. SHA-256: `953317d040532e02a70b1f021585f748274d5cd72b50892fb84524ec93ca0e75`.
+
 | Property | Value |
 |---|---|
 | Status | Approved visual direction by the project owner on 2026-07-19 |
