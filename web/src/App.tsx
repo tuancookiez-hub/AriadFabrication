@@ -130,7 +130,7 @@ function AppShell({
             <div className={`system-pill codex-${codex?.status ?? 'checking'}`}>
               <i /> {codex === null ? 'Checking Codex…' : codex.conversation_available ? 'Codex conversation ready' : 'Codex unavailable'}
             </div>
-            <Link className="new-project-button" to="/build">+ New build</Link>
+            <Link className="new-project-button" to="/build?new=1">+ New build</Link>
         <div className="boundary-pill">
         Hardware off
         </div>

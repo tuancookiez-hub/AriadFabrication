@@ -5,7 +5,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { BuildSessionPage } from './BuildSessionPage'
 
-afterEach(() => vi.unstubAllGlobals())
+afterEach(() => {
+  vi.unstubAllGlobals()
+  sessionStorage.clear()
+})
 
 const intake = {
   schema_version: '1.19.0', contract_version: '1.0.0', prompt_sha256: 'a'.repeat(64),
@@ -52,7 +55,7 @@ describe('BuildSessionPage', () => {
     expect(screen.getByDisplayValue('PETG')).toBeInTheDocument()
     expect(screen.getByText('Which exact servo, camera, compute board, and battery should define the enclosure?')).toBeInTheDocument()
     expect(screen.queryByText(/configure GPT/i)).not.toBeInTheDocument()
-    expect(screen.getByText(/does not create CAD yet/i)).toBeInTheDocument()
+    expect(screen.getByText(/Approve it once/i)).toBeInTheDocument()
   })
 
   it('records one explicit approval without forcing a second confirmation screen', async () => {
@@ -62,6 +65,7 @@ describe('BuildSessionPage', () => {
       if (url.endsWith('/api/v1/intake')) return response(intake)
       if (url.endsWith('/api/v1/projects') && init?.method === 'POST') return response({ project_id: 'project_demo', title: 'Robot', prompt: 'Make a robot.' })
       if (url.endsWith('/draft')) return response({ status: 'ready_for_confirmation', missing_fields: [] })
+      if (url.endsWith('/design-proposal')) return missing()
       return response({ project_id: 'project_demo', job_id: 'job_demo', revision_id: 'rev_demo', evidence_level: 'R0' })
     }))
     render(<MemoryRouter><BuildSessionPage /></MemoryRouter>)
@@ -70,8 +74,8 @@ describe('BuildSessionPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Approve and continue' }))
 
-    expect(await screen.findByRole('heading', { name: 'Your idea is ready for the Design stage' })).toBeInTheDocument()
-    expect(screen.getByText(/CAD is still absent/i)).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'How should Ariad build it?' })).toBeInTheDocument()
+    expect(screen.queryByText(/R0 evidence/i)).not.toBeInTheDocument()
   })
 
   it('continues the robot Design plan into inspectable prototype CAD', async () => {
@@ -88,20 +92,23 @@ describe('BuildSessionPage', () => {
       if (url.endsWith('/demo/robot-cad/front_shell.glb')) return new Response(new ArrayBuffer(0), { status: 200 })
       throw new Error(`Unexpected request: ${url}`)
     }))
-    render(<MemoryRouter><BuildSessionPage /></MemoryRouter>)
+    const view = render(<MemoryRouter><BuildSessionPage /></MemoryRouter>)
 
     fireEvent.change(screen.getByLabelText('What should Ariad help you make?'), { target: { value: 'Make a robot.' } })
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Approve and continue' }))
-    fireEvent.click(await screen.findByRole('button', { name: 'Prepare Design plan' }))
 
     expect(await screen.findByText('Local fallback')).toBeInTheDocument()
     expect(screen.getByDisplayValue(/Decompose the robot into separately manufactured/)).toBeInTheDocument()
-    expect(screen.getByText(/does not run generated code or create R1/i)).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Save Design plan' }))
+    expect(screen.getByText(/continue into the CAD workspace/i)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Continue to CAD' }))
     expect(await screen.findByRole('heading', { name: 'CAD generated. Verification is next.' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Front Shell.*Valid solid/i })).toBeInTheDocument()
     expect(screen.getByText(/Stage 3 complete/i)).toBeInTheDocument()
-    expect(screen.getByText(/Verification has started/i)).toBeInTheDocument()
+    expect(screen.getByText(/No page change is required/i)).toBeInTheDocument()
+
+    view.unmount()
+    render(<MemoryRouter><BuildSessionPage /></MemoryRouter>)
+    expect(await screen.findByRole('heading', { name: 'CAD generated. Verification is next.' })).toBeInTheDocument()
   })
 })

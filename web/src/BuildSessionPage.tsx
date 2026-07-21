@@ -1,5 +1,5 @@
 import { type FormEvent, useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 
 import { RobotCadWorkspace } from './RobotCadWorkspace'
 import {
@@ -14,7 +14,30 @@ import {
 } from './api'
 import type { IntakeResponse, ProjectBrief, ProjectDesignPlanRequest, ProjectDraftRequest, ProjectIntent } from './types'
 
-type SessionStep = 'describe' | 'review' | 'ready' | 'design' | 'planned'
+type SessionStep = 'describe' | 'review' | 'design' | 'planned'
+
+const BUILD_SESSION_KEY = 'ariad.active-build.v1'
+
+type StoredBuildSession = {
+  step: SessionStep
+  prompt: string
+  intake: IntakeResponse | null
+  draft: ProjectDraftRequest
+  project: ProjectIntent | null
+  brief: ProjectBrief | null
+  designPlan: ProjectDesignPlanRequest
+  planSource: 'codex' | 'local' | null
+}
+
+function restoreBuildSession(): StoredBuildSession | null {
+  try {
+    const value = JSON.parse(sessionStorage.getItem(BUILD_SESSION_KEY) ?? 'null') as Partial<StoredBuildSession> | null
+    if (!value || !['describe', 'review', 'design', 'planned'].includes(value.step ?? '') || typeof value.prompt !== 'string' || !value.draft || !value.designPlan) return null
+    return value as StoredBuildSession
+  } catch {
+    return null
+  }
+}
 
 function suggestedTitle(prompt: string): string {
   const first = prompt.trim().split(/[.!?\n]/)[0]?.trim() ?? 'New fabrication project'
@@ -69,15 +92,17 @@ function fallbackDesignPlan(prompt: string): ProjectDesignPlanRequest {
 const stageLabels = ['Idea', 'Confirm', 'CAD', 'Verify', 'Slice', 'Package']
 
 export function BuildSessionPage() {
-  const [step, setStep] = useState<SessionStep>('describe')
-  const [prompt, setPrompt] = useState('')
-  const [intake, setIntake] = useState<IntakeResponse | null>(null)
-  const [draft, setDraft] = useState<ProjectDraftRequest>(() => suggestedDraft(''))
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [restored] = useState(() => searchParams.get('new') === '1' ? null : restoreBuildSession())
+  const [step, setStep] = useState<SessionStep>(restored?.step ?? 'describe')
+  const [prompt, setPrompt] = useState(restored?.prompt ?? '')
+  const [intake, setIntake] = useState<IntakeResponse | null>(restored?.intake ?? null)
+  const [draft, setDraft] = useState<ProjectDraftRequest>(restored?.draft ?? suggestedDraft(''))
   const [token, setToken] = useState<string | null>(null)
-  const [project, setProject] = useState<ProjectIntent | null>(null)
-  const [brief, setBrief] = useState<ProjectBrief | null>(null)
-  const [designPlan, setDesignPlan] = useState<ProjectDesignPlanRequest>(() => fallbackDesignPlan(''))
-  const [planSource, setPlanSource] = useState<'codex' | 'local' | null>(null)
+  const [project, setProject] = useState<ProjectIntent | null>(restored?.project ?? null)
+  const [brief, setBrief] = useState<ProjectBrief | null>(restored?.brief ?? null)
+  const [designPlan, setDesignPlan] = useState<ProjectDesignPlanRequest>(restored?.designPlan ?? fallbackDesignPlan(''))
+  const [planSource, setPlanSource] = useState<'codex' | 'local' | null>(restored?.planSource ?? null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -86,6 +111,17 @@ export function BuildSessionPage() {
     getBrowserSession(controller.signal).then((session) => setToken(session.session_token)).catch(() => setToken(null))
     return () => controller.abort()
   }, [])
+
+  useEffect(() => {
+    if (searchParams.get('new') !== '1') return
+    sessionStorage.removeItem(BUILD_SESSION_KEY)
+    setSearchParams({}, { replace: true })
+  }, [searchParams, setSearchParams])
+
+  useEffect(() => {
+    const value: StoredBuildSession = { step, prompt, intake, draft, project, brief, designPlan, planSource }
+    sessionStorage.setItem(BUILD_SESSION_KEY, JSON.stringify(value))
+  }, [brief, designPlan, draft, intake, planSource, project, prompt, step])
 
   const activeIndex = useMemo(() => step === 'describe' ? 0 : step === 'review' ? 1 : step === 'planned' ? 3 : 2, [step])
   const localFallback = intake?.provider.configured === false
@@ -128,27 +164,19 @@ export function BuildSessionPage() {
         setError(`Ariad still needs: ${saved.missing_fields.join(', ')}.`)
         return
       }
-      setBrief(await confirmProjectBrief(created.project_id, token))
-      setStep('ready')
+      const confirmed = await confirmProjectBrief(created.project_id, token)
+      setBrief(confirmed)
+      try {
+        const proposal = await getProjectDesignProposal(created.project_id, token)
+        setDesignPlan(proposal.proposal); setPlanSource('codex')
+      } catch (reason) {
+        if (!(reason instanceof ApiError && reason.status === 404)) setError(reason instanceof Error ? reason.message : 'The Design proposal could not be loaded.')
+        setDesignPlan(fallbackDesignPlan(prompt)); setPlanSource('local')
+      }
+      setStep('design')
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'The project brief could not be prepared.')
     } finally { setBusy(false) }
-  }
-
-  async function prepareDesign() {
-    if (!token || !project || !brief) return
-    setBusy(true); setError(null)
-    try {
-      const proposal = await getProjectDesignProposal(project.project_id, token)
-      setDesignPlan(proposal.proposal); setPlanSource('codex')
-    } catch (reason) {
-      if (!(reason instanceof ApiError && reason.status === 404)) {
-        setError(reason instanceof Error ? reason.message : 'The Design proposal could not be loaded.')
-      }
-      setDesignPlan(fallbackDesignPlan(prompt)); setPlanSource('local')
-    } finally {
-      setStep('design'); setBusy(false)
-    }
   }
 
   function planLines(name: 'critical_features' | 'assembly_interfaces' | 'constraints' | 'unresolved_questions', value: string) {
@@ -194,7 +222,7 @@ export function BuildSessionPage() {
       {step === 'review' ? <section className="build-review-grid">
         <div className="build-focus-card">
           <p className="eyebrow">Suggested build brief</p><h2>Review the choices that shape the result</h2>
-          <p className="gentle-note">Codex prepared this recommendation. Approving it records your intent and moves to planning; it does not create CAD yet.</p>
+          <p className="gentle-note">Codex prepared this recommendation. Approve it once; Ariad will prepare the CAD plan and continue the build.</p>
           <details className="advanced-details"><summary>Optional technical details</summary><div className="build-fields">
             <label>Project name<input value={draft.name ?? ''} onChange={(e) => text('name', e.target.value)} /></label>
             <label>Purpose<input value={draft.purpose ?? ''} onChange={(e) => text('purpose', e.target.value)} /></label>
@@ -204,18 +232,13 @@ export function BuildSessionPage() {
             <label>Fit allowance (mm)<input type="number" min="0.05" step="0.05" value={draft.tolerance_mm ?? ''} onChange={(e) => number('tolerance_mm', e.target.value)} /></label>
             <label>Supports<select value={draft.support_policy ?? 'avoid'} onChange={(e) => text('support_policy', e.target.value)}><option value="avoid">Avoid where practical</option><option value="allowed">Allowed</option><option value="required">Expected</option></select></label>
           </div></details>
-          <button className="primary-action" disabled={busy || !token} onClick={approveRecommendedBrief}>{busy ? 'Preparing your build…' : 'Approve and continue'}</button>
+          <button className="primary-action" disabled={busy || !token} onClick={approveRecommendedBrief}>{busy ? 'Preparing CAD plan…' : 'Approve and continue'}</button>
         </div>
         <aside className="build-context-card build-codex-summary">
           <div className="summary-agent"><span className="guide-avatar">C</span><div><p className="eyebrow">Codex understood</p><h3>{reviewSummary}</h3></div></div><p>{reviewReason}</p>
           <div className="assumption-list"><strong>Working assumptions</strong><span>FDM process</span><span>General-use safety class</span><span>Printer selected later</span></div>
           {reviewQuestion ? <div className="blocking-question"><strong>Decision to revisit</strong><p>{reviewQuestion}</p></div> : null}
         </aside>
-      </section> : null}
-
-      {step === 'ready' && brief && project ? <section className="build-complete-card">
-        <div className="completion-mark">✓</div><p className="eyebrow">Thread secured</p><h2>Your idea is ready for the Design stage</h2><p>R0 records what you approved. CAD is still absent, so Ariad makes no geometry or printability claim yet.</p>
-        <div className="next-actions"><button className="primary-action" disabled={busy} onClick={prepareDesign}>{busy ? 'Preparing Design…' : 'Prepare Design plan'}</button><Link className="secondary-action" to={`/jobs/${encodeURIComponent(brief.job_id)}/revisions/${encodeURIComponent(brief.revision_id)}`}>Inspect R0 evidence</Link></div>
       </section> : null}
 
       {step === 'design' ? <section className="design-session-card">
@@ -225,7 +248,7 @@ export function BuildSessionPage() {
           <label>Geometry strategy<textarea required rows={4} value={designPlan.geometry_strategy} onChange={(event) => setDesignPlan((current) => ({ ...current, geometry_strategy: event.target.value }))} /></label>
           <div className="design-plan-summary"><p className="eyebrow">Codex prepared</p><h3>{designPlan.geometry_strategy}</h3><div className="plan-chip-row">{designPlan.critical_features.slice(0, 3).map((item) => <span key={item}>{item}</span>)}</div></div>
           <details className="advanced-details design-advanced"><summary>Inspect the full Design plan</summary><div className="design-session-grid"><label>Critical features<textarea rows={6} value={designPlan.critical_features.join('\n')} onChange={(event) => planLines('critical_features', event.target.value)} /></label><label>Assembly interfaces<textarea rows={6} value={designPlan.assembly_interfaces.join('\n')} onChange={(event) => planLines('assembly_interfaces', event.target.value)} /></label><label>Constraints<textarea rows={6} value={designPlan.constraints.join('\n')} onChange={(event) => planLines('constraints', event.target.value)} /></label><label>Open decisions<textarea rows={6} value={designPlan.unresolved_questions.join('\n')} onChange={(event) => planLines('unresolved_questions', event.target.value)} /></label></div></details>
-          <div className="design-save-row"><p>Saving records planning only. It does not run generated code or create R1.</p><button className="primary-action" disabled={busy}>{busy ? 'Saving plan…' : 'Save Design plan'}</button></div>
+          <div className="design-save-row"><p>Review this recommendation, then continue into the CAD workspace.</p><button className="primary-action" disabled={busy}>{busy ? 'Preparing CAD…' : 'Continue to CAD'}</button></div>
         </form>
       </section> : null}
 
