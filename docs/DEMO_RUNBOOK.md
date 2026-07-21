@@ -26,11 +26,13 @@ Start on **Build session** and say:
 
 ### 0:15–1:35 — One smooth guided build
 
-Use the robot example and approve the Brief. Pause on **Components**: point out the Pi Zero 2 W, two SCS0009 servos, supplier-dependent camera/IMU, external 5 V tether, and deliberate absence of a battery. Continue to the component-aware blueprint, then show the internal-hardware viewport before the nine printable parts. Continue through Verify, real Slice, Package, and the smaller first-print calibration coupon. Say:
+Use the robot example and approve the Brief. Pause on **Components**: point out the Pi Zero 2 W, two SCS0009 servos, supplier-dependent camera/IMU, external 5 V tether, and deliberate absence of a battery. Continue to the component-aware blueprint, then show the internal-hardware viewport before the nine printable parts. In Verify, show the four compact result cards. In Slice, advance the real layer player on the automatically selected warned part. Finish on the simplified Package screen and the smaller first-print calibration coupon. Say:
 
 > Codex selects what the robot must fit before Ariad shapes the shell. The blueprint confirms the arrangement, CAD defines the parts, Ariad checks them, and PrusaSlicer produces the manufacturing files.
 
 Do not edit every field on camera. If no Codex proposal is retained, show the labelled local fallback and say so.
+
+If demonstrating assistance, click **Ask Codex** once inside the build and point out that the current stage remains visible. Do not wait for a long answer in the recorded path.
 
 ### 1:35–2:05 — Real registered benchmark
 

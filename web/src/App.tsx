@@ -111,7 +111,7 @@ function AppShell({
           <Link className={navClass('/build')} to="/build"><span aria-hidden="true">＋</span> Make something</Link>
           <Link className={navClass('/projects')} to="/projects"><span aria-hidden="true">▤</span> My builds</Link>
           <Link className={navClass('/chat')} to="/chat"><span aria-hidden="true">◌</span> Ask Codex</Link>
-          <Link className={navClass('/evidence')} to="/evidence"><span aria-hidden="true">◇</span> Evidence & details</Link>
+          <Link className={navClass('/evidence')} to="/evidence"><span aria-hidden="true">◇</span> Technical evidence</Link>
         </nav>
         <div className="sidebar-status">
           <span className="status-avatar" aria-hidden="true">A</span>
@@ -128,7 +128,7 @@ function AppShell({
           <div className="project-context"><small>Ariad Fabrication</small><strong>Make something useful</strong></div>
           <div className="topbar-actions">
             <div className={`system-pill codex-${codex?.status ?? 'checking'}`}>
-              <i /> {codex === null ? 'Checking Codex…' : codex.conversation_available ? 'Codex conversation ready' : 'Codex unavailable'}
+              <i /> {codex === null ? 'Checking Codex…' : codex.conversation_available ? 'Codex available' : 'Codex unavailable'}
             </div>
             <Link className="new-project-button" to="/build?new=1">+ New build</Link>
         <div className="boundary-pill">
@@ -383,10 +383,10 @@ function JourneyIndexPage() {
     <AppShell pageTitle="Ariad Fabrication Journey">
       <section className="hero">
         <div>
-          <p className="eyebrow">Fabrication Journey · M4</p>
-          <h1 data-route-heading tabIndex={-1}>Fabrication records at a glance.</h1>
+          <p className="eyebrow">Advanced technical records</p>
+          <h1 data-route-heading tabIndex={-1}>Evidence behind each build.</h1>
           <p>
-            Review persisted revisions, inspect evidence, and see exactly what remains unproven.
+            Inspect persisted revisions, digital checks, and the limits that remain unproven.
           </p>
         </div>
         <div className="hero-boundary">
@@ -398,8 +398,8 @@ function JourneyIndexPage() {
       <section className="content-section" aria-labelledby="revisions-heading">
         <div className="section-heading">
           <div>
-            <p className="eyebrow">Local records</p>
-            <h2 id="revisions-heading">Available revisions</h2>
+            <p className="eyebrow">For technical review</p>
+            <h2 id="revisions-heading">Recorded revisions</h2>
           </div>
         </div>
         {error ? <ErrorPanel error={error} /> : null}

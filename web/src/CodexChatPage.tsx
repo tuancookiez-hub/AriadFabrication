@@ -153,7 +153,7 @@ export function CodexChatPage() {
           <div className="chat-status" role="status">
             <i />
             <span>
-              <strong>{ready ? 'Codex conversation ready' : 'Codex conversation unavailable'}</strong>
+              <strong>{ready ? 'Codex is available' : 'Codex conversation unavailable'}</strong>
               <small>{status?.reason ?? 'Checking the local runtime...'}</small>
             </span>
           </div>

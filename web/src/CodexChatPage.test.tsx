@@ -36,7 +36,7 @@ describe('CodexChatPage', () => {
     })
 
     render(<MemoryRouter><CodexChatPage /></MemoryRouter>)
-    await screen.findByText('Codex conversation ready')
+    await screen.findByText('Codex is available')
     fireEvent.change(screen.getByLabelText('Message Codex'), { target: { value: 'Design a small airship.' } })
     fireEvent.click(screen.getByRole('button', { name: 'Send' }))
 

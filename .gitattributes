@@ -3,3 +3,6 @@
 # Native Windows command scripts retain their conventional line endings.
 *.bat text eol=crlf
 *.cmd text eol=crlf
+
+# Real slicer outputs are demo artifacts, not authored source code.
+*.gcode text eol=lf linguist-generated=true

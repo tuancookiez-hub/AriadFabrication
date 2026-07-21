@@ -2,6 +2,7 @@ import { type FormEvent, useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 
 import { AssemblyBlueprint } from './AssemblyBlueprint'
+import { BuildCodexPanel } from './BuildCodexPanel'
 import { RobotCadWorkspace } from './RobotCadWorkspace'
 import {
   ApiError,
@@ -9,6 +10,7 @@ import {
   confirmProjectBrief,
   createProjectIntent,
   getBrowserSession,
+  getLocalCodexStatus,
   getProjectDesignProposal,
   saveProjectDesignPlan,
   saveProjectDraft,
@@ -110,16 +112,19 @@ export function BuildSessionPage() {
   const [intake, setIntake] = useState<IntakeResponse | null>(restored?.intake ?? null)
   const [draft, setDraft] = useState<ProjectDraftRequest>(restored?.draft ?? suggestedDraft(''))
   const [token, setToken] = useState<string | null>(null)
+  const [codexAvailable, setCodexAvailable] = useState(false)
   const [project, setProject] = useState<ProjectIntent | null>(restored?.project ?? null)
   const [brief, setBrief] = useState<ProjectBrief | null>(restored?.brief ?? null)
   const [designPlan, setDesignPlan] = useState<ProjectDesignPlanRequest>(restored?.designPlan ?? fallbackDesignPlan(''))
   const [planSource, setPlanSource] = useState<'codex' | 'local' | null>(restored?.planSource ?? null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [codexContext, setCodexContext] = useState<string | null>(null)
 
   useEffect(() => {
     const controller = new AbortController()
     getBrowserSession(controller.signal).then((session) => setToken(session.session_token)).catch(() => setToken(null))
+    getLocalCodexStatus(controller.signal).then((status) => setCodexAvailable(status.conversation_available)).catch(() => setCodexAvailable(false))
     return () => controller.abort()
   }, [])
 
@@ -212,7 +217,7 @@ export function BuildSessionPage() {
     <div className="build-session">
       <header className={`build-session-header${step === 'describe' ? ' build-session-header-intake' : ''}`}>
         <div><p className="eyebrow">Make something</p><h1 data-route-heading tabIndex={-1}>{['cad', 'verify', 'slice', 'package'].includes(step) ? 'Your model stays at the center.' : step === 'components' ? 'Choose what the body must fit.' : step === 'blueprint' ? 'Check the design before CAD.' : 'Tell Codex what you need.'}</h1><p>{['cad', 'verify', 'slice', 'package'].includes(step) ? 'Inspect it, ask for a change, or continue. Ariad keeps the technical records in the background.' : step === 'components' ? 'Codex selected a safe first hardware layout. Confirm it before Ariad shapes the shell.' : step === 'blueprint' ? 'Confirm the component-aware shape and assembly idea before CAD.' : 'Ariad guides the design and shows technical detail only when you ask for it.'}</p></div>
-        <div className="build-session-status"><span>Current step</span><strong>{step === 'package' ? 'Reviewing the package' : step === 'slice' ? 'Reviewing the real slice' : step === 'verify' ? 'Checking print preparation' : step === 'cad' ? 'Inspecting CAD' : step === 'blueprint' ? 'Approving the blueprint' : step === 'components' ? 'Confirming hardware' : step === 'review' ? 'Confirm the brief' : 'Describe your idea'}</strong><small><i /> Codex is guiding</small></div>
+        <div className="build-session-status"><span>Current step</span><strong>{step === 'package' ? 'Reviewing the package' : step === 'slice' ? 'Reviewing the real slice' : step === 'verify' ? 'Checking print preparation' : step === 'cad' ? 'Inspecting CAD' : step === 'blueprint' ? 'Approving the blueprint' : step === 'components' ? 'Confirming hardware' : step === 'review' ? 'Confirm the brief' : 'Describe your idea'}</strong><small><i /> Guided workflow active</small></div>
       </header>
 
       <ol className="build-stage-rail" aria-label="Build stages">
@@ -224,7 +229,7 @@ export function BuildSessionPage() {
         <div className="build-focus-card build-prompt-card">
           <div className="conversation-label"><span className="conversation-avatar">C</span><div><strong>Start with what you need</strong><small>Codex will turn intent into an editable fabrication brief.</small></div></div>
           <h2>What should Ariad help you make?</h2>
-      <form onSubmit={understand}><textarea aria-label="What should Ariad help you make?" required rows={6} value={prompt} onChange={(event) => setPrompt(event.target.value)} placeholder="Describe the object, how it should work, and anything it must fit. You can stay in plain language." /><div className="prompt-suggestion"><span>Try the demo idea</span><button type="button" onClick={() => setPrompt('Make a cute two-servo robot around a Raspberry Pi Zero 2 W, two SCS0009 servos, a camera, and an IMU. Give it exactly two long rotating side limbs and no fixed feet so it can explore recovery after a fall. Use separate serviceable printed parts and external regulated power for the first revision.')}>Use robot example</button></div><button aria-label="Continue" className="primary-action" disabled={busy || !prompt.trim()}>{busy ? 'Understanding…' : 'Begin guided build →'}</button></form>
+      <form onSubmit={understand}><textarea aria-label="What should Ariad help you make?" required rows={6} value={prompt} onChange={(event) => setPrompt(event.target.value)} placeholder="Describe the object, how it should work, and anything it must fit. You can stay in plain language." /><div className="prompt-suggestion"><span>Try the complete CAD demo</span><button type="button" onClick={() => setPrompt('Make a cute two-servo robot around a Raspberry Pi Zero 2 W, two SCS0009 servos, a camera, and an IMU. Give it exactly two long rotating side limbs and no fixed feet so it can explore recovery after a fall. Use separate serviceable printed parts and external regulated power for the first revision.')}>Use robot example</button></div><div className="supported-path-note"><strong>Complete CAD path available</strong><span>The current end-to-end demo supports the two-servo robot family. Other ideas can be captured and planned without invented geometry.</span></div><button aria-label="Continue" className="primary-action" disabled={busy || !prompt.trim()}>{busy ? 'Understanding…' : 'Begin guided build →'}</button></form>
         </div>
         <aside className="build-preview-panel">
           <div className="preview-panel-heading"><div><p className="eyebrow">Your build companion</p><h2>Codex will guide this build.</h2></div><span className="live-indicator"><i /> Ready</span></div>
@@ -264,13 +269,13 @@ export function BuildSessionPage() {
           <article><strong>MPU-6050 IMU</strong><span>Reserved, not mounted yet</span><small>Select the exact GY-521 board before releasing its clip</small></article>
         </div>
         <div className="component-first-boundary"><strong>Why Ariad pauses here</strong><p>The shell follows these envelopes. It is not generated first and filled with imaginary electronics afterward.</p></div>
-        <div className="blueprint-approval-actions"><Link className="secondary-action" to={`/chat?project=${encodeURIComponent(project.project_id)}`}>Ask Codex to change a component</Link><button className="primary-action" type="button" onClick={() => setStep('blueprint')}>Use this hardware layout</button></div>
+        <div className="blueprint-approval-actions"><button className="secondary-action" type="button" onClick={() => setCodexContext('Help me review or replace one of the selected robot components before the shell is designed.')}>Ask Codex to change a component</button><button className="primary-action" type="button" onClick={() => setStep('blueprint')}>Use this hardware layout</button></div>
       </section> : null}
 
       {step === 'blueprint' && project && prompt.toLowerCase().includes('robot') ? <section className="blueprint-approval-stage">
         <div className="blueprint-approval-heading"><div><p className="eyebrow">Component-aware visual blueprint</p><h2>Does this arrangement match what you meant?</h2><p>Check the selected hardware, structural servo chassis, long side limbs, rear service access, and nine-part print layout. CAD dimensions and fit evidence follow.</p></div><span>Layout approved before shell</span></div>
         <AssemblyBlueprint compact />
-        <div className="blueprint-approval-actions"><Link className="secondary-action" to={`/chat?project=${encodeURIComponent(project.project_id)}`}>Ask Codex for a visual change</Link><button className="primary-action" type="button" onClick={() => setStep('cad')}>Approve blueprint and inspect CAD</button></div>
+        <div className="blueprint-approval-actions"><button className="secondary-action" type="button" onClick={() => setCodexContext('Help me review the visual blueprint and describe a practical change before CAD.')}>Ask Codex for a visual change</button><button className="primary-action" type="button" onClick={() => setStep('cad')}>Approve blueprint and inspect CAD</button></div>
       </section> : null}
 
       {(['components', 'blueprint', 'cad', 'verify', 'slice', 'package'] as SessionStep[]).includes(step) && project ? <details className="build-work-log"><summary>What Codex prepared</summary><div><strong>{planSource === 'codex' ? 'Codex-authored plan' : 'Local deterministic plan'}</strong><p>{designPlan.geometry_strategy}</p><span>{designPlan.critical_features.length} features · {designPlan.assembly_interfaces.length} interfaces · {designPlan.unresolved_questions.length} open decisions</span></div></details> : null}
@@ -280,7 +285,8 @@ export function BuildSessionPage() {
         <div className="next-actions"><Link className="primary-action" to={`/projects/${encodeURIComponent(project.project_id)}`}>Review project thread</Link><Link className="secondary-action" to={`/chat?project=${encodeURIComponent(project.project_id)}`}>Discuss open decisions with Codex</Link></div>
       </section> : null}
 
-      {(['cad', 'verify', 'slice', 'package'] as SessionStep[]).includes(step) && project && prompt.toLowerCase().includes('robot') ? <RobotCadWorkspace mode={step as 'cad' | 'verify' | 'slice' | 'package'} projectId={project.project_id} onContinue={() => setStep(step === 'cad' ? 'verify' : step === 'verify' ? 'slice' : 'package')} /> : null}
+      {(['cad', 'verify', 'slice', 'package'] as SessionStep[]).includes(step) && project && prompt.toLowerCase().includes('robot') ? <RobotCadWorkspace key={step} mode={step as 'cad' | 'verify' | 'slice' | 'package'} onAskCodex={setCodexContext} onContinue={() => setStep(step === 'cad' ? 'verify' : step === 'verify' ? 'slice' : 'package')} /> : null}
+      {codexContext && project ? <BuildCodexPanel available={codexAvailable} key={codexContext} context={codexContext} projectId={project.project_id} sessionToken={token} onClose={() => setCodexContext(null)} /> : null}
 
       {error ? <div className="build-error" role="alert">{error}</div> : null}
     </div>

@@ -705,6 +705,16 @@ This file records accepted project-level decisions. Change an accepted decision 
 
 **Evidence boundary:** Manufacturer drawings establish planning envelopes, not purchased-unit fit. The generated component-aware model sheet remains visual intent only. Parametric CAD, manifold meshes, and disconnected slicing do not prove component fit, electrical integration, balance, motion, thermal behavior, or physical success.
 
+### D-064 - Give each guided stage one user decision and keep Codex in context
+
+**Status:** Accepted as demo-usability hardening on 2026-07-21.
+
+**Decision:** CAD, Verify, Slice, and Package are distinct beginner surfaces rather than four labels over the same inspector. CAD exposes component envelopes and editable part artifacts; Verify condenses deterministic geometry, build-volume, and bed-placement results; Slice opens a real G-code layer player on the first warned printable part; Package removes the inspector and prioritizes the complete handoff plus the smaller calibration coupon. The full-path prompt boundary is visible at intake: the two-servo robot family is connected, while unsupported ideas stop after planning instead of receiving invented geometry.
+
+**Codex interaction:** Stage-scoped Codex questions open in an in-place assistant panel with project and evidence context attached automatically. The panel is advisory and cannot silently mutate CAD, waive findings, or leave the current build stage. A future structured change proposal still requires a visible diff, explicit user approval, and downstream reruns under D-057.
+
+**Presentation consequence:** My Builds defaults to newest distinct prompts while retaining an explicit control to reveal rehearsal duplicates. The evidence route is labelled as advanced technical material and no longer exposes the internal M4 milestone in its user-facing hero. These presentation changes do not delete persisted records or alter evidence.
+
 ## Deferred decisions
 
 These require later evidence and should not be decided through preference alone:

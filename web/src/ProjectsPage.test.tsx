@@ -18,6 +18,6 @@ describe('ProjectsPage', () => {
     await screen.findByText('Floating airship')
     expect(screen.getByText('Ready to continue')).toBeInTheDocument()
     expect(screen.getByText('Planning')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Continue build' })).toHaveAttribute('href', '/projects/project_12345678901234567890123456789012')
+    expect(screen.getByRole('link', { name: 'Open saved brief' })).toHaveAttribute('href', '/projects/project_12345678901234567890123456789012')
   })
 })

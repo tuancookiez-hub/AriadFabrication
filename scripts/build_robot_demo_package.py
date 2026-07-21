@@ -75,6 +75,10 @@ def main() -> None:
     slicer = PrusaSlicerAdapter(args.slicer, timeout_seconds=180)
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=True)
+    preview_root = output / "toolpaths"
+    if preview_root.exists():
+        shutil.rmtree(preview_root)
+    preview_root.mkdir(parents=True)
 
     with tempfile.TemporaryDirectory(prefix="robot-package-", dir=ROOT / "runs") as raw:
         work = Path(raw)
@@ -101,6 +105,8 @@ def main() -> None:
             total_seconds += summary.estimated_seconds
             total_mass_g += summary.filament_mass_g
             total_filament_mm += summary.filament_length_mm
+            preview_gcode = preview_root / f"{part_id}.gcode"
+            shutil.copy2(outcome.gcode_path, preview_gcode)
             part_records.append(
                 {
                     "part_id": part_id,
@@ -124,6 +130,7 @@ def main() -> None:
                     "artifacts": {
                         "gcode": "parts/{0}/toolpath.gcode".format(part_id),
                         "gcode_sha256": _sha256(outcome.gcode_path),
+                        "preview_gcode": "toolpaths/{0}.gcode".format(part_id),
                         "slicer_project": "parts/{0}/slicer_project.3mf".format(part_id),
                         "slice_report": "parts/{0}/slice_report.json".format(part_id),
                     },

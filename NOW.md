@@ -10,7 +10,7 @@ Finish the honest no-printer handoff for the component-first robot. The Guided B
 
 The first executable slice is deliberately bounded to the original two-servo robot family. Plain-language revisions must change explicit parameters or assembly decisions, create a new project revision, and rerun every affected downstream gate. Unsupported prompts may still reach planning, but they must not imply that CAD exists. Unrestricted generated-code execution remains unavailable until its sandbox boundary is qualified. Printer control and physical-success claims remain outside this milestone.
 
-The Guided Build Session now composes universal intake, editable local defaults, project creation, one explicit R0 approval, Codex Design-proposal retrieval, automatic Design-plan persistence, component selection, generated visual-blueprint approval, prototype robot CAD inspection, deterministic digital checks, real disconnected slicing, and package download in one React route. The beginner sees Idea → Confirm → Components → Blueprint → CAD → Verify → Slice → Package while internal planning stays collapsed. Back preserves the same build. Generic profile evidence permits a warned prototype package while purchased-unit fit and physical evidence remain unavailable.
+The Guided Build Session now composes universal intake, editable local defaults, project creation, one explicit R0 approval, Codex Design-proposal retrieval, automatic Design-plan persistence, component selection, generated visual-blueprint approval, prototype robot CAD inspection, deterministic digital checks, real disconnected slicing, and package download in one React route. The beginner sees Idea → Confirm → Components → Blueprint → CAD → Verify → Slice → Package while internal planning stays collapsed. Back preserves the same build. CAD, Verify, Slice, and Package now have distinct beginner surfaces; Slice opens a real per-part G-code layer player and Package prioritizes the handoff and calibration coupon. Stage-scoped Codex help stays in an advisory panel without leaving the journey. Generic profile evidence permits a warned prototype package while purchased-unit fit and physical evidence remain unavailable.
 
 The L-bracket foundation has a closed seven-parameter contract, editable CadQuery source, a committed parameter fixture, invalid-margin rejection, and one-real-solid/envelope checks. It remains deliberately unregistered for R1/R2 execution. The current lightweight backend suite passes 270 tests with 23 optional CAD/slicer skips; the coupon's six focused tests pass both in the lightweight environment (three CAD skips) and fully in the pinned CAD environment.
 
@@ -87,7 +87,7 @@ The assembly-first correction is implemented at the domain and read-only interfa
 
 ## Next actions
 
-1. Rehearse the interlocking robot Blueprint → CAD → Verify → Slice → Package → calibration-coupon story from a clean Build Session and record the demo.
+1. Rehearse the hardened interlocking robot Components → Blueprint → CAD → Verify summary → real layer playback → Package → calibration-coupon story from a clean Build Session and record the demo.
 2. Define the future measured-coupon import and calibrated child-revision contract without claiming that physical testing occurred.
 3. Replace robot component placeholders with measured or manufacturer-controlled envelopes, then add assembly-clearance, access, and motion evidence as a child revision.
 4. Obtain `/feedback` and complete the external Devpost/repository tasks.

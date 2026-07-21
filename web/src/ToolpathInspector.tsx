@@ -7,6 +7,8 @@ import {
 } from './toolpath'
 import type { Artifact } from './types'
 
+type ToolpathSource = Pick<Artifact, 'download_url'>
+
 interface LayerPayload {
   layerIndex: number
   zMm: number
@@ -88,7 +90,7 @@ export function ToolpathInspector({
   artifact,
 }: {
   active: boolean
-  artifact: Artifact | null
+  artifact: ToolpathSource | null
 }) {
   const workerRef = useRef<Worker | null>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
