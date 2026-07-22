@@ -20,6 +20,8 @@ import type {
   AssemblySpec,
   LiveLBracket,
   LiveLBracketRequest,
+  ProjectCadProposal,
+  DeclarativeCad,
 } from './types'
 
 const apiRoot = (import.meta.env.VITE_ARIAD_API_ROOT ?? '').replace(/\/$/, '')
@@ -171,6 +173,27 @@ export function generateLiveLBracket(
   return requestJson('/api/v1/live-cad/l-bracket', signal, {
     method: 'POST',
     body: JSON.stringify(request),
+    headers: { 'X-Ariad-Session': sessionToken },
+  })
+}
+
+export function getProjectCadProposal(
+  projectId: string,
+  sessionToken: string,
+  signal?: AbortSignal,
+): Promise<ProjectCadProposal> {
+  return requestJson(`/api/v1/projects/${encodeURIComponent(projectId)}/cad-proposal`, signal, {
+    headers: { 'X-Ariad-Session': sessionToken },
+  })
+}
+
+export function generateProjectCad(
+  projectId: string,
+  sessionToken: string,
+  signal?: AbortSignal,
+): Promise<DeclarativeCad> {
+  return requestJson(`/api/v1/projects/${encodeURIComponent(projectId)}/generate-cad`, signal, {
+    method: 'POST',
     headers: { 'X-Ariad-Session': sessionToken },
   })
 }

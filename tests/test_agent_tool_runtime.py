@@ -22,13 +22,13 @@ class ReadOnlyAgentToolRuntimeTests(unittest.TestCase):
     def tearDownClass(cls):
         cls.temporary.cleanup()
 
-    def test_publishes_exactly_four_closed_function_specs(self):
+    def test_publishes_exactly_five_closed_function_specs(self):
         specs = self.runtime.tool_specs
         self.assertEqual(len(specs), 1)
         self.assertEqual(specs[0]["name"], "ariad")
         self.assertEqual(
             {item["name"] for item in specs[0]["tools"]},
-            {"capture_idea", "list_evidence", "read_evidence", "propose_design_plan"},
+            {"capture_idea", "list_evidence", "read_evidence", "propose_design_plan", "propose_cad_document"},
         )
         self.assertEqual(
             {f"ariad.{item['name']}" for item in specs[0]["tools"]},
@@ -37,6 +37,7 @@ class ReadOnlyAgentToolRuntimeTests(unittest.TestCase):
                 "ariad.list_evidence",
                 "ariad.read_evidence",
                 "ariad.propose_design_plan",
+                "ariad.propose_cad_document",
             },
         )
         for item in specs[0]["tools"]:
@@ -123,6 +124,46 @@ class ReadOnlyAgentToolRuntimeTests(unittest.TestCase):
         self.assertNotEqual(
             self.runtime.latest_design_proposal(existing)["proposal"]["geometry_strategy"],
             "mutated by caller",
+        )
+
+    def test_declarative_cad_proposal_is_closed_r0_bound_and_unexecuted(self):
+        project = self.project_store.create(title="Phone stand", prompt="Make a phone stand")
+        self.project_store.save_draft(
+            project.project_id,
+            {
+                "name": "Phone stand", "purpose": "Hold a phone", "part_type": "stand",
+                "size_x_mm": 80.0, "size_y_mm": 60.0, "size_z_mm": 80.0,
+                "material": "PETG", "tolerance_mm": 0.3, "support_policy": "avoid",
+                "manufacturing_process": "FDM", "safety_class": "general",
+            },
+        )
+        brief = self.project_store.confirm_brief(
+            project.project_id, runs_root=Path(self.temporary.name) / "runs-csg"
+        )
+        operation = {
+            "operation_id": "base", "combine": "base", "primitive": "box",
+            "size_x_mm": 80, "size_y_mm": 60, "size_z_mm": 6,
+            "radius_mm": 0, "radius2_mm": 0,
+            "position_x_mm": 0, "position_y_mm": 0, "position_z_mm": 0,
+            "rotation_x_deg": 0, "rotation_y_deg": 0, "rotation_z_deg": 0,
+        }
+        arguments = {
+            "project_id": project.project_id,
+            "contract_version": "1.0.0",
+            "title": "Phone stand",
+            "summary": "One-piece bounded CSG stand proposal.",
+            "parts": [{"part_id": "stand", "name": "Stand", "purpose": "Hold phone", "operations": [operation]}],
+            "assumptions": ["Generic phone dimensions"],
+            "warnings": ["Device fit is unverified"],
+        }
+        result = json.loads(self.runtime.execute("ariad.propose_cad_document", arguments))
+        self.assertEqual(result["brief_draft_sha256"], brief.draft_sha256)
+        self.assertFalse(result["executed"])
+        self.assertEqual(result["document"]["parts"][0]["part_id"], "stand")
+        result["document"]["title"] = "mutated"
+        self.assertEqual(
+            self.runtime.latest_cad_proposal(project.project_id)["document"]["title"],
+            "Phone stand",
         )
 
     def test_rejects_unknown_tools_widened_arguments_and_wrong_scalar_types(self):

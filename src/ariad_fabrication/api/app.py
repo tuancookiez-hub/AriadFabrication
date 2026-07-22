@@ -16,6 +16,11 @@ from ..codex_conversation import LocalCodexConversation
 from ..intake import CapabilityLane, CurrentCapabilityRouter, IntentProposal, PromptIntake
 from ..local_codex import LocalCodexSnapshot, LocalCodexStatus, probe_local_codex
 from ..domain import AssemblySpec
+from ..cad.declarative import (
+    DeclarativeCadDocument,
+    declarative_artifact_path,
+    generate_declarative_cad,
+)
 from ..cad.live_l_bracket import generate_l_bracket, live_artifact_path
 from .agent_tool_runtime import ReadOnlyAgentToolRuntime
 
@@ -26,6 +31,7 @@ from .models import (
     ConversationEventsResponse,
     ConversationTurnRequest,
     ConversationTurnResponse,
+    DeclarativeCadResponse,
     ErrorResponse,
     INTERFACE_API_VERSION,
     HealthResponse,
@@ -43,6 +49,7 @@ from .models import (
     ProjectDesignPlanRequest,
     ProjectDesignPlanView,
     ProjectDesignProposalView,
+    ProjectCadProposalView,
     ProjectIntentListResponse,
     ProjectIntentView,
     RevisionComparisonResponse,
@@ -121,7 +128,7 @@ def create_app(
         summary="Evidence replay, conversation, project clarification, R0 confirmation, and Design planning.",
         description=(
             "This API replays persisted records, captures bounded ideas, and may save a "
-            "user-confirmed project intent, explicitly confirm a complete PartSpec through the existing R0 Brief gate, and persist a planning-only Design plan. It cannot execute arbitrary generated CAD code, upload G-code, select a printer, heat hardware, move hardware, or start manufacturing. One explicitly bounded L-bracket family may generate parameter-bound digital CAD."
+            "user-confirmed project intent, explicitly confirm a complete PartSpec through the existing R0 Brief gate, and persist a planning-only Design plan. It cannot execute arbitrary generated CAD code, upload G-code, select a printer, heat hardware, move hardware, or start manufacturing. Codex may propose a closed declarative CSG document that Ariad validates and interprets as bounded digital CAD."
         ),
         version=INTERFACE_API_VERSION,
         docs_url=None,
@@ -275,7 +282,7 @@ def create_app(
             schema_version=INTERFACE_API_VERSION,
             turn_id=turn_id,
             accepted=True,
-            tools_registered=4,
+            tools_registered=5,
             workspace_mutation_enabled=False,
             hardware_actions=False,
         )
@@ -293,7 +300,7 @@ def create_app(
             events=[event.to_dict() for event in events],
             active_turn_id=conversation.active_turn_id,
             next_sequence=next_sequence,
-            tools_registered=4,
+            tools_registered=5,
             workspace_mutation_enabled=False,
             hardware_actions=False,
         )
@@ -421,6 +428,102 @@ def create_app(
         response.headers["Cache-Control"] = "no-store"
         response.headers["Content-Disposition"] = f'attachment; filename="{path.name}"'
         response.headers["X-Ariad-Evidence-Mode"] = "live-digital-generation"
+        response.headers["X-Ariad-Hardware-Action"] = "false"
+        return response
+
+    @app.get(
+        "/api/v1/projects/{project_id}/cad-proposal",
+        response_model=ProjectCadProposalView,
+    )
+    def project_cad_proposal(
+        project_id: str,
+        _: None = Depends(require_browser_session),
+    ) -> ProjectCadProposalView:
+        runtime: ReadOnlyAgentToolRuntime = app.state.agent_tool_runtime
+        proposal = runtime.latest_cad_proposal(project_id)
+        if proposal is None:
+            raise HTTPException(
+                status_code=404,
+                detail="No current Codex declarative-CAD proposal exists for this R0 Brief.",
+            )
+        return ProjectCadProposalView(**proposal)
+
+    @app.post(
+        "/api/v1/projects/{project_id}/generate-cad",
+        response_model=DeclarativeCadResponse,
+    )
+    def generate_project_declarative_cad(
+        project_id: str,
+        _: None = Depends(require_browser_session),
+    ) -> DeclarativeCadResponse:
+        store: ProjectIntentStore = app.state.project_store
+        runtime: ReadOnlyAgentToolRuntime = app.state.agent_tool_runtime
+        try:
+            store.get(project_id)
+            if store.get_brief(project_id) is None:
+                raise ProjectStoreError("A confirmed R0 Brief is required before CAD generation.")
+            proposal = runtime.latest_cad_proposal(project_id)
+            if proposal is None:
+                raise ProjectStoreError(
+                    "Ask Codex to propose a declarative CAD document for this project first."
+                )
+            document = DeclarativeCadDocument.from_mapping(proposal["document"])
+            manifest, cache_reused = generate_declarative_cad(
+                document,
+                app.state.live_cad_root,
+            )
+        except ProjectStoreError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        except ImportError as exc:
+            raise HTTPException(
+                status_code=503,
+                detail="The optional pinned CAD environment is not installed. Run uv sync --frozen --extra test --extra cad.",
+            ) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        except OSError as exc:
+            raise HTTPException(
+                status_code=409,
+                detail=f"Declarative CAD generation failed: {type(exc).__name__}.",
+            ) from exc
+        artifacts = [
+            {
+                **artifact,
+                "download_url": (
+                    f"/api/v1/live-cad/declarative/{manifest['generation_id']}/{artifact['filename']}"
+                ),
+            }
+            for artifact in manifest["artifacts"]
+        ]
+        response_value = dict(manifest)
+        response_value.pop("artifacts", None)
+        response_value.pop("schema_version", None)
+        return DeclarativeCadResponse(
+            schema_version=INTERFACE_API_VERSION,
+            **response_value,
+            artifacts=artifacts,
+            cache_reused=cache_reused,
+        )
+
+    @app.get("/api/v1/live-cad/declarative/{generation_id}/{filename}")
+    def declarative_cad_artifact(generation_id: str, filename: str) -> Response:
+        try:
+            path = declarative_artifact_path(
+                app.state.live_cad_root,
+                generation_id,
+                filename,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        media_types = {
+            ".step": "model/step",
+            ".stl": "model/stl",
+            ".glb": "model/gltf-binary",
+        }
+        response = Response(content=path.read_bytes(), media_type=media_types[path.suffix])
+        response.headers["Cache-Control"] = "no-store"
+        response.headers["Content-Disposition"] = f'attachment; filename="{path.name}"'
+        response.headers["X-Ariad-Evidence-Mode"] = "model-proposed-live-digital-generation"
         response.headers["X-Ariad-Hardware-Action"] = "false"
         return response
 

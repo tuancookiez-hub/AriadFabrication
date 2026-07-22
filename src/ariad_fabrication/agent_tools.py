@@ -12,8 +12,10 @@ from enum import Enum
 from types import MappingProxyType
 from typing import Any, Mapping
 
+from .cad.declarative import declarative_cad_agent_schema
 
-AGENT_TOOL_CONTRACT_VERSION = "1.1.0"
+
+AGENT_TOOL_CONTRACT_VERSION = "1.2.0"
 
 
 class ToolAvailability(str, Enum):
@@ -167,6 +169,15 @@ def current_agent_tool_catalog() -> tuple[AgentToolDescriptor, ...]:
                     },
                 }
             ),
+            availability=ToolAvailability.AVAILABLE,
+        ),
+        AgentToolDescriptor(
+            name="ariad.propose_cad_document",
+            description=(
+                "Propose a closed, bounded multi-part CSG document for one confirmed "
+                "project. Ariad validates the proposal; this tool executes no CAD or code."
+            ),
+            input_schema=declarative_cad_agent_schema(),
             availability=ToolAvailability.AVAILABLE,
         ),
         AgentToolDescriptor(

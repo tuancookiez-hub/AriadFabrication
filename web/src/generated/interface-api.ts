@@ -143,6 +143,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/live-cad/declarative/{generation_id}/{filename}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Declarative Cad Artifact */
+        get: operations["declarative_cad_artifact_api_v1_live_cad_declarative__generation_id___filename__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/live-cad/l-bracket": {
         parameters: {
             query?: never;
@@ -212,6 +229,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/projects/{project_id}/cad-proposal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Project Cad Proposal */
+        get: operations["project_cad_proposal_api_v1_projects__project_id__cad_proposal_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/projects/{project_id}/design-plan": {
         parameters: {
             query?: never;
@@ -257,6 +291,23 @@ export interface paths {
         /** Save Project Draft */
         put: operations["save_project_draft_api_v1_projects__project_id__draft_put"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{project_id}/generate-cad": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate Project Declarative Cad */
+        post: operations["generate_project_declarative_cad_api_v1_projects__project_id__generate_cad_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -505,7 +556,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.20.0";
+            schema_version: "1.21.0";
             /**
              * Simulation Run
              * @constant
@@ -536,7 +587,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.20.0";
+            schema_version: "1.21.0";
             /** Session Token */
             session_token: string;
         };
@@ -725,7 +776,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.20.0";
+            schema_version: "1.21.0";
         };
         /** ConversationEventsResponse */
         ConversationEventsResponse: {
@@ -744,12 +795,12 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.20.0";
+            schema_version: "1.21.0";
             /**
              * Tools Registered
              * @constant
              */
-            tools_registered: 4;
+            tools_registered: 5;
             /**
              * Workspace Mutation Enabled
              * @constant
@@ -799,12 +850,12 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.20.0";
+            schema_version: "1.21.0";
             /**
              * Tools Registered
              * @constant
              */
-            tools_registered: 4;
+            tools_registered: 5;
             /** Turn Id */
             turn_id: string;
             /**
@@ -812,6 +863,54 @@ export interface components {
              * @constant
              */
             workspace_mutation_enabled: false;
+        };
+        /** CsgOperationView */
+        CsgOperationView: {
+            /**
+             * Combine
+             * @enum {string}
+             */
+            combine: "base" | "union" | "cut" | "intersect";
+            /** Operation Id */
+            operation_id: string;
+            /** Position X Mm */
+            position_x_mm: number;
+            /** Position Y Mm */
+            position_y_mm: number;
+            /** Position Z Mm */
+            position_z_mm: number;
+            /**
+             * Primitive
+             * @enum {string}
+             */
+            primitive: "box" | "cylinder" | "sphere" | "cone";
+            /** Radius Mm */
+            radius_mm: number;
+            /** Radius2 Mm */
+            radius2_mm: number;
+            /** Rotation X Deg */
+            rotation_x_deg: number;
+            /** Rotation Y Deg */
+            rotation_y_deg: number;
+            /** Rotation Z Deg */
+            rotation_z_deg: number;
+            /** Size X Mm */
+            size_x_mm: number;
+            /** Size Y Mm */
+            size_y_mm: number;
+            /** Size Z Mm */
+            size_z_mm: number;
+        };
+        /** CsgPartView */
+        CsgPartView: {
+            /** Name */
+            name: string;
+            /** Operations */
+            operations: components["schemas"]["CsgOperationView"][];
+            /** Part Id */
+            part_id: string;
+            /** Purpose */
+            purpose: string;
         };
         /**
          * DecisionActor
@@ -846,6 +945,112 @@ export interface components {
             revision_id: string;
             /** Stage Run Id */
             stage_run_id: string | null;
+        };
+        /** DeclarativeCadArtifactView */
+        DeclarativeCadArtifactView: {
+            /** Checksum Sha256 */
+            checksum_sha256: string;
+            /** Download Url */
+            download_url: string;
+            /** Filename */
+            filename: string;
+            /** Media Type */
+            media_type: string;
+            /** Part Id */
+            part_id: string | null;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "assembly_step" | "browser_preview" | "part_step" | "part_stl";
+            /** Size Bytes */
+            size_bytes: number;
+        };
+        /** DeclarativeCadChecksView */
+        DeclarativeCadChecksView: {
+            /** All Parts Kernel Valid */
+            all_parts_kernel_valid: boolean;
+            /** All Parts Single Solid */
+            all_parts_single_solid: boolean;
+            bounds_mm: components["schemas"]["LiveCadBoundsView"];
+            /** Part Count */
+            part_count: number;
+            /** Parts */
+            parts: components["schemas"]["DeclarativePartCheckView"][];
+            /** Preview Triangle Count */
+            preview_triangle_count: number;
+        };
+        /** DeclarativeCadDocumentView */
+        DeclarativeCadDocumentView: {
+            /** Assumptions */
+            assumptions: string[];
+            /**
+             * Contract Version
+             * @constant
+             */
+            contract_version: "1.0.0";
+            /** Parts */
+            parts: components["schemas"]["CsgPartView"][];
+            /** Summary */
+            summary: string;
+            /** Title */
+            title: string;
+            /** Warnings */
+            warnings: string[];
+        };
+        /** DeclarativeCadResponse */
+        DeclarativeCadResponse: {
+            /** Artifacts */
+            artifacts: components["schemas"]["DeclarativeCadArtifactView"][];
+            /** Cache Reused */
+            cache_reused: boolean;
+            checks: components["schemas"]["DeclarativeCadChecksView"];
+            /** Claim Boundary */
+            claim_boundary: string;
+            document: components["schemas"]["DeclarativeCadDocumentView"];
+            /** Document Sha256 */
+            document_sha256: string;
+            /**
+             * Evidence Mode
+             * @constant
+             */
+            evidence_mode: "model_proposed_live_digital_generation";
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+            /** Generation Id */
+            generation_id: string;
+            /**
+             * Hardware Actions
+             * @constant
+             */
+            hardware_actions: false;
+            /** Interpreter Version */
+            interpreter_version: string;
+            /**
+             * Physical Validation
+             * @constant
+             */
+            physical_validation: false;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "1.21.0";
+        };
+        /** DeclarativePartCheckView */
+        DeclarativePartCheckView: {
+            bounds_mm: components["schemas"]["LiveCadBoundsView"];
+            /** Kernel Valid */
+            kernel_valid: boolean;
+            /** Operation Count */
+            operation_count: number;
+            /** Part Id */
+            part_id: string;
+            /** Solid Count */
+            solid_count: number;
         };
         /** ErrorResponse */
         ErrorResponse: {
@@ -976,7 +1181,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.20.0";
+            schema_version: "1.21.0";
             /**
              * Service
              * @constant
@@ -1209,7 +1414,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.20.0";
+            schema_version: "1.21.0";
         };
         /** IntentProviderView */
         IntentProviderView: {
@@ -1369,7 +1574,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.20.0";
+            schema_version: "1.21.0";
         };
         /**
          * LocalCodexStatus
@@ -1405,7 +1610,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.20.0";
+            schema_version: "1.21.0";
             status: components["schemas"]["LocalCodexStatus"];
             /**
              * Tools Registered
@@ -1494,6 +1699,50 @@ export interface components {
              * @constant
              */
             status: "ready_for_design";
+        };
+        /** ProjectCadProposalView */
+        ProjectCadProposalView: {
+            /** Brief Draft Sha256 */
+            brief_draft_sha256: string;
+            /** Claim Boundary */
+            claim_boundary: string;
+            document: components["schemas"]["DeclarativeCadDocumentView"];
+            /**
+             * Evidence Mode
+             * @constant
+             */
+            evidence_mode: "model_proposal";
+            /**
+             * Executed
+             * @constant
+             */
+            executed: false;
+            /**
+             * Hardware Actions
+             * @constant
+             */
+            hardware_actions: false;
+            /** Job Id */
+            job_id: string;
+            /**
+             * Persisted
+             * @constant
+             */
+            persisted: false;
+            /**
+             * Physical Validation
+             * @constant
+             */
+            physical_validation: false;
+            /** Project Id */
+            project_id: string;
+            /** Revision Id */
+            revision_id: string;
+            /**
+             * Tool Contract
+             * @constant
+             */
+            tool_contract: "1.0.0";
         };
         /** ProjectDesignPlanRequest */
         ProjectDesignPlanRequest: {
@@ -1652,7 +1901,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.20.0";
+            schema_version: "1.21.0";
         };
         /** ProjectDraftRequest */
         ProjectDraftRequest: {
@@ -1765,7 +2014,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.20.0";
+            schema_version: "1.21.0";
         };
         /** ProjectIntentView */
         ProjectIntentView: {
@@ -1847,7 +2096,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.20.0";
+            schema_version: "1.21.0";
             /** Summaries */
             summaries: components["schemas"]["ComparisonAreaSummaryView"][];
             /** Total Change Count */
@@ -1866,7 +2115,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.20.0";
+            schema_version: "1.21.0";
             source: components["schemas"]["SourceView"];
             /** Stages */
             stages: components["schemas"]["StageView"][];
@@ -1880,7 +2129,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: "1.20.0";
+            schema_version: "1.21.0";
             window: components["schemas"]["RevisionListWindowView"];
         };
         /** RevisionListWindowView */
@@ -2285,6 +2534,38 @@ export interface operations {
             };
         };
     };
+    declarative_cad_artifact_api_v1_live_cad_declarative__generation_id___filename__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                filename: string;
+                generation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     generate_live_l_bracket_api_v1_live_cad_l_bracket_post: {
         parameters: {
             query?: never;
@@ -2458,6 +2739,39 @@ export interface operations {
             };
         };
     };
+    project_cad_proposal_api_v1_projects__project_id__cad_proposal_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-ariad-session"?: string | null;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectCadProposalView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     save_project_design_plan_api_v1_projects__project_id__design_plan_put: {
         parameters: {
             query?: never;
@@ -2552,6 +2866,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProjectDraftView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generate_project_declarative_cad_api_v1_projects__project_id__generate_cad_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-ariad-session"?: string | null;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeclarativeCadResponse"];
                 };
             };
             /** @description Validation Error */

@@ -723,6 +723,16 @@ This file records accepted project-level decisions. Change an accepted decision 
 
 **Boundary:** This action is live digital generation but is not promoted into the Journey evidence ladder. It does not run arbitrary generated code, select a printer profile, assess printability, slice, contact hardware, or establish physical success. The prepared robot remains the richer multi-part reference journey, and unsupported prompt families still stop at planning.
 
+### D-066 - Expand general hard-surface generation through a closed declarative CAD language
+
+**Status:** Accepted by the project owner on 2026-07-22 by selecting the real general-generation path. This supersedes D-065's product restriction to prepared families while retaining its prohibition on generated-code execution and downstream evidence claims.
+
+**Decision:** A confirmed free-form fabrication prompt may ask the locally authenticated Codex agent to propose a versioned declarative CSG document. The closed document permits at most eight separately manufactured parts and a bounded sequence of boxes, cylinders, spheres, cones, transforms, and boolean operations. Codex can only call the non-mutating `ariad.propose_cad_document` tool. Ariad validates every field, count, number, primitive, transform, and R0 binding before its deterministic CadQuery interpreter creates exact STEP, per-part STL, and GLB preview artifacts. Each resulting part must reify as one kernel-valid solid. A changed proposal receives a content-derived generation identity; one failed interpretation may return to Codex for a simpler correction.
+
+**User contract:** The default Build Session attempts a fresh model for a new hard-surface prompt and keeps the result in the CAD, Verify, Slice-input, and digital Package flow. The user can request a model revision in plain language. The registered L-bracket remains a deterministic family test, and the robot remains a prepared full-evidence reference; neither is silently substituted for a general prompt.
+
+**Boundary:** This is bounded model-proposed digital geometry, not unrestricted CAD intelligence or generated code. It is strongest for objects that decompose into the registered primitives. Organic surfaces, exact semantic fit, moving assemblies, tolerances, wall adequacy, support strategy, printability, slicing, strength, safety, and physical success remain unverified until their own gates run. A valid solid is not a printable claim. The interpreter runs validated data in the API process; future breadth or untrusted executable CAD still requires the qualified sandbox from D-014/D-048.
+
 ## Deferred decisions
 
 These require later evidence and should not be decided through preference alone:

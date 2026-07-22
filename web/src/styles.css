@@ -2694,8 +2694,19 @@ main {
 .live-check-grid b { margin-right: .35rem; }
 .live-cad-boundary { margin-top: 1rem; padding: .8rem 1rem; border-left: 3px solid #c72c23; background: #fff4eb; }
 .live-cad-boundary p { margin: .3rem 0 0; color: #6c5d52; font-size: .8rem; line-height: 1.45; }
+.declarative-part-list { display: grid; align-content: start; gap: .65rem; }
+.declarative-part-list article { display: grid; gap: .2rem; padding: .75rem; border: 1px solid #d9d1c6; border-radius: .6rem; background: #fffdfa; }
+.declarative-part-list article span, .declarative-part-list article small { color: #6d655d; }
+.cad-revision-prompt { margin-top: 1rem; padding: 1rem; border: 1px solid #d9d1c6; border-radius: .7rem; background: #f8f4ee; }
+.cad-revision-prompt label { display: block; margin-bottom: .55rem; font-weight: 750; }
+.cad-revision-prompt > div { display: grid; grid-template-columns: 1fr auto; gap: .65rem; }
+.cad-revision-prompt input { min-width: 0; border: 1px solid #bdb3a7; border-radius: .6rem; padding: .75rem .85rem; background: #fffdfa; color: #171414; font: inherit; }
+.declarative-assumptions { margin-top: 1rem; }
+.declarative-assumptions > div { padding: .4rem 1rem 1rem; }
+.declarative-assumptions p { margin: .4rem 0; color: #6d655d; }
 @media (max-width: 800px) { .cad-workspace-layout { grid-template-columns: 1fr; } .cad-part-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); max-height: none; } .cad-workspace-heading, .cad-component-basis, .cad-next-step, .robot-package-summary, .calibration-first-print { align-items: stretch; flex-direction: column; } .cad-next-actions { align-items: stretch; flex-direction: column; } .cad-flow-strip { grid-template-columns: repeat(2, 1fr); } .cad-flow-strip > span:nth-child(3) { border-left: 0; border-top: 1px solid #ded5ca; } .cad-flow-strip > span:nth-child(4) { border-top: 1px solid #ded5ca; } .cad-part-preview .model-viewport { min-height: 330px; } .robot-check-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 800px) { .live-cad-proof, .live-cad-artifacts, .live-check-grid { grid-template-columns: 1fr; } }
+@media (max-width: 800px) { .cad-revision-prompt > div { grid-template-columns: 1fr; } }
 
 /* Demo hardening: one clear purpose per stage. */
 .supported-path-note { display: flex; flex-direction: column; gap: .18rem; margin: .75rem 0; padding: .7rem .8rem; border-left: 3px solid #2e7655; background: #edf7f0; color: #355746; font-size: .76rem; line-height: 1.4; }

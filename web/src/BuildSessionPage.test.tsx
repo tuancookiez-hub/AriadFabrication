@@ -38,6 +38,16 @@ function robotPackage() {
   }
 }
 
+function declarativeResult() {
+  return {
+    schema_version: '1.21.0', generation_id: 'csg_12345678901234567890', generated_at: '2026-07-22T00:00:00+00:00', document_sha256: 'e'.repeat(64), interpreter_version: '0.1.0',
+    document: { contract_version: '1.0.0', title: 'Desktop phone stand', summary: 'A new stand composed from bounded primitives.', assumptions: ['Generic phone'], warnings: ['Fit unverified'], parts: [{ part_id: 'stand', name: 'Stand', purpose: 'Hold phone', operations: [{ operation_id: 'base', combine: 'base', primitive: 'box', size_x_mm: 80, size_y_mm: 60, size_z_mm: 6, radius_mm: 0, radius2_mm: 0, position_x_mm: 0, position_y_mm: 0, position_z_mm: 0, rotation_x_deg: 0, rotation_y_deg: 0, rotation_z_deg: 0 }] }] },
+    checks: { part_count: 1, all_parts_kernel_valid: true, all_parts_single_solid: true, bounds_mm: { x: 80, y: 60, z: 80 }, preview_triangle_count: 48, parts: [{ part_id: 'stand', kernel_valid: true, solid_count: 1, bounds_mm: { x: 80, y: 60, z: 80 }, operation_count: 1 }] },
+    artifacts: [{ role: 'browser_preview', part_id: null, filename: 'preview.glb', media_type: 'model/gltf-binary', size_bytes: 1400, checksum_sha256: 'f'.repeat(64), download_url: '/api/v1/live-cad/declarative/csg_12345678901234567890/preview.glb' }],
+    cache_reused: false, evidence_mode: 'model_proposed_live_digital_generation', claim_boundary: 'Digital geometry only.', hardware_actions: false, physical_validation: false,
+  }
+}
+
 describe('BuildSessionPage', () => {
   it('presents the demo example as an assembly plan instead of generated concept art', async () => {
     vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL) => {
@@ -48,7 +58,7 @@ describe('BuildSessionPage', () => {
 
     expect(screen.getByText('Codex will guide this build.')).toBeInTheDocument()
     expect(screen.getByText('Ask only what matters')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Use robot example' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Use robot reference' }))
     expect(screen.getByLabelText('What should Ariad help you make?')).toHaveValue('Make a cute two-servo robot around a Raspberry Pi Zero 2 W, two SCS0009 servos, a camera, and an IMU. Give it exactly two long rotating side limbs and no fixed feet so it can explore recovery after a fall. Use separate serviceable printed parts and external regulated power for the first revision.')
   })
 
@@ -66,7 +76,7 @@ describe('BuildSessionPage', () => {
     expect(await screen.findByRole('heading', { name: 'Review the choices that shape the result' })).toBeInTheDocument()
     expect(screen.getByDisplayValue('multi-part robot enclosure')).toBeInTheDocument()
     expect(screen.getByDisplayValue('PETG')).toBeInTheDocument()
-    expect(screen.getByText('Use a Pi Zero 2 W and SCS0009 servos now; select the exact camera, IMU, and power cable before physical release.')).toBeInTheDocument()
+    expect(screen.getByText('Which exact real-world object or component should define the critical fit?')).toBeInTheDocument()
     expect(screen.queryByText(/configure GPT/i)).not.toBeInTheDocument()
     expect(screen.getByText(/Approve it once/i)).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: '← Back to idea' }))
@@ -88,7 +98,7 @@ describe('BuildSessionPage', () => {
     }))
     render(<MemoryRouter><BuildSessionPage /></MemoryRouter>)
 
-    fireEvent.change(screen.getByLabelText('What should Ariad help you make?'), { target: { value: 'Make a robot.' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Use robot reference' }))
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Approve and continue' }))
 
@@ -118,7 +128,7 @@ describe('BuildSessionPage', () => {
     }))
     const view = render(<MemoryRouter><BuildSessionPage /></MemoryRouter>)
 
-    fireEvent.change(screen.getByLabelText('What should Ariad help you make?'), { target: { value: 'Make a robot.' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Use robot reference' }))
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Approve and continue' }))
 
@@ -159,7 +169,7 @@ describe('BuildSessionPage', () => {
     let generationBody: Record<string, unknown> | null = null
     vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input)
-      if (url.endsWith('/api/v1/session')) return response({ schema_version: '1.20.0', session_token: 'browser-secret' })
+      if (url.endsWith('/api/v1/session')) return response({ schema_version: '1.21.0', session_token: 'browser-secret' })
       if (url.endsWith('/api/v1/intake')) return response(intake)
       if (url.endsWith('/api/v1/projects') && init?.method === 'POST') return response({ project_id: 'project_bracket', title: 'Bracket', prompt: 'Make a bracket.' })
       if (url.endsWith('/draft')) return response({ status: 'ready_for_confirmation', missing_fields: [] })
@@ -169,7 +179,7 @@ describe('BuildSessionPage', () => {
       if (url.endsWith('/api/v1/live-cad/l-bracket')) {
         generationBody = JSON.parse(String(init?.body)) as Record<string, unknown>
         return response({
-          schema_version: '1.20.0', generation_id: 'lbracket_12345678901234567890', design_id: 'ariad_l_bracket_v1', design_source_version: '0.1.0', generated_at: '2026-07-22T00:00:00+00:00', parameter_sha256: 'a'.repeat(64),
+          schema_version: '1.21.0', generation_id: 'lbracket_12345678901234567890', design_id: 'ariad_l_bracket_v1', design_source_version: '0.1.0', generated_at: '2026-07-22T00:00:00+00:00', parameter_sha256: 'a'.repeat(64),
           parameters: { width_mm: 72, base_depth_mm: 44, upright_height_mm: 50, thickness_mm: 4.4, hole_diameter_mm: 4.2, hole_spacing_mm: 39.6, edge_margin_mm: 7.2 },
           checks: { kernel_valid: true, solid_count: 1, bounds_mm: { x: 72, y: 44, z: 50 }, preview_triangle_count: 240 },
           artifacts: [{ role: 'browser_preview', filename: 'preview.glb', media_type: 'model/gltf-binary', size_bytes: 1200, checksum_sha256: 'b'.repeat(64), download_url: '/api/v1/live-cad/lbracket_12345678901234567890/preview.glb' }],
@@ -181,6 +191,7 @@ describe('BuildSessionPage', () => {
     }))
     render(<MemoryRouter><BuildSessionPage /></MemoryRouter>)
 
+    fireEvent.click(screen.getByRole('button', { name: 'Use live bracket example' }))
     fireEvent.change(screen.getByLabelText('What should Ariad help you make?'), { target: { value: 'Make a 72 x 44 x 50 mm L-bracket in PETG.' } })
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Approve and continue' }))
@@ -190,5 +201,60 @@ describe('BuildSessionPage', () => {
     await waitFor(() => expect(generationBody).not.toBeNull())
     expect(generationBody).toMatchObject({ width_mm: 72, base_depth_mm: 44, upright_height_mm: 50 })
     expect(screen.getByText('lbracket_12345678901234567890')).toBeInTheDocument()
+  })
+
+  it('uses local Codex to propose and generate new declarative CAD for a general prompt', async () => {
+    let statusRead = false
+    let turnCount = 0
+    let secondTurnEventReads = 0
+    vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input)
+      if (url.endsWith('/api/v1/session')) return response({ schema_version: '1.21.0', session_token: 'browser-secret' })
+      if (url.endsWith('/api/v1/codex/status')) { statusRead = true; return response({ conversation_available: true }) }
+      if (url.endsWith('/api/v1/intake')) return response(intake)
+      if (url.endsWith('/api/v1/projects') && init?.method === 'POST') return response({ project_id: 'project_phone', title: 'Phone stand', prompt: 'Make a phone stand.' })
+      if (url.endsWith('/draft')) return response({ status: 'ready_for_confirmation', missing_fields: [] })
+      if (url.endsWith('/brief-confirmation')) return response({ project_id: 'project_phone', job_id: 'job_phone', revision_id: 'rev_phone', evidence_level: 'R0' })
+      if (url.endsWith('/design-proposal')) return missing()
+      if (url.endsWith('/design-plan')) return response({ lane: 'functional_parametric', geometry_strategy: 'Closed CSG.', critical_features: [], assembly_interfaces: [], constraints: [], unresolved_questions: [] })
+      if (url.endsWith('/api/v1/codex/turns')) {
+        turnCount += 1
+        return response({ turn_id: `turn_csg_${turnCount}`, accepted: true, tools_registered: 5 })
+      }
+      if (url.includes('/api/v1/codex/events')) {
+        const firstTurnEvents = [{ contract_version: '1.1.0', sequence: 1, event_type: 'tool_started', turn_id: 'turn_csg_1', text: '', tool_name: 'ariad.propose_cad_document' }, { contract_version: '1.1.0', sequence: 2, event_type: 'tool_completed', turn_id: 'turn_csg_1', text: '', tool_name: 'ariad.propose_cad_document' }, { contract_version: '1.1.0', sequence: 3, event_type: 'turn_completed', turn_id: 'turn_csg_1', text: '', tool_name: null }]
+        if (turnCount === 1) return response({ next_sequence: 3, active_turn_id: null, tools_registered: 5, events: firstTurnEvents })
+        secondTurnEventReads += 1
+        if (secondTurnEventReads === 1) return response({ next_sequence: 3, active_turn_id: 'turn_csg_2', tools_registered: 5, events: firstTurnEvents })
+        return response({ next_sequence: 6, active_turn_id: null, tools_registered: 5, events: [{ contract_version: '1.1.0', sequence: 4, event_type: 'tool_started', turn_id: 'turn_csg_2', text: '', tool_name: 'ariad.propose_cad_document' }, { contract_version: '1.1.0', sequence: 5, event_type: 'tool_completed', turn_id: 'turn_csg_2', text: '', tool_name: 'ariad.propose_cad_document' }, { contract_version: '1.1.0', sequence: 6, event_type: 'turn_completed', turn_id: 'turn_csg_2', text: '', tool_name: null }] })
+      }
+      const currentResult = () => {
+        const result = declarativeResult()
+        if (turnCount < 2 || secondTurnEventReads < 2) return result
+        return { ...result, generation_id: 'csg_22222222222222222222', document_sha256: '2'.repeat(64), document: { ...result.document, title: 'Wider desktop phone stand' } }
+      }
+      if (url.endsWith('/cad-proposal')) return response({ tool_contract: '1.0.0', project_id: 'project_phone', document: currentResult().document, executed: false })
+      if (url.endsWith('/generate-cad')) return response(currentResult())
+      if (url.endsWith('/preview.glb')) return new Response(new ArrayBuffer(0), { status: 200 })
+      throw new Error(`Unexpected request: ${url}`)
+    }))
+    render(<MemoryRouter><BuildSessionPage /></MemoryRouter>)
+    await waitFor(() => expect(statusRead).toBe(true))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Use phone stand example' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Approve and continue' }))
+
+    expect(await screen.findByRole('heading', { name: 'Codex proposed it. Ariad generated it.' }, { timeout: 4000 })).toBeInTheDocument()
+    expect(screen.getByText('Desktop phone stand')).toBeInTheDocument()
+    expect(screen.getByText('csg_12345678901234567890')).toBeInTheDocument()
+    expect(screen.getByLabelText('Change this model')).toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText('Change this model'), { target: { value: 'Make the base 10 mm wider.' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Revise with Codex' }))
+
+    expect(await screen.findByText('Wider desktop phone stand', {}, { timeout: 4000 })).toBeInTheDocument()
+    expect(screen.getByText('csg_22222222222222222222')).toBeInTheDocument()
+    expect(secondTurnEventReads).toBe(2)
   })
 })

@@ -36,12 +36,13 @@ conversation surface and has called Ariad's bounded idea-capture tool. Codex is
 not allowed to declare geometry, printability, slicing, or physical success;
 deterministic tools and persisted artifacts own those claims.
 
-The long-term product accepts many fabrication ideas and routes them to
-functional parametric CAD, organic mesh generation, clarification, or an
-unsupported state. Today, one bounded seven-parameter L-bracket family generates
-fresh CAD from judge-entered dimensions, while the robot and Golden Part provide
-prepared multi-part and full-evidence reference journeys. The UI says which path
-is live rather than pretending every prompt generated the prepared references.
+The product now accepts a new hard-surface fabrication prompt and asks local
+Codex for a closed declarative CSG proposal. Ariad validates and interprets that
+data into fresh multi-part STEP, STL, and GLB artifacts rather than swapping in a
+prepared result. The bounded seven-parameter L-bracket remains the deterministic
+family test, while the robot and Golden Part provide prepared multi-part and
+full-evidence reference journeys. The UI says which path is live and preserves
+the boundary between kernel-valid digital geometry and printability evidence.
 
 ## What judges can run today
 
@@ -74,12 +75,19 @@ runs root. Those records are visibly marked as fixtures and provide no
 fabrication evidence. R0 project confirmation is disabled in this mode so the
 committed fixture cannot be mutated; use `-Evidence runs` for the live project flow.
 
-To prove the browser is not replaying a pre-generated bracket, open **Build
-session**, choose **Use live bracket example**, change `60 x 40 x 45 mm` to a
-different in-range size such as `72 x 44 x 50 mm`, and approve the Brief. Ariad
-will display a new parameter hash and generation ID and serve the resulting STEP,
-STL, and GLB. This test proves bounded digital CAD generation only; it does not
-claim slicing, printability, or physical success for that parameter set.
+To test real general generation, start with `-CodexBin` pointing to the judge's
+own authenticated native Codex executable, open **Build session**, and enter a
+new hard-surface request such as an `80 x 60 x 80 mm desktop phone stand with a
+stable base, angled back, retaining lip, and cable opening`. After one Brief
+approval, Codex calls `ariad.propose_cad_document`; Ariad displays the new
+document hash, generation ID, generated parts, kernel checks, viewport, and
+downloadable STEP/STL/GLB artifacts. Enter a revision such as `make the base 10 mm
+wider` to exercise a second proposal. This best-effort path can reject geometry
+and does not claim slicing, printability, semantic fit, or physical success.
+
+For a model-independent deterministic check, choose **Use live bracket example**,
+change `60 x 40 x 45 mm` to `72 x 44 x 50 mm`, and approve the Brief. The changed
+parameter identity produces a different generated artifact set without Codex.
 
 For the real disconnected benchmark:
 
@@ -143,8 +151,8 @@ at the failed gate and that fixture evidence can never be promoted to real.
 Show the repository test result and one concise architecture view. Explain:
 
 - Codex accelerated implementation, audits, adversarial tests, and UI iteration.
-- GPT-5.6 Codex converses through Ariad and can call four bounded,
-  non-mutating Ariad tools, including an R0-bound Design-plan proposal tool.
+- GPT-5.6 Codex converses through Ariad and can call five bounded,
+  non-mutating Ariad tools, including R0-bound Design-plan and declarative-CAD proposal tools.
 - CAD, OCCT validation, PrusaSlicer, and persisted checks own downstream claims.
 
 End on: **“Follow the thread from idea to evidence.”**
@@ -158,7 +166,7 @@ developer-tool installation/testing instructions.
 
 | Requirement | Evidence | State |
 |---|---|---|
-| Working project | Guided prompt-to-R0-to-Design flow, live bounded L-bracket CAD, robot assembly foundation, real R2/R4 benchmark, React evidence explorer, curated showcase | Live full-demo rehearsal passed; arbitrary generated-code CAD remains unavailable |
+| Working project | Guided prompt-to-R0-to-new declarative CAD, live bounded L-bracket CAD, robot assembly foundation, real R2/R4 benchmark, React evidence explorer, curated showcase | General path is bounded data interpretation; arbitrary generated-code CAD remains unavailable |
 | Category | Developer Tools | Ready |
 | Project description | Draft above | Draft |
 | Public demo under 3 minutes | Script and `DEMO_RUNBOOK.md` | Not recorded |
@@ -167,11 +175,11 @@ developer-tool installation/testing instructions.
 | README setup instructions | Root README | Present; final clean-machine audit pending |
 | Sample data | `benchmarks/interface/` and Golden Part benchmark | Present |
 | Codex contribution explanation | Factual description and timed demo narration | Ready for owner rewrite/rehearsal |
-| GPT-5.6 working use | Real local Codex turns called `ariad.capture_idea` and the R0-bound `ariad.propose_design_plan` without persisting CAD or plan state | Ready on the builder's authenticated machine; judges use their own Codex authentication |
+| GPT-5.6 working use | Real local Codex turns called `ariad.capture_idea`, `ariad.propose_design_plan`, and `ariad.propose_cad_document`; only Ariad's closed interpreter executes the approved CAD document | Ready on the builder's authenticated machine; judges use their own Codex authentication |
 | `/feedback` session ID | Submission form field | Missing; do not substitute a task/thread ID without verification |
 | Judge test path without rebuilding artifacts | README judge quickstart, live bracket instructions above, and `scripts/start_demo.ps1`; fixture fallback when no local R4 exists | Local showcase and live-CAD rehearsals passed; clean-machine audit pending |
 
-Live rehearsal evidence through 2026-07-20: authenticated Codex completed real `ariad.capture_idea` and R0-bound Design-proposal turns; the Guided Build Session passed prompt → draft → explicit R0 → editable Design planning; the curated catalog contained one real R4 and six valid fixtures; the real GLB viewport and 250-layer G-code player loaded without browser errors; failed Geometry stopped at its gate; and revision comparison returned 12 bounded changes. The backend passes 264 tests: 262 ordinary/contract tests plus two separately run sealed R4 integrations. Twenty-four deterministic frontend tests, generated-type drift, lint, and production build pass.
+Live rehearsal evidence through 2026-07-22: authenticated Codex completed real idea, Design-proposal, and declarative-CAD turns; a fresh phone-stand prompt and a plain-language width revision produced different bounded multi-part geometry, generation IDs, document hashes, STEP/STL artifacts, and GLB previews; the Guided Build Session passed through its honest Verify, Slice-input, and digital-package boundaries without browser errors. The curated evidence catalog still contains the real R4 Golden Part and bounded fixtures. All 284 backend tests pass across isolated groups, and 27 deterministic frontend tests pass with two optional real-artifact skips; generated-type drift, lint, and production build also pass.
 
 ## Claims allowed in the submission
 
@@ -179,6 +187,8 @@ Live rehearsal evidence through 2026-07-20: authenticated Codex completed real `
   registered Golden Part.
 - The registered L-bracket family generates parameter-bound STEP, STL, and GLB
   artifacts live, with kernel checks and content identities.
+- A new hard-surface prompt can produce a fresh bounded multi-part CSG proposal;
+  Ariad validates and interprets it into content-identified digital geometry.
 - Real PrusaSlicer output exists for the pinned generic profile bundle.
 - The package is traceable and reproducible under the recorded local toolchain.
 - The interface distinguishes real, simulated, fixture, and unavailable state.

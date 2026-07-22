@@ -8,6 +8,7 @@ from threading import Lock
 from typing import Any, Mapping
 
 from ..agent_tools import exposed_codex_tools
+from ..cad.declarative import DeclarativeCadDocument
 from ..intake import CapabilityLane, CurrentCapabilityRouter, IntentProposal, PromptIntake
 from .project_store import ProjectIntentStore, ProjectStoreError
 from .repository import InvalidRevisionError, JourneyRepository, RevisionNotFoundError
@@ -15,6 +16,7 @@ from .repository import InvalidRevisionError, JourneyRepository, RevisionNotFoun
 
 MAX_AGENT_TOOL_OUTPUT_BYTES = 256 * 1024
 MAX_EPHEMERAL_DESIGN_PROPOSALS = 100
+MAX_EPHEMERAL_CAD_PROPOSALS = 50
 
 
 class AgentToolCallError(RuntimeError):
@@ -30,6 +32,7 @@ class ReadOnlyAgentToolRuntime:
         self._descriptors = {item.name: item for item in exposed_codex_tools()}
         self._proposal_lock = Lock()
         self._design_proposals: OrderedDict[str, dict[str, Any]] = OrderedDict()
+        self._cad_proposals: OrderedDict[str, dict[str, Any]] = OrderedDict()
 
     @property
     def tool_specs(self) -> tuple[dict[str, Any], ...]:
@@ -37,7 +40,7 @@ class ReadOnlyAgentToolRuntime:
             {
                 "type": "namespace",
                 "name": "ariad",
-                "description": "Read-only Ariad fabrication intake, planning, and evidence tools.",
+                "description": "Read-only Ariad fabrication intake, planning, declarative-CAD proposal, and evidence tools.",
                 "tools": [
                     {
                         "type": "function",
@@ -66,6 +69,8 @@ class ReadOnlyAgentToolRuntime:
                 result = self._read_evidence(arguments)
             elif name == "ariad.propose_design_plan":
                 result = self._propose_design_plan(arguments)
+            elif name == "ariad.propose_cad_document":
+                result = self._propose_cad_document(arguments)
             else:  # pragma: no cover - catalog and dispatch are asserted together
                 raise AgentToolCallError("Ariad tool dispatch is unavailable.")
         except AgentToolCallError:
@@ -205,10 +210,71 @@ class ReadOnlyAgentToolRuntime:
             return None
         return snapshot
 
+    def _propose_cad_document(self, arguments: Mapping[str, Any]) -> dict[str, Any]:
+        project_id = arguments.get("project_id")
+        if (
+            not isinstance(project_id, str)
+            or not project_id.startswith("project_")
+            or len(project_id) != 40
+        ):
+            raise AgentToolCallError("Declarative-CAD project_id is invalid.")
+        brief = self._project_store.get_brief(project_id)
+        if brief is None:
+            raise AgentToolCallError("An R0 Brief is required before a CAD proposal.")
+        document = DeclarativeCadDocument.from_mapping(
+            {key: value for key, value in arguments.items() if key != "project_id"}
+        )
+        result = {
+            "tool_contract": "1.0.0",
+            "project_id": project_id,
+            "job_id": brief.job_id,
+            "revision_id": brief.revision_id,
+            "brief_draft_sha256": brief.draft_sha256,
+            "document": document.to_dict(),
+            "persisted": False,
+            "executed": False,
+            "evidence_mode": "model_proposal",
+            "hardware_actions": False,
+            "physical_validation": False,
+            "claim_boundary": (
+                "Codex proposed bounded declarative geometry only. Ariad has not yet "
+                "executed CAD, validated semantics or printability, sliced, or contacted hardware."
+            ),
+        }
+        with self._proposal_lock:
+            self._cad_proposals.pop(project_id, None)
+            self._cad_proposals[project_id] = json.loads(json.dumps(result))
+            while len(self._cad_proposals) > MAX_EPHEMERAL_CAD_PROPOSALS:
+                self._cad_proposals.popitem(last=False)
+        return result
+
+    def latest_cad_proposal(self, project_id: str) -> dict[str, Any] | None:
+        """Return a defensive copy only while it matches the current R0 Brief."""
+
+        with self._proposal_lock:
+            proposal = self._cad_proposals.get(project_id)
+            snapshot = json.loads(json.dumps(proposal)) if proposal is not None else None
+        if snapshot is None:
+            return None
+        try:
+            brief = self._project_store.get_brief(project_id)
+        except ProjectStoreError:
+            return None
+        if brief is None or (
+            snapshot["job_id"] != brief.job_id
+            or snapshot["revision_id"] != brief.revision_id
+            or snapshot["brief_draft_sha256"] != brief.draft_sha256
+        ):
+            with self._proposal_lock:
+                self._cad_proposals.pop(project_id, None)
+            return None
+        return snapshot
+
 
 __all__ = [
     "AgentToolCallError",
     "MAX_EPHEMERAL_DESIGN_PROPOSALS",
+    "MAX_EPHEMERAL_CAD_PROPOSALS",
     "MAX_AGENT_TOOL_OUTPUT_BYTES",
     "ReadOnlyAgentToolRuntime",
 ]

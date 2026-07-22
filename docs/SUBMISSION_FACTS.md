@@ -34,7 +34,7 @@ Use this as a factual worksheet. Rewrite the final Devpost description in your o
 
 - GPT-5.6 Codex was the primary collaborator used to plan, implement, test, audit, research, and visually rehearse Ariad during the submission period.
 - Real locally authenticated Codex turns called Ariad's bounded idea-capture and R0-bound Design-proposal tools.
-- Ariad exposes four non-mutating Codex tools. Codex cannot persist the Design plan, execute generated CAD, produce production G-code, or contact hardware through those tools.
+- Ariad exposes five non-mutating Codex tools. The fifth records a closed R0-bound declarative-CAD proposal; Codex still cannot persist the Design plan, execute generated code, produce production G-code, or contact hardware through those tools. Ariad separately validates and interprets the approved proposal as bounded digital geometry.
 - Deterministic CadQuery/OCCT code owns geometry evidence. PrusaSlicer owns G-code generation. Ariad records the evidence chain.
 - Preserve the primary build task's verified `/feedback` Session ID in the Devpost form.
 
@@ -51,8 +51,8 @@ Use this as a factual worksheet. Rewrite the final Devpost description in your o
 
 ## Verified state
 
-- Backend verification: the current lightweight suite runs **270 tests successfully** with 23 optional CAD/slicer skips; the coupon's six focused tests also pass fully in the pinned CAD environment. The previously recorded sealed R4 integrations remain separate evidence.
-- Frontend: **24 deterministic tests passed**, with two optional real-artifact tests skipped when their local artifacts are absent.
+- Backend verification: **284 tests pass** across bounded groups, including the pinned real CAD/slicer and sealed R4 integrations. The serial aggregate command exceeds ten minutes on the development host because the 38-test heavy group takes about seven minutes, so the same complete file set is run in isolated groups for actionable results.
+- Frontend: **27 deterministic tests passed**, with two optional real-artifact tests skipped when their local artifacts are absent.
 - Generated OpenAPI types, TypeScript, ESLint, production build, and live browser rehearsals pass.
 - A valid local real R4 Golden Part revision contains a browser model, 250-layer slicer toolpath, profile evidence, and fabrication package.
 

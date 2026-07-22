@@ -23,8 +23,8 @@ from ..intake import CapabilityLane, RouteStatus
 from ..local_codex import LocalCodexStatus
 
 
-InterfaceApiVersion = Literal["1.20.0"]
-INTERFACE_API_VERSION: InterfaceApiVersion = "1.20.0"
+InterfaceApiVersion = Literal["1.21.0"]
+INTERFACE_API_VERSION: InterfaceApiVersion = "1.21.0"
 Timestamp = Annotated[str, Field(json_schema_extra={"format": "date-time"})]
 
 
@@ -167,7 +167,7 @@ class ConversationTurnResponse(ApiModel):
     schema_version: InterfaceApiVersion
     turn_id: str
     accepted: Literal[True]
-    tools_registered: Literal[4]
+    tools_registered: Literal[5]
     workspace_mutation_enabled: Literal[False]
     hardware_actions: Literal[False]
 
@@ -186,7 +186,7 @@ class ConversationEventsResponse(ApiModel):
     events: list[ConversationEventView]
     active_turn_id: str | None
     next_sequence: int
-    tools_registered: Literal[4]
+    tools_registered: Literal[5]
     workspace_mutation_enabled: Literal[False]
     hardware_actions: Literal[False]
 
@@ -324,6 +324,97 @@ class LiveLBracketResponse(ApiModel):
     artifacts: list[LiveCadArtifactView]
     cache_reused: bool
     evidence_mode: Literal["live_digital_generation"]
+    claim_boundary: str
+    hardware_actions: Literal[False]
+    physical_validation: Literal[False]
+
+
+class CsgOperationView(ApiModel):
+    operation_id: str
+    combine: Literal["base", "union", "cut", "intersect"]
+    primitive: Literal["box", "cylinder", "sphere", "cone"]
+    size_x_mm: float = Field(ge=0, le=400)
+    size_y_mm: float = Field(ge=0, le=400)
+    size_z_mm: float = Field(ge=0, le=400)
+    radius_mm: float = Field(ge=0, le=200)
+    radius2_mm: float = Field(ge=0, le=200)
+    position_x_mm: float = Field(ge=-500, le=500)
+    position_y_mm: float = Field(ge=-500, le=500)
+    position_z_mm: float = Field(ge=-500, le=500)
+    rotation_x_deg: float = Field(ge=-360, le=360)
+    rotation_y_deg: float = Field(ge=-360, le=360)
+    rotation_z_deg: float = Field(ge=-360, le=360)
+
+
+class CsgPartView(ApiModel):
+    part_id: str
+    name: str
+    purpose: str
+    operations: list[CsgOperationView]
+
+
+class DeclarativeCadDocumentView(ApiModel):
+    contract_version: Literal["1.0.0"]
+    title: str
+    summary: str
+    parts: list[CsgPartView]
+    assumptions: list[str]
+    warnings: list[str]
+
+
+class ProjectCadProposalView(ApiModel):
+    tool_contract: Literal["1.0.0"]
+    project_id: str
+    job_id: str
+    revision_id: str
+    brief_draft_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    document: DeclarativeCadDocumentView
+    persisted: Literal[False]
+    executed: Literal[False]
+    evidence_mode: Literal["model_proposal"]
+    hardware_actions: Literal[False]
+    physical_validation: Literal[False]
+    claim_boundary: str
+
+
+class DeclarativePartCheckView(ApiModel):
+    part_id: str
+    kernel_valid: bool
+    solid_count: int = Field(ge=0)
+    bounds_mm: LiveCadBoundsView
+    operation_count: int = Field(gt=0)
+
+
+class DeclarativeCadChecksView(ApiModel):
+    part_count: int = Field(gt=0)
+    all_parts_kernel_valid: bool
+    all_parts_single_solid: bool
+    bounds_mm: LiveCadBoundsView
+    preview_triangle_count: int = Field(gt=0)
+    parts: list[DeclarativePartCheckView]
+
+
+class DeclarativeCadArtifactView(ApiModel):
+    role: Literal["assembly_step", "browser_preview", "part_step", "part_stl"]
+    part_id: str | None
+    filename: str
+    media_type: str
+    size_bytes: int = Field(gt=0)
+    checksum_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    download_url: str
+
+
+class DeclarativeCadResponse(ApiModel):
+    schema_version: InterfaceApiVersion
+    generation_id: str
+    generated_at: Timestamp
+    document_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    interpreter_version: str
+    document: DeclarativeCadDocumentView
+    checks: DeclarativeCadChecksView
+    artifacts: list[DeclarativeCadArtifactView]
+    cache_reused: bool
+    evidence_mode: Literal["model_proposed_live_digital_generation"]
     claim_boundary: str
     hardware_actions: Literal[False]
     physical_validation: Literal[False]
